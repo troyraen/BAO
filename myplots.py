@@ -4,6 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import imp
 
+import get_stats as gs
+
 # set plot defaults
 mpl.rcParams['font.size'] = 14
 mpl.rcParams['legend.fontsize'] = 'small'
@@ -37,7 +39,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     np.random.shuffle(lg)
     lg = lg[:int(0.05*len(galaxy_table['x']))]
 
-    plt.figure(figsize=(10,6))
+    plt.figure(figsize=(7,7))
     ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
@@ -49,7 +51,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         ax.set_zlabel('z')
 
     elif coords == 'radecz':
-        x, y, z = get_ra_dec_z(galaxy_table)
+        x, y, z = gs.get_ra_dec_z(galaxy_table)
         ax.set_xlabel('RA')
         ax.set_ylabel('DEC')
         ax.set_zlabel('z')
