@@ -24,6 +24,9 @@ def get_stats(halocat, HODmodel, bins, repop=True):
 
 
 
+def write_to_file():
+
+
 
 def get_ra_dec_z(galaxy_table):
     coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
@@ -52,6 +55,7 @@ def calc_wtheta(galaxy_table, bins, nthreads=48, boxsize=1000):
     # gal gal
     autocorr=1
     RA, DEC, __ = get_ra_dec_z(galaxy_table)
+    # CHECK PLOT TO MAKE SURE CORRD TRANSFORM IS AS EXPECTED
     DD_counts = DDtheta_mocks(autocorr, nthreads, bins, RA, DEC)
 
     # random random
