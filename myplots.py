@@ -11,7 +11,7 @@ mpl.rcParams['figure.titlesize'] = 'medium'
 def plot_wtheta(bcens, wtheta):
     plt.figure()
     plt.scatter(bcens, wtheta)
-    # plt.plot(bcens, wtheta_avg)
+    plt.plot(bcens, wtheta)
     # plt.xlim(2.5,20)
     # plt.ylim(-0.0015, 0.005)
     # plt.legend()
@@ -27,15 +27,16 @@ def plot_wtheta(bcens, wtheta):
 
 # NOT WORKING YET
 # look at galaxy distribution
-def plot_galaxies():
+def plot_galaxies(galaxy_table, gal_frac=0.05):
     # get a random sample
-    lg = np.arange(len(gals['x']))
+    lg = np.arange(len(galaxy_table['x']))
     np.random.shuffle(lg)
-    lg = lg[:int(0.05*len(gals['x']))]
+    lg = lg[:int(0.05*len(galaxy_table['x']))]
 
     plt.figure(figsize=(8,8))
     ax = plt.axes(projection='3d')
-    ax.scatter3D(np.asarray(gals['x'][lg]), np.asarray(gals['y'][lg]), np.asarray(gals['z'][lg]),             s=0.1)
+    ax.scatter3D(np.asarray(galaxy_table['x'][lg]), np.asarray(galaxy_table['y'][lg]), \
+                    np.asarray(galaxy_table['z'][lg]), s=0.1)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
