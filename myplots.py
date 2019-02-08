@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+
 # set plot defaults
 mpl.rcParams['font.size'] = 14
 mpl.rcParams['legend.fontsize'] = 'small'
