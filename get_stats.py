@@ -1,3 +1,5 @@
+import numpy as np
+
 import Corrfunc
 from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
