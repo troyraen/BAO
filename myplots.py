@@ -38,6 +38,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     lg = lg[:int(0.05*len(galaxy_table['x']))]
 
     plt.figure(figsize=(6,10))
+    ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
         x = np.asarray(galaxy_table['x'][lg])
@@ -56,6 +57,5 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     else:
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
-    ax = plt.axes(projection='3d')
     ax.scatter3D(x, y, z, s=0.1)
     plt.show()
