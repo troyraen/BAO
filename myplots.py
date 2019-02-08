@@ -37,7 +37,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     np.random.shuffle(lg)
     lg = lg[:int(0.05*len(galaxy_table['x']))]
 
-    plt.figure(figsize=(6,10))
+    plt.figure(figsize=(10,6))
     ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
