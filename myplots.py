@@ -27,19 +27,35 @@ def plot_wtheta(bcens, wtheta):
 
 
 
-# NOT WORKING YET
 # look at galaxy distribution
-def plot_galaxies(galaxy_table, gal_frac=0.05):
+def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
+    """ Plots 3D galaxy distribution using coords cordinate basis.
+            if coords == 'radecz', will call get_ra_dec_z to transform the coordinates
+    """
     # get a random sample
     lg = np.arange(len(galaxy_table['x']))
     np.random.shuffle(lg)
     lg = lg[:int(0.05*len(galaxy_table['x']))]
 
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(6,10))
+
+    if coords == 'xyz':
+        x = np.asarray(galaxy_table['x'][lg])
+        y = np.asarray(galaxy_table['y'][lg])
+        z = np.asarray(galaxy_table['z'][lg])
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
+
+    else if coords == 'radecz':
+        x, y, z = get_ra_dec_z(galaxy_table)
+        ax.set_xlabel('RA')
+        ax.set_ylabel('DEC')
+        ax.set_zlabel('z')
+
+    else:
+        raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
+
     ax = plt.axes(projection='3d')
-    ax.scatter3D(np.asarray(galaxy_table['x'][lg]), np.asarray(galaxy_table['y'][lg]), \
-                    np.asarray(galaxy_table['z'][lg]), s=0.1)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    ax.scatter3D(x, y, z, s=0.1)
     plt.show()
