@@ -63,5 +63,5 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=0.1)
-    ax.view_init(azim=15, elev=90) # rotate the view to physical line of sight
+    ax.view_init(azim=0, elev=80) # rotate the view to physical line of sight
     plt.show()
