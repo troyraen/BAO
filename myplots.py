@@ -47,7 +47,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         ax.set_ylabel('y')
         ax.set_zlabel('z')
 
-    else if coords == 'radecz':
+    elif coords == 'radecz':
         x, y, z = get_ra_dec_z(galaxy_table)
         ax.set_xlabel('RA')
         ax.set_ylabel('DEC')
