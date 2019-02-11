@@ -8,7 +8,7 @@ from Corrfunc.utils import convert_3d_counts_to_cf
 
 
 
-def calc_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
+def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
     """Takes a halo catalog and HOD model (repopulates the mock if repop==True).
         bins = array of bin edges in degrees
         Pass fout = 'file_path' to write wtheta to a file (will append if file exists)
