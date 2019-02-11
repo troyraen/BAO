@@ -1,16 +1,17 @@
 import numpy as np
+from pathlib import Path
 
 from halotools.mock_observables import mock_survey
-
-import Corrfunc
+# import Corrfunc
 from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
 
 
-def calc_wtheta(halocat, HODmodel, bins, repop=True):
+def calc_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
     """Takes a halo catalog and HOD model (repopulates the mock if repop==True).
         bins = array of bin edges in degrees
+        Pass fout = 'file_path' to write wtheta to a file (will append if file exists)
     Returns statistics: wtheta in given bins
     """
 
@@ -20,13 +21,33 @@ def calc_wtheta(halocat, HODmodel, bins, repop=True):
     # redshift = halocat.redshift
     bcens, wtheta = calc_wtheta(galtbl, bins, boxsize=boxsize)
 
+    if type(fout) == str:
+        write_to_file(bcens, wtheta, fout)
+
     return [bcens, wtheta]
 
 
 
-def write_to_file():
+def write_to_file(bcens, wtheta, fout):
+    # check if file exists
+    fpath = Path(fout)
+    if fpath.is_file():
+    # if it does, check that bcens are the same
+        bcens0 = np.genfromtxt(fout, max_rows=1)
+        np.testing.assert_allclose(bcens0, bcens, \
+            err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
+        f = open(fout, "a")
+        np.savetxt(f, wtheta)
+    # , then append to file
+    # else:
+    hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
+    data = np.stack([bcens, wtheta])
+    np.savetxt(fout, data, fmt='%25.15e', header=hdr)
+    np.savetxt(fout, data, fmt=['%20.9f', '%20.9e'], header=hdr)
+    print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
 
 
+def load_from_file(fin):
 
 
 def get_ra_dec_z(galaxy_table):
