@@ -42,9 +42,9 @@ def write_to_file(bcens, wtheta, fout):
         np.testing.assert_allclose(bcens0, bcens, \
             err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
         print('bcens compatible with existing file. Appending wtheta...')
-        f = open(fout, "a")
-        data = np.stack([wtheta])
-        np.savetxt(f, data, fmt='%25.15e')
+        f = open(fout, "ab")
+        # data = np.stack([wtheta])
+        np.savetxt(f, wtheta, fmt='%25.15e')
     # , then append to file
     # else:
     hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
