@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import imp
 
-import get_stats as gs
+import calc_wtheta as cw
 
 # set plot defaults
 mpl.rcParams['font.size'] = 14
@@ -51,7 +51,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         ax.set_zlabel('z')
 
     elif coords == 'radecz':
-        x, y, z = gs.get_ra_dec_z(galaxy_table)
+        x, y, z = cw.get_ra_dec_z(galaxy_table)
         x = x[lg]
         y = y[lg]
         z = z[lg]

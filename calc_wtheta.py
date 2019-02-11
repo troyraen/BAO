@@ -47,7 +47,7 @@ def write_to_file(bcens, wtheta, fout):
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
 
 
-def load_from_file(fin):
+# def load_from_file(fin):
 
 
 def get_ra_dec_z(galaxy_table):
