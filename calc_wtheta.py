@@ -28,22 +28,28 @@ def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
 
 
 
+
+
+#### HELPER FUNCTIONS ####
+
 def write_to_file(bcens, wtheta, fout):
     # check if file exists
     fpath = Path(fout)
     if fpath.is_file():
+        print('File {} exists. Checking compatibility...'.format(fout))
     # if it does, check that bcens are the same
         bcens0 = np.genfromtxt(fout, max_rows=1)
         np.testing.assert_allclose(bcens0, bcens, \
             err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
+        print('bcens compatible with existing file. Appending wtheta...')
         f = open(fout, "a")
-        np.savetxt(f, wtheta)
+        np.savetxt(f, wtheta, fmt='%25.15e')
     # , then append to file
     # else:
     hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
     data = np.stack([bcens, wtheta])
     np.savetxt(fout, data, fmt='%25.15e', header=hdr)
-    np.savetxt(fout, data, fmt=['%20.9f', '%20.9e'], header=hdr)
+    # np.savetxt(fout, data, fmt=['%20.9f', '%20.9e'], header=hdr)
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
 
 
