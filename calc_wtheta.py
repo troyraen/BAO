@@ -53,8 +53,13 @@ def write_to_file(bcens, wtheta, fout):
     # , then append to file
     # else:
     hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
-    data = np.stack([bcens, wtheta])
-    np.savetxt(fout, data, fmt='%25.15e', header=hdr)
+    # data = np.stack([bcens, wtheta])
+    # np.savetxt(fout, data, fmt=['%25.15f', '%25.15e'], header=hdr)
+    data = np.stack([bcens])
+    np.savetxt(fout, data, fmt='%25.7f', header=hdr)
+    srtln = 50*len(wtheta)
+    wtstr = np.array2string(wtheta, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=srtln)[1:-1]
+    print(wtstr, file=open(fout, 'a'))
     # np.savetxt(fout, data, fmt=['%20.9f', '%20.9e'], header=hdr)
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
 
