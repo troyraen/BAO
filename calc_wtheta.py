@@ -58,11 +58,12 @@ def write_to_file(bcens, wtheta, fout):
         print('bcens compatible with existing file. Appending wtheta...')
         print(wt_cols, file=open(fout, 'a'))
 
-    # else save to new file
-    print('Writing new file {}...'.format(fout))
-    hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
-    np.savetxt(fout, bcen_cols, fmt='%25.7f', header=hdr)
-    print(wt_cols, file=open(fout, 'a'))
+    else:
+        # else save to new file
+        print('Writing new file {}'.format(fout))
+        hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
+        np.savetxt(fout, bcen_cols, fmt='%25.7f', header=hdr)
+        print(wt_cols, file=open(fout, 'a'))
 
 
 
