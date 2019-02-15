@@ -12,6 +12,7 @@ mpl.rcParams['legend.fontsize'] = 'small'
 mpl.rcParams['figure.titlesize'] = 'medium'
 
 
+
 def plot_wtheta(bcens, wtheta):
     plt.figure()
     plt.scatter(bcens, wtheta)
@@ -39,7 +40,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     np.random.shuffle(lg)
     lg = lg[:int(0.05*len(galaxy_table['x']))]
 
-    plt.figure(figsize=(7,7))
+    plt.figure(figsize=(13,13))
     ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
@@ -63,5 +64,5 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=0.1)
-    ax.view_init(azim=0, elev=80) # rotate the view to physical line of sight
+    ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
     plt.show()

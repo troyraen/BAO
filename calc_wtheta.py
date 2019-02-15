@@ -7,7 +7,7 @@ from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
 
-
+# main function
 def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
     """Takes a halo catalog and HOD model (repopulates the mock if repop==True).
         bins = array of bin edges in degrees
@@ -55,7 +55,7 @@ def write_to_file(bcens, wtheta, fout):
         np.testing.assert_allclose(bcens0, bcens, \
             err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
     # if they are, then append to file
-        print('bcens compatible with existing file. Appending wtheta...')
+        print('bcens compatible with existing file. Appending wtheta.\n')
         print(wt_cols, file=open(fout, 'a'))
 
     else:
