@@ -38,7 +38,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     # get a random sample
     lg = np.arange(len(galaxy_table['x']))
     np.random.shuffle(lg)
-    lg = lg[:int(0.05*len(galaxy_table['x']))]
+    lg = lg[:int(gal_frac*len(galaxy_table['x']))]
 
     plt.figure(figsize=(13,13))
     ax = plt.axes(projection='3d')
@@ -59,10 +59,10 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         ax.set_xlabel('RA')
         ax.set_ylabel('DEC')
         ax.set_zlabel('z')
+        ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
 
     else:
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=0.1)
-    ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
     plt.show()
