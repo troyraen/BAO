@@ -5,6 +5,42 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
+    """Takes object HODmodel.mock.galaxy_table (gtin, assumed coordinates {x,y,z} in [0,Lbox]) and
+            stacks Nstack (must be an even integer) of them together
+        Returns a np.array (gtot x 6) with {x,y,z} generated periodically, {vx,vy,vz} same as original point
+    """
+
+    N2 = int(Nstack/2)
+    assert Nstack%2 == 0, 'Nstack should be an even integer.'
+
+    gt = galaxy_table
+    x = gt['x']; y = gt['y']; z = gt['z']
+    vx = gt['vx']; vy = gt['vy']; vz = gt['vz']
+
+    ng = len(x) # number of galaxies in original box
+    gtot = ng* Nstack**3 # new total # galaxies
+    newgals = np.zeros((gtot,6))
+    nLin = np.linspace(-N2,N2-1,Nstack)*Lbox  # array of ints -N2 to N2-1
+    # boxes will be stacked around the origin by adding nLin to each galaxy coordinate
+    gnew = 0
+    for g in range(ng): # for each galaxy
+        vg = [ vx[g], vy[g], vz[g] ] # get x,y,z velocities (same for each created coord)
+        # create coordinates for stacked boxes in each direction
+        xstk = x[g]*np.ones(Nstack) +nLin # array of length Nstack
+        ystk = y[g]*np.ones(Nstack) +nLin
+        zstk = z[g]*np.ones(Nstack) +nLin
+        for i in xstk:
+            for j in ystk:
+                for k in zstk:
+                    coords = np.array([ i, j, k ] + vg)
+                    newgals[gnew] = coords # add the new galaxy
+                    gnew = gnew+1
+
+    return newgals
+
+
+
 
 def get_ra_dec_z(galaxy_table):
     coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
