@@ -1,19 +1,22 @@
+import numpy as np
+
 import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
-def setup_halos(simname='multidark', redshift=0.5, \
-        HODparams=[12.89376701, 0.23939566, 12.26827089, 14.03372441, 1.32828278]):
+def setup_halosHOD(simname='multidark', redshift=0.5, HODparams=None):
     """Loads a halo catalog from simname, redshift, and ROCKSTAR (hardcoded)
         (assumes catalog has been previously cached).
 
         Sets up a zheng07 (hardcoded) HOD model using HODparams
         (default values from Rongpu's LRG analysis (see Slack message)).
 
-        Returns [halocat, HODmodel]"""
-
+        Returns [halocat, HODmodel]
+    """
     # Defaults
+    if HODparams == None:
+        HODparams=[12.89376701, 0.23939566, 12.26827089, 14.03372441, 1.32828278]
     sim_defaults.default_simname = simname
     sim_defaults.default_redshift = redshift # multidark actual z = 0.466
     halo_finder = 'rockstar'
