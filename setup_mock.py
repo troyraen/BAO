@@ -5,6 +5,19 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+
+def get_ra_dec_z(galaxy_table):
+    coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
+    vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
+
+    ra, dec, z = mock_survey.ra_dec_z(coords, vels) # returns ra, dec in radians
+    ra = np.degrees(ra) # [0, 90] degrees
+    dec = np.degrees(dec) # [-90, 0] degrees
+
+    return [ra, dec, z]
+
+
+
 def setup_halosHOD(simname='multidark', redshift=0.5, HODparams=None):
     """Loads a halo catalog from simname, redshift, and ROCKSTAR (hardcoded)
         (assumes catalog has been previously cached).
