@@ -48,7 +48,7 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
 
 
 
-def get_ra_dec_z(ps_coords):
+def get_ra_dec_z(ps_coords, cosmo=None):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ngals x 6 {x,y,z, vx,vy,vz}
         Returns [ra, dec, redshift] with ra, dec in degrees
