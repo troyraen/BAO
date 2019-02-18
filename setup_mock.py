@@ -51,7 +51,7 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
 def get_ra_dec_z(ps_coords, cosmo=None):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ngals x 6 {x,y,z, vx,vy,vz}
-        Returns [ra, dec, redshift] with ra, dec in degrees
+        Returns array ngals x 3 {ra, dec, redshift} with ra, dec in degrees
     """
 
     x = ps_coords[:,0:3]
@@ -90,6 +90,9 @@ def get_ra_dec_z(ps_coords, cosmo=None):
     ra = np.degrees(phi)
     dec = np.degrees(np.pi/2.0 - theta)
 
+    # collect results
+    rdz = np.vstack((ra,dec,redshift)).T
+
     # coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
     # vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
     #
@@ -99,7 +102,7 @@ def get_ra_dec_z(ps_coords, cosmo=None):
     #
     # return [ra, dec, z]
 
-    return [ra, dec, redshift]
+    return rdz
 
 
 
