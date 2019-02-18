@@ -7,7 +7,8 @@ from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
 
-# main function
+#### MAIN FUNCTION ####
+
 def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
     """Takes a halo catalog and HOD model (repopulates the mock if repop==True).
         bins = array of bin edges in degrees
@@ -75,16 +76,6 @@ def load_from_file(fin):
 
 
 
-
-def get_ra_dec_z(galaxy_table):
-    coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
-    vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
-
-    ra, dec, z = mock_survey.ra_dec_z(coords, vels) # returns ra, dec in radians
-    ra = np.degrees(ra) # [0, 90] degrees
-    dec = np.degrees(dec) # [-90, 0] degrees
-
-    return [ra, dec, z]
 
 
 
