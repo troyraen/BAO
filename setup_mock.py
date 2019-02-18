@@ -76,7 +76,7 @@ def get_ra_dec_z(ps_coords, cosmo=None):
     vr = v[:, 0]*st*cp + v[:, 1]*st*sp + v[:, 2]*ct
 
     # compute cosmological redshift and add contribution from perculiar velocity
-    yy = np.arange(0, 1.0, 0.001)
+    yy = np.arange(0, 2.0, 0.001)
     xx = cosmo.comoving_distance(yy).value
     f = interp1d(xx, yy, kind='cubic')
     z_cos = f(r)
