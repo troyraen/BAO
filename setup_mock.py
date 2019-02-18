@@ -1,14 +1,20 @@
 import numpy as np
+from scipy.interpolate import interp1d
+
+from astropy import cosmology
+from astropy.constants import c  # the speed of light
 
 import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+
 def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
     """Takes object HODmodel.mock.galaxy_table (gtin, assumed coordinates {x,y,z} in [0,Lbox]) and
-            stacks Nstack (must be an even integer) of them together
-        Returns a np.array (gtot x 6) with {x,y,z} generated periodically, {vx,vy,vz} same as original point
+            stacks Nstack^3 (must be an EVEN integer) of them together around the origin.
+        Returns newgals = (gtot x 6) array with columns ['x','y','z','vx','vy','vz']
+            {x,y,z} generated periodically, {vx,vy,vz} same as original galaxy
     """
 
     N2 = int(Nstack/2)
@@ -42,15 +48,58 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
 
 
 
-def get_ra_dec_z(galaxy_table):
-    coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
-    vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
+def get_ra_dec_z(ps_coords):
+    """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
+        ps_coords should be ngals x 6 {x,y,z, vx,vy,vz}
+        Returns [ra, dec, redshift] with ra, dec in degrees
+    """
 
-    ra, dec, z = mock_survey.ra_dec_z(coords, vels) # returns ra, dec in radians
-    ra = np.degrees(ra) # [0, 90] degrees
-    dec = np.degrees(dec) # [-90, 0] degrees
+    x = ps_coords[:,0:3]
+    v = ps_coords[:,3:6]
 
-    return [ra, dec, z]
+# calculate the observed redshift
+    if cosmo is None:
+        cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
+    c_km_s = c.to('km/s').value
+
+    # remove h scaling from position so we can use the cosmo object
+    x = x/cosmo.h
+
+    # compute comoving distance from observer
+    r = np.sqrt(x[:, 0]**2+x[:, 1]**2+x[:, 2]**2)
+
+    # compute radial velocity
+    ct = x[:, 2]/r
+    st = np.sqrt(1.0 - ct**2)
+    cp = x[:, 0]/np.sqrt(x[:, 0]**2 + x[:, 1]**2)
+    sp = x[:, 1]/np.sqrt(x[:, 0]**2 + x[:, 1]**2)
+    vr = v[:, 0]*st*cp + v[:, 1]*st*sp + v[:, 2]*ct
+
+    # compute cosmological redshift and add contribution from perculiar velocity
+    yy = np.arange(0, 1.0, 0.001)
+    xx = cosmo.comoving_distance(yy).value
+    f = interp1d(xx, yy, kind='cubic')
+    z_cos = f(r)
+    redshift = z_cos+(vr/c_km_s)*(1.0+z_cos)
+
+    # calculate spherical coordinates
+    theta = np.arccos(x[:, 2]/r)
+    phi = np.arctan2(x[:, 1], x[:, 0])
+
+    # convert spherical coordinates into ra,dec
+    ra = np.degrees(phi)
+    dec = np.degrees(np.pi/2.0 - theta)
+
+    # coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
+    # vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
+    #
+    # ra, dec, z = mock_survey.ra_dec_z(coords, vels) # returns ra, dec in radians
+    # ra = np.degrees(ra) # [0, 90] degrees
+    # dec = np.degrees(dec) # [-90, 0] degrees
+    #
+    # return [ra, dec, z]
+
+    return [ra, dec, redshift]
 
 
 
