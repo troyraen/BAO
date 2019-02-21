@@ -1,4 +1,4 @@
-%matplotlib qt
+# %matplotlib qt
 import numpy as np
 from astropy import cosmology
 from astropy.table import Table
@@ -27,6 +27,8 @@ zred = halocat.redshift
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
 xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
 newgals[:,0] = newgals[:,0]+ xzbox
+ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo)
 

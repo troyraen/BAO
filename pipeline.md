@@ -9,8 +9,11 @@ jupyter nbconvert --to python HaloTools.ipynb
 <!-- first may need: conda install -c conda-forge mistune -->
 
 
-# Tutorials
+# Tutorials and Notes
 [Getting Started](https://halotools.readthedocs.io/en/latest/quickstart_and_tutorials/getting_started_overview.html)
+
+Length units are comoving and assumed to be in Mpc/h throughout Halotools.
+
 
 ----
 # Modularized
