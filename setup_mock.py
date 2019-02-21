@@ -50,7 +50,7 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
 
 def get_ra_dec_z(ps_coords, cosmo=None):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
-        ps_coords should be ngals x 6 {x,y,z, vx,vy,vz}
+        ps_coords should be ngals x 6 (columns = {x,y,z, vx,vy,vz})
         Returns array ngals x 3 {ra, dec, redshift} with ra, dec in degrees
     """
 
@@ -59,7 +59,7 @@ def get_ra_dec_z(ps_coords, cosmo=None):
 
 # calculate the observed redshift
     if cosmo is None:
-        cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
+        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
     c_km_s = c.to('km/s').value
 
     # remove h scaling from position so we can use the cosmo object
