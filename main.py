@@ -8,6 +8,7 @@ import calc_wtheta as cw
 import myplots as mp
 
 
+# Halotools assumes all lengths are in Mpc/h
 halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
 HODmodel.mock.populate() # repopulate
 galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
@@ -17,16 +18,17 @@ galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
 boxsize = halocat.Lbox[0]
 newgals = sm.stack_boxes(galaxy_table, Nstack=2, Lbox=boxsize)
 ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
-mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+# mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 # push the box out to x -> x + comoving_distance(halocat redshift)
-cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
+cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
 zred = halocat.redshift
-xz = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
-# ???? multiply or divide here? Duncan's ra_dec_z divides to get RID of h scaling?
-newgals[:,0] = newgals[:,0]+ xz
+# cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
+# from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
+xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
+newgals[:,0] = newgals[:,0]+ xzbox
 
-rdz = sm.get_ra_dec_z(newgals)
+rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo)
 
 
 # #### SAND ####
