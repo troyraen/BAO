@@ -48,9 +48,10 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
 
 
 
-def get_ra_dec_z(ps_coords, cosmo=None):
+def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ngals x 6 (columns = {x,y,z, vx,vy,vz})
+        usevel = True will add reshift due to perculiar velocities
         Returns array ngals x 3 {ra, dec, redshift} with ra, dec in degrees
     """
 
@@ -80,7 +81,7 @@ def get_ra_dec_z(ps_coords, cosmo=None):
     xx = cosmo.comoving_distance(yy).value
     f = interp1d(xx, yy, kind='cubic')
     z_cos = f(r)
-    redshift = z_cos+(vr/c_km_s)*(1.0+z_cos)
+    redshift = z_cos+(vr/c_km_s)*(1.0+z_cos) if usevel else z_cos
 
     # calculate spherical coordinates
     theta = np.arccos(x[:, 2]/r)
