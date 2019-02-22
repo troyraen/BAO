@@ -7,8 +7,8 @@ import setup_mock as sm
 import calc_wtheta as cw
 import myplots as mp
 
-
 # Halotools assumes all lengths are in Mpc/h
+H0 = 70.0
 halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
 HODmodel.mock.populate() # repopulate
 galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
@@ -21,7 +21,7 @@ ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
 # mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 # push the box out to x -> x + comoving_distance(halocat redshift)
-cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=0.3)
 zred = halocat.redshift
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
@@ -30,7 +30,17 @@ newgals[:,0] = newgals[:,0]+ xzbox
 ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
 mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
-rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo)
+
+# again with wrong cosmology
+newgals[:,0] = newgals[:,0]- xzbox
+cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
+xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
+newgals[:,0] = newgals[:,0]+ xzbox
+ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+
+
+# rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo)
 
 
 # #### SAND ####
