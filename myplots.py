@@ -74,10 +74,11 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
 # call with:
     # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # zred = halocat.redshift
-    # plot_dist_redshift(log=False, save=False, zred=zred)
-def plot_dist_redshift(zspace=None, log=False, save=False, zred=None):
+    # plot_dist_redshift(log=False, fout=False, zred=zred)
+def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None):
     """ pass zspace array for plotting
         pass zred = redshift of box to put point on plot
+        fout = path as string to save file
     """
     cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
     zz = zspace if (zspace is not None) else np.arange(0.01, 2.0, 0.001)
@@ -97,9 +98,6 @@ def plot_dist_redshift(zspace=None, log=False, save=False, zred=None):
     plt.ylabel('Comoving Distance')
     plt.legend()
     plt.grid(linestyle='-', linewidth='0.5', color='0.7')
-    if save:
-        if log:
-            plt.savefig('plots/zdist_log.png')
-        else:
-            plt.savefig('plots/zdist.png')
+    if fout is not None:
+        plt.savefig(fout)
     plt.show(block=False)
