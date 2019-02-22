@@ -26,7 +26,7 @@ def plot_wtheta(bcens, wtheta):
     plt.title(r'w($\theta$)')
     plt.tight_layout()
     # plt.savefig('./wtheta.png')
-    plt.show()
+    plt.show(block=False)
 
 
 
@@ -66,7 +66,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=0.1)
-    plt.show()
+    plt.show(block=False)
 
 
 
