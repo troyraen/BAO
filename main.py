@@ -9,8 +9,14 @@ import myplots as mp
 
 # Halotools assumes all lengths are in Mpc/h
 H0 = 70.0
-halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
-HODmodel.mock.populate() # repopulate
+try:
+    halocat and HODmodel
+except:
+    halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+    # HODmodel.mock.populate() # repopulate
+    boxsize_og = halocat.Lbox[0]
+    zred = halocat.redshift
+
 galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
 # mp.plot_galaxies(galaxy_table, gal_frac=0.005, coords='xyz') # plot a random subsample of galaxies
 
