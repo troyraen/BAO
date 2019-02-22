@@ -21,37 +21,40 @@ galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
 # mp.plot_galaxies(galaxy_table, gal_frac=0.005, coords='xyz') # plot a random subsample of galaxies
 
 # stack Nstack boxes together to create a bigger box
-boxsize = halocat.Lbox[0]
-newgals = sm.stack_boxes(galaxy_table, Nstack=2, Lbox=boxsize)
-ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+Nstack = 2
+boxsize = boxsize_og*Nstack
+newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=boxsize_og)
+# ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
 # mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 # push the box out to x -> x + comoving_distance(halocat redshift)
 cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=0.3)
-zred = halocat.redshift
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
 xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
 newgals[:,0] = newgals[:,0]+ xzbox
-ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
-mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+# ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+# mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+
+# transform to ra, dec, and redshift
+rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo, usevel=False)
+# mp.plot_galaxies(rdz, gal_frac=5e-4, coords='rdz')
 
 
-# again with wrong cosmology
-newgals[:,0] = newgals[:,0]- xzbox
-cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
-xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
-newgals[:,0] = newgals[:,0]+ xzbox
-ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
-mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+# # again with wrong cosmology
+# newgals[:,0] = newgals[:,0]- xzbox
+# cosmo = cosmology.FlatLambdaCDM(H0=0.7, Om0=0.3)
+# xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
+# newgals[:,0] = newgals[:,0]+ xzbox
+# ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+# mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 
-# rdz = sm.get_ra_dec_z(newgals, cosmo=cosmo)
 
 
 # #### SAND ####
 # gt = galaxy_table[1:5]
-# newgals = sm.stack_boxes(gt, Nstack=4, Lbox=boxsize)
+# newgals = sm.stack_boxes(gt, Nstack=4, Lbox=boxsize_og)
 # mp.plot_galaxies(gt, gal_frac=1, coords='xyz')
 # ng = Table(newgals, names=['x','y','z','vx','vy','vz'])
 # #### SAND ####
