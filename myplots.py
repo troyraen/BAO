@@ -75,12 +75,13 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # zred = halocat.redshift
     # plot_dist_redshift(log=False, fout=False, zred=zred)
-def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None):
+def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None):
     """ pass zspace array for plotting
         pass zred = redshift of box to put point on plot
         fout = path as string to save file
     """
-    cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+    if cosmo is None:
+        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
     zz = zspace if (zspace is not None) else np.arange(0.01, 2.0, 0.001)
     xx = cosmo.comoving_distance(zz).value # Mpc
     xxh = cosmo.comoving_distance(zz).value*cosmo.h # Mpc/h
@@ -89,7 +90,7 @@ def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None):
         plt.loglog(zz, xx, label='Mpc (h=0.7)')
         plt.loglog(zz, xxh, label='Mpc/h')
     else:
-        plt.plot(zz, xx, label='Mpc (h=0.7)')
+        plt.plot(zz, xx, label='Mpc (h={})'.format(cosmo.h))
         plt.plot(zz, xxh, label='Mpc/h')
     if zred is not None:
         xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
