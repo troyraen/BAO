@@ -34,8 +34,8 @@ def plot_wtheta(bcens, wtheta):
 # look at galaxy distribution
 def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     """ Plots 3D galaxy distribution using coords cordinate basis.
-        galaxy_table assumed to be in h^-1 Mpc
-            if coords == 'radecz', will call get_ra_dec_z to transform the coordinates
+        galaxy_table assumed to be in h^-1 Mpc (unless z coord is redshift)
+            NOT WORKING: if coords == 'radecz', will call get_ra_dec_z to transform the coordinates
             coords = 'xyred'
     """
     # get a random sample
@@ -67,9 +67,10 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     #     ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
 
     else:
-        raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
+        raise Exception('coords must be either \'xyz\' or \'xyred\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=1)
+    plt.tight_layout()
     plt.show(block=False)
 
 
