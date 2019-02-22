@@ -34,7 +34,9 @@ def plot_wtheta(bcens, wtheta):
 # look at galaxy distribution
 def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     """ Plots 3D galaxy distribution using coords cordinate basis.
+        galaxy_table assumed to be in h^-1 Mpc
             if coords == 'radecz', will call get_ra_dec_z to transform the coordinates
+            coords = 'xyred'
     """
     # get a random sample
     lg = np.arange(len(galaxy_table['x']))
@@ -44,23 +46,25 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     plt.figure(figsize=(13,13))
     ax = plt.axes(projection='3d')
 
+    x = np.asarray(galaxy_table['x'][lg])
+    y = np.asarray(galaxy_table['y'][lg])
+    z = np.asarray(galaxy_table['z'][lg])
+    ax.set_xlabel('x h^-1 [Mpc]')
+    ax.set_ylabel('y h^-1 [Mpc]')
     if coords == 'xyz':
-        x = np.asarray(galaxy_table['x'][lg])
-        y = np.asarray(galaxy_table['y'][lg])
-        z = np.asarray(galaxy_table['z'][lg])
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+        ax.set_zlabel('z h^-1 [Mpc]')
+    elif coords == 'xyred':
+        ax.set_zlabel('redshift')
 
-    elif coords == 'radecz':
-        x, y, z = cw.get_ra_dec_z(galaxy_table)
-        x = x[lg]
-        y = y[lg]
-        z = z[lg]
-        ax.set_xlabel('RA')
-        ax.set_ylabel('DEC')
-        ax.set_zlabel('z')
-        ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
+    # elif coords == 'radecz':
+    #     x, y, z = cw.get_ra_dec_z(galaxy_table)
+    #     x = x[lg]
+    #     y = y[lg]
+    #     z = z[lg]
+    #     ax.set_xlabel('RA')
+    #     ax.set_ylabel('DEC')
+    #     ax.set_zlabel('z')
+    #     ax.view_init(azim=260, elev=95) # rotate the view to physical line of sight
 
     else:
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
