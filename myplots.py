@@ -65,7 +65,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     else:
         raise Exception('coords must be either \'xyz\' or \'radecz\'\n\t {} not a recognized option'.format(coords))
 
-    ax.scatter3D(x, y, z, s=0.1)
+    ax.scatter3D(x, y, z, s=1)
     plt.show(block=False)
 
 
@@ -75,9 +75,12 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # zred = halocat.redshift
     # plot_dist_redshift(log=False, save=False, zred=zred)
-def plot_dist_redshift(log=False, save=False, zred=None):
+def plot_dist_redshift(zspace=None, log=False, save=False, zred=None):
+    """ pass zspace array for plotting
+        pass zred = redshift of box to put point on plot
+    """
     cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
-    zz = np.arange(0.01, 2.0, 0.001)
+    zz = zspace if (zspace is not None) else np.arange(0.01, 2.0, 0.001)
     xx = cosmo.comoving_distance(zz).value # Mpc
     xxh = cosmo.comoving_distance(zz).value*cosmo.h # Mpc/h
     plt.figure()
