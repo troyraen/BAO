@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import imp
 
+from astropy import cosmology
 import calc_wtheta as cw
 
 # set plot defaults
@@ -66,3 +67,36 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
 
     ax.scatter3D(x, y, z, s=0.1)
     plt.show()
+
+
+
+# plot comoving distance vs redshift
+# call with:
+    # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+    # zred = halocat.redshift
+    # plot_dist_redshift(log=False, save=False, zred=zred)
+def plot_dist_redshift(log=False, save=False, zred=None):
+    cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+    zz = np.arange(0.01, 2.0, 0.001)
+    xx = cosmo.comoving_distance(zz).value # Mpc
+    xxh = cosmo.comoving_distance(zz).value*cosmo.h # Mpc/h
+    plt.figure()
+    if log:
+        plt.loglog(zz, xx, label='Mpc (h=0.7)')
+        plt.loglog(zz, xxh, label='Mpc/h')
+    else:
+        plt.plot(zz, xx, label='Mpc (h=0.7)')
+        plt.plot(zz, xxh, label='Mpc/h')
+    if zred is not None:
+        xzbox = (cosmo.comoving_distance(zred).value)*cosmo.h # Mpc/h
+        plt.scatter(zred, xzbox, label='zbox= {}'.format(zred))
+    plt.xlabel('Redshift')
+    plt.ylabel('Comoving Distance')
+    plt.legend()
+    plt.grid(linestyle='-', linewidth='0.5', color='0.7')
+    if save:
+        if log:
+            plt.savefig('plots/zdist_log.png')
+        else:
+            plt.savefig('plots/zdist.png')
+    plt.show(block=False)
