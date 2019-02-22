@@ -9,10 +9,14 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+# cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
+# from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
 def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
     """Moves the x coordinates of galaxy_coords
         so the FACE of the box is at comoving_distance(redshift).
     Expects galaxy_coords as (gtot x 3) array with columns ['x','y','z'].
+        extra columns at the end (e.g. velocities) are ok.
+        all columns after the first one will be returned unchanged.
     Assumes coords are in Mpc/h
     Returns galaxy_coords with x coordinates shifted.
     """
@@ -25,9 +29,9 @@ def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
     # shift xx so the face is at comoving_distance(redshift)
     xzbox = (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
     xx = xx+ xzbox
-    # make new coordinate array
-    galaxy_coords[:,0] = xx
 
+    # change given x coords and return the array (otherwise unchanged)
+    galaxy_coords[:,0] = xx
     return galaxy_coords
 
 
