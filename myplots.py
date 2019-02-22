@@ -79,7 +79,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz'):
     # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # zred = halocat.redshift
     # plot_dist_redshift(log=False, fout=False, zred=zred)
-def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None):
+def plot_codist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None):
     """ pass zspace array for plotting
         pass zred = redshift of box to put point on plot
         fout = path as string to save file
@@ -103,6 +103,7 @@ def plot_dist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None)
     plt.ylabel('Comoving Distance')
     plt.legend()
     plt.grid(linestyle='-', linewidth='0.5', color='0.7')
+    plt.tight_layout()
     if fout is not None:
         plt.savefig(fout)
     plt.show(block=False)
