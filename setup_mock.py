@@ -52,7 +52,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ngals x 6 (columns = {x,y,z, vx,vy,vz})
         usevel = True will add reshift due to perculiar velocities
-        Returns array ngals x 3 {ra, dec, redshift} with ra, dec in degrees
+        Returns dataframe ngals x 3 {ra, dec, redshift} with ra, dec in degrees
     """
 
     x = ps_coords[:,0:3]
@@ -93,6 +93,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
 
     # collect results
     rdz = np.vstack((ra,dec,redshift)).T
+    rdz = pd.DataFrame(rdz, columns=['RA','DEC','Redshift'])
 
     # coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
     # vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
