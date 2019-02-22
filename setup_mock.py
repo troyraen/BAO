@@ -9,6 +9,29 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
+    """Moves the x coordinates of galaxy_coords
+        so the FACE of the box is at comoving_distance(redshift).
+    Expects galaxy_coords as (gtot x 3) array with columns ['x','y','z'].
+    Assumes coords are in Mpc/h
+    Returns galaxy_coords with x coordinates shifted.
+    """
+    if cosmo is None:
+        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+
+    xx = galaxy_coords[:,0]
+    # shift xx so that coordinates are strictly positive (i.e. move face to x=0)
+    xx = xx+ Lbox/2
+    # shift xx so the face is at comoving_distance(redshift)
+    xzbox = (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
+    xx = xx+ xzbox
+    # make new coordinate array
+    galaxy_coords[:,0] = xx
+
+    return galaxy_coords
+
+
+
 
 def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
     """Takes object HODmodel.mock.galaxy_table (gtin, assumed coordinates {x,y,z} in [0,Lbox]) and
@@ -77,7 +100,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     vr = v[:, 0]*st*cp + v[:, 1]*st*sp + v[:, 2]*ct
 
     # compute cosmological redshift and add contribution from perculiar velocity
-    yy = np.arange(0, 2.0, 0.001)
+    yy = np.arange(0, 4.0, 0.001)
     xx = cosmo.comoving_distance(yy).value
     f = interp1d(xx, yy, kind='cubic')
     z_cos = f(r)
