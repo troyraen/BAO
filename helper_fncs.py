@@ -9,7 +9,7 @@ from astropy.constants import c  # the speed of light
 
 
 # SDSS DR10 max photo zErr = 0.365106
-def bin_redshifs(rdz, zspace = 0.365):
+def bin_redshifs(rdz, zspace = 0.365, validate=False):
     """rdz = DataFrame with ngals x 3 {ra, dec, redshift} (as returned by get_ra_dec_z)
         zspace = desired spacing between bins (result will not be exact)
 
@@ -32,11 +32,11 @@ def bin_redshifs(rdz, zspace = 0.365):
     # rdz.apply(lambda inval: hf.find_bin_center(inval, zbins, zbcens), rdz.Redshift)
 
     # validate:
-    for row in range(len(rdz)):
-        rdzbin = rdz.iloc[row].zbin
-        z = rdz.iloc[row].Redshift
-        truezbin = find_bin_center(z, bin_edges=zbins, bin_centers=zbcens)
-        assert(rdzbin==truezbin)
+    if validate:
+        for index, row in rdz.iterrows():
+            rdzbin = row.zbin
+            truezbin = find_bin_center(row.Redshift, bin_edges=zbins, bin_centers=zbcens)
+            assert(rdzbin==truezbin)
 
 
     return [rdz, zbins]
