@@ -44,6 +44,8 @@ newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns or
 # mp.plot_galaxies(rdz, gal_frac=5e-4, coords='rdz')
 rdz = hf.get_ra_dec_z(newgals_atz, cosmo=cosmo, usevel=True) # now returns a df
 # rdz = rdzT
+zspace = 0.365
+rdz, zbin_edges = hf.bin_redshifs(rdz, zspace = zspace):
 
 # bin redshifts
 # hf.bin_redshifs(rdz, zspace)
