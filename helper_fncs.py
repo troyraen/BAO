@@ -31,7 +31,7 @@ def bin_redshifs(rdz, zspace = 0.365, validate=False):
     rdz['zbin'] = rdz['Redshift'].apply(find_bin_center, **{"bin_edges":zbins, "bin_centers":zbcens})
     # rdz.apply(lambda inval: hf.find_bin_center(inval, zbins, zbcens), rdz.Redshift)
 
-    # validate:
+    # make sure the operation worked as expected:
     if validate:
         for index, row in rdz.iterrows():
             rdzbin = row.zbin
@@ -99,8 +99,13 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     phi = np.arctan2(x[:, 1], x[:, 0])
 
     # convert spherical coordinates into ra,dec
-    ra = np.degrees(phi)
     dec = np.degrees(np.pi/2.0 - theta)
+    ra = np.degrees(phi)
+    # convert ra to interval [0,360]
+    print(max(ra), min(ra))
+    msk = (ma.masked_less(ra,0)).mask # True for all values of ra < 0
+    ra[msk] = 360+ ra[msk]
+    print(max(ra), min(ra))
 
     # collect results
     rdz = np.vstack((ra,dec,redshift)).T
