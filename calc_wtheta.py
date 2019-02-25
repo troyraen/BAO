@@ -79,8 +79,9 @@ def load_from_file(fin):
 
 
 
-def calc_wtheta(galaxy_table, bins, nthreads=48, boxsize=1000):
-    """bins = array of bin edges in degrees
+def calc_wtheta(galaxy_df, bins, nthreads=48, boxsize=1000):
+    """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
+        bins = array of bin edges in degrees
     Returns [bcens, wtheta]
     """
 
@@ -93,7 +94,8 @@ def calc_wtheta(galaxy_table, bins, nthreads=48, boxsize=1000):
 
     # gal gal
     autocorr=1
-    RA, DEC, __ = get_ra_dec_z(galaxy_table)
+    # RA, DEC, __ = get_ra_dec_z(galaxy_table)
+    RA, DEC = galaxy_df.RA, galaxy_df.DEC
     # CHECK PLOT TO MAKE SURE CORRD TRANSFORM IS AS EXPECTED
     DD_counts = DDtheta_mocks(autocorr, nthreads, bins, RA, DEC)
 
