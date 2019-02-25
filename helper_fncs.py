@@ -31,9 +31,17 @@ def bin_redshifs(rdz, zspace = 0.365):
     rdz['zbin'] = rdz['Redshift'].apply(find_bin_center, **{"bin_edges":zbins, "bin_centers":zbcens})
     # rdz.apply(lambda inval: hf.find_bin_center(inval, zbins, zbcens), rdz.Redshift)
 
+    # validate:
+    for row in range(len(rdz)):
+        rdzbin = rdz.iloc[row].zbin
+        z = rdz.iloc[row].Redshift
+        truezbin = find_bin_center(z, bin_edges=zbins, bin_centers=zbcens)
+        assert(rdzbin==truezbin)
+
+
     return [rdz, zbins]
 
-    
+
 
 def find_bin_center(inval, bin_edges=None, bin_centers=None):
     """Returns the bin_centers value corresponding to the
