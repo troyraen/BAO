@@ -128,7 +128,7 @@ def get_randoms(Nran=10**5, boxsize=1000):
 
 # https://halotools.readthedocs.io/en/latest/_modules/halotools/mock_observables/mock_survey.html
     ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
-    ran_ra = (np.degrees(ran_ra)).astype('float32') # [0, 90] degrees
-    ran_dec = (np.degrees(ran_dec)).astype('float32') # [-90, 0] degrees
+    ran_ra = np.degrees(ran_ra) # [0, 90] degrees
+    ran_dec = np.degrees(ran_dec) # [-90, 0] degrees
 
     return [ran_ra, ran_dec]
