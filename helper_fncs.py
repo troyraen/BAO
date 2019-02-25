@@ -28,13 +28,12 @@ def bin_redshifs(rdz, zspace = 0.365):
     # create zbin masks for rdz dataframe
         # add a column to rdz containing the zbin (zbcens value) the galaxy resides in
     # given z, find which bin it's in and get the value of the bin center
+    rdz['zbin'] = rdz['Redshift'].apply(find_bin_center, **{"bin_edges":zbins, "bin_centers":zbcens})
+    # rdz.apply(lambda inval: hf.find_bin_center(inval, zbins, zbcens), rdz.Redshift)
 
-    find_bin_center(1.99,zbins,bcens)
+    return [rdz, zbins]
 
-    rdz['zbin'] =
-
-    rdz.apply(find_bin_center, , {"bin_edges":zbins, "bin_centers":bcens})
-
+    
 
 def find_bin_center(inval, bin_edges=None, bin_centers=None):
     """Returns the bin_centers value corresponding to the
