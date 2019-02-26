@@ -45,7 +45,6 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
     lg = lg[:int(gal_frac*len(galaxy_table['x']))]
 
     plt.figure(figsize=(13,13))
-    plt.title(title)
     ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
@@ -79,6 +78,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
         raise Exception('coords must be either \'xyz\' or \'xyred\'\n\t {} not a recognized option'.format(coords))
 
     ax.scatter3D(x, y, z, s=1)
+    plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
 

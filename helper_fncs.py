@@ -102,10 +102,10 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     dec = np.degrees(np.pi/2.0 - theta)
     ra = np.degrees(phi)
     # convert ra to interval [0,360] for calc_wtheta
-    print(max(ra), min(ra))
+    # print(max(ra), min(ra))
     msk = (np.ma.masked_less(ra,0)).mask # True for all values of ra < 0
     ra[msk] = 360+ ra[msk]
-    print(max(ra), min(ra))
+    # print(max(ra), min(ra))
 
     # collect results
     rdz = np.vstack((ra,dec,redshift)).T
