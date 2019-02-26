@@ -57,10 +57,11 @@ rdz, zbin_edges = hf.bin_redshifs(rdz, zspace=zspace, validate=False)
 zbcens = rdz.zbin.unique()
 # calculate wtheta for each zbin (expect BAO at ~6.6 degrees for z~0.5)
 tbins = np.logspace(np.log10(1.0), np.log10(10.0), 15)
+randoms_kwargs = { 'boxsize':newLbox, 'push_to_z':catboxz, 'cosmo':cosmo }
 for zzz in zbcens:
     print('\nCalculating wtheta for zbin = {}\n'.format(zzz))
     rdz_z = rdz.loc[rdz.zbin == zzz]
-    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, boxsize=newLbox)
+    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, **randoms_kwargs)
     dtm = datetime.datetime.now() # get date and time to use as mock number
     mocknum = float(dtm.strftime("%m%d%y.%H%M"))
     fout = 'wtheta.dat'

@@ -6,6 +6,8 @@ from halotools.mock_observables import mock_survey
 from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
+import setup_mock as sm
+
 
 #### MAIN FUNCTION ####
 
@@ -15,6 +17,8 @@ def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
         Pass fout = 'file_path' to write wtheta to a file (will append if file exists)
     Returns statistics: wtheta in given bins
     """
+
+    print("\nDO NOT USE THIS FUNCTION (calc_wtheta.get_wtheta) BEFORE FIXING IT!")
 
     if repop: HODmodel.mock.populate()
     galtbl = HODmodel.mock.galaxy_table
@@ -95,9 +99,10 @@ def load_from_file(fin):
 
 
 
-def calc_wtheta(galaxy_df, bins, nthreads=48, boxsize=1000):
+def calc_wtheta(galaxy_df, bins, nthreads=48, **randoms_kwargs):
     """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
         bins = array of theta bin edges in degrees
+        kwargs for get_randoms can/should include: {Nran=, boxsize=, push_to_z=, cosmo=}
     Returns [theta bin centers, wtheta]
     """
 
@@ -117,8 +122,11 @@ def calc_wtheta(galaxy_df, bins, nthreads=48, boxsize=1000):
 
     # random random
     autocorr=1
-    Nran = len(RA)*10
-    rand_RA, rand_DEC = get_randoms(Nran=Nran, boxsize=boxsize)
+    if 'Nran' not in randoms_kwargs:
+        randoms_kwargs['Nran'] = len(RA)*10
+    print('\nGetting randoms with')
+    print(randoms_kwargs)
+    rand_RA, rand_DEC = get_randoms(**randoms_kwargs)
     RR_counts = DDtheta_mocks(autocorr, nthreads, bins, rand_RA, rand_DEC)
 
     # gal random
@@ -137,14 +145,19 @@ def calc_wtheta(galaxy_df, bins, nthreads=48, boxsize=1000):
 
 
 
-def get_randoms(Nran=10**5, boxsize=1000):
-    """Returns random [RA, DEC] in degrees, as float32 to match output from get_ra_dec_z()"""
+def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
+    """Returns random [RA, DEC] in degrees"""
     ran_coords = np.random.random((Nran,3))*boxsize
     ran_vels = np.zeros((Nran,3))
+    ps_coords = np.hstack([ran_coords,ran_vels])
+    if push_to_z is not None:
+        ps_coords = sm.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
+    ran_ra, ran_dec, ran_z = get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True)
 
+# using Duncan's function:
 # https://halotools.readthedocs.io/en/latest/_modules/halotools/mock_observables/mock_survey.html
-    ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
-    ran_ra = np.degrees(ran_ra) # [0, 90] degrees
-    ran_dec = np.degrees(ran_dec) # [-90, 0] degrees
+    # ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
+    # ran_ra = np.degrees(ran_ra) # [0, 90] degrees
+    # ran_dec = np.degrees(ran_dec) # [-90, 0] degrees
 
     return [ran_ra, ran_dec]
