@@ -68,7 +68,7 @@ def write_to_file(bcens, wtheta, zbin, mocknum, fout):
         file_xcols = file_cols[numbcens:]
         assert np.array_equal(file_xcols,extra_cols), "\nextra columns don't match (first line) in {}.\nwtheta not written to file.\n".format(fout)
         # if they are, then append to file (below)
-        print('bcens compatible with existing file (rtol={}). Appending wtheta.\n'.format(rtol))
+        print('Input data compatible with existing file (bcens rtol={}). Appending wtheta.\n'.format(rtol))
 
     else: # else create new file and write header
         print('Writing new file {}'.format(fout))
@@ -97,8 +97,8 @@ def load_from_file(fin):
 
 def calc_wtheta(galaxy_df, bins, nthreads=48, boxsize=1000):
     """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
-        bins = array of bin edges in degrees
-    Returns [bcens, wtheta]
+        bins = array of theta bin edges in degrees
+    Returns [theta bin centers, wtheta]
     """
 
     # Calc pair counts---
