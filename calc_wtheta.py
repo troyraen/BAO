@@ -7,6 +7,7 @@ from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
 import setup_mock as sm
+import helper_fncs as hf
 
 
 #### MAIN FUNCTION ####
@@ -116,7 +117,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
     # gal gal
     autocorr=1
     # RA, DEC, __ = get_ra_dec_z(galaxy_table)
-    RA, DEC = galaxy_df.RA, galaxy_df.DEC
+    RA, DEC = np.asarray(galaxy_df.RA), np.asarray(galaxy_df.DEC)
     # CHECK PLOT TO MAKE SURE CORRD TRANSFORM IS AS EXPECTED
     DD_counts = DDtheta_mocks(autocorr, nthreads, bins, RA, DEC)
 
@@ -152,7 +153,7 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
     ps_coords = np.hstack([ran_coords,ran_vels])
     if push_to_z is not None:
         ps_coords = sm.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
-    ran_ra, ran_dec, ran_z = get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True)
+    ran_ra, ran_dec, ran_z = hf.get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True)
 
 # using Duncan's function:
 # https://halotools.readthedocs.io/en/latest/_modules/halotools/mock_observables/mock_survey.html
