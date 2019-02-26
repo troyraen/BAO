@@ -161,8 +161,10 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
         ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
 
-    ran_ra, ran_dec, ran_z = hf.get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True)
-
+    rdz = hf.get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True) # returns a DataFrame
+    ran_ra, ran_dec = np.asarray(rdz.RA), np.asarray(rdz.DEC)
+    # print('numgals = {0}, len(ran_ra) = {1}, len(ran_dec) = {2}'.format(Nran, len(ran_ra), len(ran_dec)))
+    # print('Sampling ran_ra, ran_dec: {}'.format(ran_ra[:10], ran_dec[:10]))
 # using Duncan's function:
 # https://halotools.readthedocs.io/en/latest/_modules/halotools/mock_observables/mock_survey.html
     # ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
