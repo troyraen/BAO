@@ -16,6 +16,7 @@ H0 = 70.0
 try:
     halocat and HODmodel
 except:
+    print('\nSetting up halocat and HODmodel\n')
     halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # HODmodel.mock.populate() # repopulate
     catLbox = halocat.Lbox[0]
@@ -27,12 +28,14 @@ galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
 # stack Nstack^3 boxes together to create a bigger box
 Nstack = 2
 newLbox = catLbox*Nstack
+print('\nStacking {}^3 boxes\n'.format(Nstack))
 newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=catLbox) # returns (ngals x 6) ndarray
 # ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
 # mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
 
 # push the box out to x -> x + comoving_distance(halocat redshift)
 cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=0.3)
+print('\nPushing the box out to z={}\n'.format(catboxz))
 newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
 # xzbox = (cosmo.comoving_distance(catboxz).value)*cosmo.h # Mpc/h
 # newgals[:,0] = newgals[:,0]+ xzbox
@@ -43,6 +46,7 @@ newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns or
 # rdzF = pd.DataFrame(hf.get_ra_dec_z(newgals, cosmo=cosmo, usevel=False), columns=['RA','DEC','Redshift'])
 # rdzT = pd.DataFrame(hf.get_ra_dec_z(newgals, cosmo=cosmo, usevel=True), columns=['RA','DEC','Redshift'])
 # mp.plot_galaxies(rdz, gal_frac=5e-4, coords='rdz')
+print('\nConverting to RA, DEC, z\n')
 rdz = hf.get_ra_dec_z(newgals_atz, cosmo=cosmo, usevel=True) # now returns a df
 # rdz = rdzT
 
@@ -54,6 +58,7 @@ zbcens = rdz.zbin.unique()
 # calculate wtheta for each zbin (expect BAO at ~6.6 degrees for z~0.5)
 tbins = np.logspace(np.log10(1.0), np.log10(10.0), 15)
 for zzz in zbcens:
+    print('\nCalculating wtheta for zbin = {}\n'.format(zzz))
     rdz_z = rdz.loc[rdz.zbin == zzz]
     tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, boxsize=newLbox)
     dtm = datetime.datetime.now() # get date and time to use as mock number
@@ -62,6 +67,7 @@ for zzz in zbcens:
     cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
 
 wdf = cw.load_from_file(fout)
+
 
 # for each mask, get slice of rdz and calc wtheta
 # save results in df (and write to file) with
