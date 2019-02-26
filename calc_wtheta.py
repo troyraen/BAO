@@ -40,31 +40,47 @@ def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
 
 #### HELPER FUNCTIONS ####
 
-def write_to_file(bcens, wtheta, fout):
+def write_to_file(bcens, wtheta, zbin, mocknum, fout):
+    """ bcens = array of theta bin centers
+        wtheta = array of wtheta values for each theta bin
+        zbin = center of the redshift bin of galaxies used for wtheta
+        fout = path (as string) of file to write or append to
+
+        Writes file fout:
+            First line is bcens values, then 'zbin' and 'mock' number
+            All following lines are wtheta values for corresponding bcen, then 'zbin' and 'mock'
+    """
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
-    # format data
-    bcen_cols = np.stack([bcens])
-    srtln = 50*len(wtheta)
-    wt_cols = np.array2string(wtheta, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=srtln)[1:-1]
+    extra_cols = np.array(['zbin', 'mock'])
 
     # check if file exists
     fpath = Path(fout)
-    if fpath.is_file():
+    if fpath.is_file(): # if it does, check column compatibility
         print('File {} exists. Checking compatibility...'.format(fout))
-    # if it does, check that bcens are the same
-        bcens0 = np.genfromtxt(fout, max_rows=1)
-        np.testing.assert_allclose(bcens0, bcens, \
+        # check that bcens are the same
+        file_cols = np.genfromtxt(fout, max_rows=1, dtype=str)
+        numbcens = len(bcens)
+        file_bcens = file_cols[:numbcens].astype(np.double)
+        rtol=1e-5
+        np.testing.assert_allclose(file_bcens, bcens, rtol=rtol, \
             err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
-    # if they are, then append to file
-        print('bcens compatible with existing file. Appending wtheta.\n')
-        print(wt_cols, file=open(fout, 'a'))
+        # check that extra_cols are the same
+        file_xcols = file_cols[numbcens:]
+        assert np.array_equal(file_xcols,extra_cols), "\nextra columns don't match (first line) in {}.\nwtheta not written to file.\n".format(fout)
+        # if they are, then append to file (below)
+        print('bcens compatible with existing file (rtol={}). Appending wtheta.\n'.format(rtol))
 
-    else:
-        # else save to new file
+    else: # else create new file and write header
         print('Writing new file {}'.format(fout))
-        hdr = 'First row contains bin centers. All other rows contain wtheta for that bin.\n'
-        np.savetxt(fout, bcen_cols, fmt='%25.7f', header=hdr)
-        print(wt_cols, file=open(fout, 'a'))
+        hdr = 'First row contains bin centers (theta in degrees), then extra info. All other rows contain wtheta for that bin, then extra info.\n'
+        new_cols = np.stack([np.concatenate((bcens.astype(str), extra_cols))])
+        np.savetxt(fout, new_cols, fmt='%25.7s', header=hdr) # write header
+
+    # append data to the file
+    srtln = 50*(len(wtheta)+len(extra_cols))
+    dat_cols = np.append(wtheta, [zbin,mocknum]) # add extra column data to wtheta
+    str_cols = np.array2string(dat_cols, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=srtln)[1:-1]
+    print(str_cols, file=open(fout, 'a'))
 
 
 
