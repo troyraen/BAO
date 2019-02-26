@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from astropy import cosmology
 from astropy.table import Table
+import datetime
 
 import setup_mock as sm
 import calc_wtheta as cw
@@ -44,11 +45,24 @@ newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns or
 # mp.plot_galaxies(rdz, gal_frac=5e-4, coords='rdz')
 rdz = hf.get_ra_dec_z(newgals_atz, cosmo=cosmo, usevel=True) # now returns a df
 # rdz = rdzT
-zspace = 0.365
-rdz, zbin_edges = hf.bin_redshifs(rdz, zspace = zspace):
 
 # bin redshifts
-# hf.bin_redshifs(rdz, zspace)
+zspace = 0.365 # max redshift error in SDSS DR10 Photoz table is 0.365106
+rdz, zbin_edges = hf.bin_redshifs(rdz, zspace=zspace, validate=False)
+# get set of zbin centers to use as masks
+zbcens = rdz.zbin.unique()
+# calculate wtheta for each zbin (expect BAO at ~6.6 degrees for z~0.5)
+tbins = np.logspace(np.log10(1.0), np.log10(10.0), 15)
+for zzz in zbcens:
+    rdz_z = rdz.loc[rdz.zbin == zzz]
+    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, boxsize=newLbox)
+    dtm = datetime.datetime.now() # get date and time to use as mock number
+    mocknum = float(dtm.strftime("%m%d%y.%H%M"))
+    fout = 'wtheta.dat'
+    cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
+
+wdf = cw.load_from_file(fout)
+
 # for each mask, get slice of rdz and calc wtheta
 # save results in df (and write to file) with
     # columns: {wtheta bcens (1 col each, holds wtheta for the bin),
