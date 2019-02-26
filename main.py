@@ -39,8 +39,8 @@ print('\nPushing the box out to z={}\n'.format(catboxz))
 newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
 # xzbox = (cosmo.comoving_distance(catboxz).value)*cosmo.h # Mpc/h
 # newgals[:,0] = newgals[:,0]+ xzbox
-# ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
-# mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz')
+ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
+mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Mock Galaxies')
 
 # transform to ra, dec, and redshift
 # rdzF = pd.DataFrame(hf.get_ra_dec_z(newgals, cosmo=cosmo, usevel=False), columns=['RA','DEC','Redshift'])

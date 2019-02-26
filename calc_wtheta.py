@@ -8,6 +8,7 @@ from Corrfunc.utils import convert_3d_counts_to_cf
 
 import setup_mock as sm
 import helper_fncs as hf
+import myplots as mp
 
 
 #### MAIN FUNCTION ####
@@ -148,7 +149,12 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
 
 def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
     """Returns random [RA, DEC] in degrees"""
-    ran_coords = np.random.random((Nran,3))*boxsize
+    # create random points in box with side length boxsize, centered around origin
+    ran_coords = np.random.random((Nran,3))*boxsize - boxsize
+    # plot to check coords
+    ngtbl = Table(ran_coords, names=['x','y','z'])
+    mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
+
     ran_vels = np.zeros((Nran,3))
     ps_coords = np.hstack([ran_coords,ran_vels])
     if push_to_z is not None:
