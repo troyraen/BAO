@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+from astropy.table import Table
 
 from halotools.mock_observables import mock_survey
 # import Corrfunc
