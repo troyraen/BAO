@@ -61,7 +61,7 @@ randoms_kwargs = { 'boxsize':newLbox, 'push_to_z':catboxz, 'cosmo':cosmo }
 for zzz in zbcens:
     print('\nCalculating wtheta for zbin = {}\n'.format(zzz))
     rdz_z = rdz.loc[rdz.zbin == zzz]
-    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, **randoms_kwargs)
+    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs)
     dtm = datetime.datetime.now() # get date and time to use as mock number
     mocknum = float(dtm.strftime("%m%d%y.%H%M"))
     fout = 'wtheta.dat'

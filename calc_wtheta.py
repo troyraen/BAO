@@ -99,10 +99,10 @@ def load_from_file(fin):
 
 
 
-def calc_wtheta(galaxy_df, bins, nthreads=48, **randoms_kwargs):
+def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
     """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
         bins = array of theta bin edges in degrees
-        kwargs for get_randoms can/should include: {Nran=, boxsize=, push_to_z=, cosmo=}
+        randoms_kwargs (for get_randoms) can include: {Nran=, boxsize=, push_to_z=, cosmo=}
     Returns [theta bin centers, wtheta]
     """
 
