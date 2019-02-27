@@ -81,7 +81,7 @@ for zzz in zbcens:
     print('wtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
     # zrunhdr = ['nthreads', 'zbin', 'calc time [min]', '# galaxies']
     zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index)])
-    zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1])
+    zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
     print(zrunstr, file=open(zrunfout, 'a'))
 
 
