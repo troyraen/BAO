@@ -15,6 +15,14 @@ mpl.rcParams['figure.titlesize'] = 'medium'
 
 
 def plot_wtheta(bcens, wtheta):
+def getplot_zruntimes():
+    # get and plot zrun calc times
+    zrf = pd.read_csv(zrunfout, delim_whitespace=True)
+    zrf.plot.scatter(x='nthreads',y='calctime', c='numgals')
+    plt.tight_layout()
+    plt.show(block=False)
+    return zrf
+
     plt.figure()
     plt.scatter(bcens, wtheta)
     plt.plot(bcens, wtheta)
