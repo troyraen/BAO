@@ -9,6 +9,45 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
+
+def load_popmock():
+    """
+    Loads a repopulated mock halo (need to set up default) to the system.
+    Will load halocat and HODmodel if needed.
+    """
+    global halocat
+    global HODmodel
+    global catLbox
+    global catboxz
+    try:
+        halocat and HODmodel
+    except:
+        print('\nSetting up halocat and HODmodel\n')
+        halocat, HODmodel = su.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+        # HODmodel.mock.populate() # repopulate
+        catLbox = halocat.Lbox[0]
+        catboxz = halocat.redshift
+
+    # for nthreads in [48, 32, 12]:
+    # print('\nDoing nthreads = {}\n'.format(nthreads))
+    HODmodel.mock.populate() # repopulate
+
+
+
+def load_cosmo(H0in=70.0, Om0in=0.3):
+    """Load a global cosmology for consistency.
+    """
+    global cosmo
+    global H0
+    global Om0
+    H0 = H0in
+    Om0 = Om0in
+
+    cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
+
+
+
+
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
 def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
@@ -41,11 +80,15 @@ def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
     """Takes object HODmodel.mock.galaxy_table (gtin, assumed coordinates {x,y,z} in [0,Lbox]) and
             stacks Nstack^3 (must be an EVEN integer) of them together around the origin.
         Returns newgals = (gtot x 6) array with columns ['x','y','z','vx','vy','vz']
-            {x,y,z} generated periodically, {vx,vy,vz} same as original galaxy
+            {x,y,z} generated periodically, {vx,vy,vz} same as original galaxy.
+        Sets global newLbox.
     """
+    global newLbox
+    newLbox = catLbox*Nstack
 
     N2 = int(Nstack/2)
     assert Nstack%2 == 0, 'Nstack should be an even integer.'
+    print('*** You should update su.stack_boxes to accept Nstack=0. ***')
 
     gt = galaxy_table
     x = gt['x']; y = gt['y']; z = gt['z']
