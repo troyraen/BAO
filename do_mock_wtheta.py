@@ -11,8 +11,10 @@ import calc_wtheta as cw
 import myplots as mp
 import helper_fncs as hf
 
+
 start_script = time.time() # time the script
-print('\nmain.py started at {}'.format(datetime.datetime.now()))
+print('\ndo_mock_wtheta.py started at {}'.format(datetime.datetime.now()))
+
 
 # Halotools assumes all lengths are in Mpc/h
 H0 = 70.0
@@ -43,15 +45,10 @@ newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=catLbox) # returns (n
 cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=0.3)
 print('\nPushing the box out to z={}\n'.format(catboxz))
 newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
-# xzbox = (cosmo.comoving_distance(catboxz).value)*cosmo.h # Mpc/h
-# newgals[:,0] = newgals[:,0]+ xzbox
 # ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
 # mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Mock Galaxies')
 
 # transform to ra, dec, and redshift
-# rdzF = pd.DataFrame(hf.get_ra_dec_z(newgals, cosmo=cosmo, usevel=False), columns=['RA','DEC','Redshift'])
-# rdzT = pd.DataFrame(hf.get_ra_dec_z(newgals, cosmo=cosmo, usevel=True), columns=['RA','DEC','Redshift'])
-# mp.plot_galaxies(rdz, gal_frac=5e-4, coords='rdz')
 print('\nConverting to RA, DEC, z\n')
 rdz = hf.get_ra_dec_z(newgals_atz, cosmo=cosmo, usevel=True) # now returns a df
 # rdz = rdzT
@@ -71,7 +68,7 @@ fout = 'wtheta.dat'
 zrunfout = 'zruntime.dat'
 dtm = datetime.datetime.now() # get date and time to use as mock number
 mocknum = float(dtm.strftime("%m%d%y.%H%M"))
-# nthreads = 24
+nthreads = 32
 for zzz in zbcens:
     print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
     start_zbin = time.time() # time the wtheta calculation
@@ -91,19 +88,8 @@ for zzz in zbcens:
     print(zrunstr, file=open(zrunfout, 'a'))
 
 
-wdf = cw.load_from_file(fout)
+# wdf = cw.load_from_file(fout)
 
 end_script = time.time() # time the script
 stime = (end_script-start_script)/60. # in minutes
-print('\n\t{0}\nmain.py ran for {0:.1f} minutes.\n'.format(datetime.datetime.now(), stime))
-
-
-
-# for each mask, get slice of rdz and calc wtheta
-# save results in df (and write to file) with
-    # columns: {wtheta bcens (1 col each, holds wtheta for the bin),
-    #           zbin (hold zbcens value for given row),
-    #           mock number ()}
-    # rows: {zbcen (1 row each)}
-
-# then calculate wtheta
+print('\n\t{0}\ndo_mock_wtheta.py ran for {0:.1f} minutes.\n'.format(datetime.datetime.now(), stime))
