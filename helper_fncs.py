@@ -63,7 +63,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ndarray (ngals x 6) (columns = {x,y,z, vx,vy,vz})
         usevel = True will add reshift due to perculiar velocities
-        Returns dataframe ngals x 3 {ra, dec, redshift} with ra, dec in degrees
+        Returns dataframe ngals x 3 {RA, DEC, Redshift} with ra, dec in degrees
     """
 
     x = ps_coords[:,0:3]
@@ -85,7 +85,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     st = np.sqrt(1.0 - ct**2)
     cp = x[:, 0]/np.sqrt(x[:, 0]**2 + x[:, 1]**2)
     sp = x[:, 1]/np.sqrt(x[:, 0]**2 + x[:, 1]**2)
-    vr = v[:, 0]*st*cp + v[:, 1]*st*sp + v[:, 2]*ct
+    vr = v[:, 0]*st*cp + v[:, 1]*st*sp + v[:, 2]*ct # = radial peculiar velocity (comoving)?
 
     # compute cosmological redshift and add contribution from perculiar velocity
     yy = np.arange(0, 4.0, 0.001)
