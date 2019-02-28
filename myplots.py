@@ -14,7 +14,6 @@ mpl.rcParams['figure.titlesize'] = 'medium'
 
 
 
-def plot_wtheta(bcens, wtheta):
 def getplot_zruntimes():
     # get and plot zrun calc times
     zrf = pd.read_csv(zrunfout, delim_whitespace=True)
@@ -23,6 +22,61 @@ def getplot_zruntimes():
     plt.show(block=False)
     return zrf
 
+
+
+
+def plot_wtheta(wdf):
+    """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
+        (if multiple mock nums for given zbin, get average.)
+        Assumes all column names that can be converted to a float are theta bin centers
+        Plots wtheta(theta_bcens), one line for each zbin
+    """
+
+    # get list of theta bin column names
+    allcols = list(wdf.columns.values)
+    bincols = []
+    for c in allcols:
+        try:
+            float(c)
+            bincols.append(c)
+        except:
+            pass
+    # create new df of wtheta values using pivot_table
+        # calculating mean wtheta for each zbin.
+        # Transpose to use df.plot()
+    wdf.zbin = np.round(wdf.zbin,1) # zbin centers are not exactly the same. this needs to be fixed
+    wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T
+    wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
+
+    plt.figure()
+    wtheta.plot()
+    plt.set_xlabel(r'$\theta$ [deg]'')
+    plt.set_ylabel(r'$w(\theta)$')
+    plt.tight_layout()
+    plt.show(block=False)
+    # for idx, row in wtheta.iterrows():
+    #     print(row[bincols[0]])
+    #     # ax.scatter(row[1], loc, label=row[1].name)
+
+    plt.figure()
+    tbins = np.asarray(bincols,dtype=np.double)
+    zbcens = wdf.zbin.unique()
+    for zzz in zbcens:
+        # if there are multiple mock nums for given zbin, get average
+        wtheta = wdf[bincols].loc[wdf.zbin == zzz] # get wtheta columns of row corresponding to zzz
+        plt.plot(tbins, wtheta, label='zbin = {0:1.5f}'.format(zzz))
+
+    plt.xlabel(r'$\theta$ [deg]')
+    plt.ylabel(r'w($\theta$)')
+    plt.legend()
+    plt.title(r'w($\theta$)')
+    plt.tight_layout()
+    plt.show(block=False)
+
+
+
+
+def plot_wtheta_old(bcens, wtheta):
     plt.figure()
     plt.scatter(bcens, wtheta)
     plt.plot(bcens, wtheta)
@@ -42,7 +96,7 @@ def getplot_zruntimes():
 # look at galaxy distribution
 def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
     """ Plots 3D galaxy distribution using coords cordinate basis.
-        galaxy_table assumed to be in  (unless z coord is redshift)
+        galaxy_table assumed to be astropy table with cols {'x','y','z'}
         coords should be one of 'xyz' (h^-1 Mpc assumed),
                                 NO!: 'xyred' (h^-1 Mpc assumed for x and y),
                                 NO!:    'rdz' (degrees assumed for ra and dec)
@@ -52,7 +106,7 @@ def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
     np.random.shuffle(lg)
     lg = lg[:int(gal_frac*len(galaxy_table['x']))]
 
-    plt.figure(figsize=(13,13))
+    plt.figure(figsize=(8,8))
     ax = plt.axes(projection='3d')
 
     if coords == 'xyz':
