@@ -149,7 +149,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
 
 
 
-def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
+def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None, viewgals=False):
     """Returns random [RA, DEC] in degrees"""
     # create random points in box with side length boxsize, centered around origin
     ran_coords = np.random.random((Nran,3))*boxsize - boxsize/2
@@ -158,9 +158,10 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None):
     ps_coords = np.hstack([ran_coords,ran_vels])
     if push_to_z is not None:
         ps_coords = sm.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
-        # plot to check coords
-        ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
-        mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
+        if viewgals:
+            # plot to check coords
+            ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
+            mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
 
     rdz = hf.get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True) # returns a DataFrame
     ran_ra, ran_dec = np.asarray(rdz.RA), np.asarray(rdz.DEC)
