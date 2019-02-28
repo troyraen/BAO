@@ -68,21 +68,25 @@ fout = 'wtheta.dat'
 zrunfout = 'zruntime.dat'
 dtm = datetime.datetime.now() # get date and time to use as mock number
 mocknum = float(dtm.strftime("%m%d%y.%H%M"))
-nthreads = 24
-for zzz in zbcens:
-    print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
-    start_zbin = time.time() # time the wtheta calculation
-    rdz_z = rdz.loc[rdz.zbin == zzz]
-    tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads)
-    cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
+# nthreads = 24
+for nthreads in [48, 32, 12]:
+    for zzz in zbcens:
+        print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
+        start_zbin = time.time() # time the wtheta calculation
+        rdz_z = rdz.loc[rdz.zbin == zzz]
+        tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads)
+        cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
 
-    end_zbin = time.time() # time the wtheta calculation
-    ztime = (end_zbin-start_zbin)/60. # in minutes
-    print('wtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
-    # zrunhdr = ['nthreads', 'zbin', 'calc time [min]', '# galaxies']
-    zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index)])
-    zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
-    print(zrunstr, file=open(zrunfout, 'a'))
+        # save calculation time
+        end_zbin = time.time() # time the wtheta calculation
+        ztime = (end_zbin-start_zbin)/60. # in minutes
+        print('wtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+        # zrunhdr = ['nthreads', 'zbin', 'calc time [min]', '# galaxies']
+        # zrunhdrstr = ''.join(str(x).rjust(15) for x in zrunhdr)
+        # print(zrunhdrstr, file=open(zrunfout, 'a'))
+        zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index)])
+        zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
+        print(zrunstr, file=open(zrunfout, 'a'))
 
 
 wdf = cw.load_from_file(fout)
