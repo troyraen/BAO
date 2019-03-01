@@ -92,7 +92,7 @@ def plot_wtheta_old(bcens, wtheta):
 
 
 # look at galaxy distribution
-def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies'):
+def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     """ Plots 3D galaxy distribution.
         galaxies assumed to be DataFrame
     """
