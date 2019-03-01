@@ -74,13 +74,14 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     rdz, zbin_edges = hf.bin_redshifs(rdz, zspace=zspace, validate=False)
     print('*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
-    zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
+    # zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
+    zgroups = rdz.groupby('zbin') # group by redshift bin
     randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':su.catboxz }
     mocknum = get_mock_num() # get mock number as date and time
-    for zzz in zbcens:
+    for i, (zzz, rdz_z) in zgroups:
         print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
         start_zbin = time.time() # time the wtheta calculation
-        rdz_z = rdz.loc[rdz.zbin == zzz]
+        # rdz_z = rdz.loc[rdz.zbin == zzz]
         tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads)
         cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
 
