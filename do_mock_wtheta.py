@@ -56,13 +56,13 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
 
     # Stack boxes, push to catalog redshift, and transform coordinates
     print('Stacking {}^3 boxes. ...'.format(Nstack))
-    newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=su.catLbox) # returns (ngals x 6) ndarray
+    newgals = su.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=su.catLbox) # returns (ngals x 6) ndarray
     if galplots:
         ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
     print('Pushing the box out to z(box face) = {} ...'.format(su.catboxz))
-    newgals_atz = sm.push_box2z(newgals, su.catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
+    newgals_atz = su.push_box2z(newgals, su.catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Catalog Redshift')
