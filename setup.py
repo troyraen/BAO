@@ -19,12 +19,28 @@ H0 = None
 Om0 = None
 
 
-def get_galtbl():
+def get_galtbl(getas='HOD'):
+    """ getas='DF' returns the galaxy_table as a DF using galtbl_to_DF().
+        else returns HODmodel.mock.galaxy_table (astropy table).
+    """
     global HODmodel
     if HODmodel is None:
         load_popmock()
     galaxy_table = HODmodel.mock.galaxy_table
+    if getas == 'DF':
+        galaxy_table = galtbl_to_DF(galaxy_table)
     return galaxy_table
+
+
+
+def galtbl_to_DF(galaxy_table, columns=None):
+    """Returns galaxy_table (astropy Table) as DataFrame, keeping only columns."""
+    if columns is None:
+        columns = ['x','y','z', 'vx','vy','vz']
+    df = galaxy_table.to_pandas()
+    df_strip = df[columns]
+    return df_strip
+
 
 
 def load_popmock():
