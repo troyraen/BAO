@@ -61,7 +61,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
         ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
-    print('Pushing the box out to z(box face) = {} ...'.format(su.catboxz))
+    print('Pushing the box out to z(box face) = {0:1.2f} ...'.format(su.catboxz))
     newgals_atz = su.push_box2z(newgals, su.catboxz, su.newLbox) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
@@ -78,7 +78,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':su.catboxz }
     mocknum = get_mock_num() # get mock number as date and time
     for zzz in zbcens:
-        print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
+        print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
         start_zbin = time.time() # time the wtheta calculation
         rdz_z = rdz.loc[rdz.zbin == zzz]
         tbcens, wtheta = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads)
