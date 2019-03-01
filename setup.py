@@ -9,7 +9,6 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
-
 def load_popmock():
     """
     Loads a repopulated mock halo (need to set up default) to the system.
@@ -19,14 +18,21 @@ def load_popmock():
     global HODmodel
     global catLbox
     global catboxz
-    try:
-        halocat and HODmodel
-    except:
+    if HODmodel is None:
         print('\nSetting up halocat and HODmodel\n')
         halocat, HODmodel = setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
         # HODmodel.mock.populate() # repopulate
         catLbox = halocat.Lbox[0]
         catboxz = halocat.redshift
+
+    # try:
+    #     halocat and HODmodel
+    # except:
+    #     print('\nSetting up halocat and HODmodel\n')
+    #     halocat, HODmodel = setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+    #     # HODmodel.mock.populate() # repopulate
+    #     catLbox = halocat.Lbox[0]
+    #     catboxz = halocat.redshift
 
     # for nthreads in [48, 32, 12]:
     # print('\nDoing nthreads = {}\n'.format(nthreads))

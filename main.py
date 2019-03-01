@@ -14,6 +14,11 @@ import calc_wtheta as cw
 import myplots as mp
 # import helper_fncs as hf
 
+# setup globals
+halocat = None
+HODmodel = None
+catLbox = None
+catboxz = None
 
 fout = 'wtheta.dat'
 zrunfout='zruntime.dat'
