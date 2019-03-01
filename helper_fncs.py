@@ -58,6 +58,19 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
     print('{} did not fall within any bins.'.format(inval))
     return None
 
+def get_ra_dec_z(galdf, usevel=True):
+    """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
+        galdf should be a DataFrame with minimum columns {x,y,z, vx,vy,vz}
+        usevel = True will add reshift due to perculiar velocities
+        Returns galdf columns {RA, DEC, Redshift} added (or updated) with ra, dec in degrees
+    """
+
+    # Get new DF with RA,DEC,Z. galdf indexing is preserved.
+    rdz = galdf.apply(get_ra_dec_z_calculate, axis=1)
+    # Join it to the original galdf and return it
+    galdf = galdf.join(rdz)
+    return galdf
+
 # First, interp redshift once
 yy = np.arange(0, 2.0, 0.001)
 su.load_cosmo()
@@ -126,19 +139,6 @@ def get_ra_dec_z_calculate(gal, usevel=True):
     rdz = pd.Series(data=rdzdic)
     return rdz
 
-
-def get_ra_dec_z(galdf, usevel=True):
-    """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
-        galdf should be a DataFrame with minimum columns {x,y,z, vx,vy,vz}
-        usevel = True will add reshift due to perculiar velocities
-        Returns galdf columns {RA, DEC, Redshift} added (or updated) with ra, dec in degrees
-    """
-
-    # Get new DF with RA,DEC,Z. galdf indexing is preserved.
-    rdz = galdf.apply(get_ra_dec_z_calculate, axis=1)
-    # Join it to the original galdf and return it
-    galdf = galdf.join(rdz)
-    return galdf
 
 
 
