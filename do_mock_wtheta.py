@@ -62,7 +62,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
     print('Pushing the box out to z(box face) = {} ...'.format(su.catboxz))
-    newgals_atz = su.push_box2z(newgals, su.catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
+    newgals_atz = su.push_box2z(newgals, su.catboxz, su.newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Catalog Redshift')
@@ -75,7 +75,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     print('*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
     zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
-    randoms_kwargs = { 'boxsize':newLbox, 'push_to_z':su.catboxz, 'cosmo':cosmo }
+    randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':su.catboxz, 'cosmo':cosmo }
     mocknum = get_mock_num() # get mock number as date and time
     for zzz in zbcens:
         print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))

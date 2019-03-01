@@ -13,6 +13,7 @@ halocat = None
 HODmodel = None
 catLbox = None
 catboxz = None
+newLbox = None
 
 def load_popmock():
     """
