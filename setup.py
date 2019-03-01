@@ -23,7 +23,7 @@ def load_popmock():
         halocat and HODmodel
     except:
         print('\nSetting up halocat and HODmodel\n')
-        halocat, HODmodel = su.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+        halocat, HODmodel = setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
         # HODmodel.mock.populate() # repopulate
         catLbox = halocat.Lbox[0]
         catboxz = halocat.redshift
