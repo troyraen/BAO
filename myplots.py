@@ -91,9 +91,30 @@ def plot_wtheta_old(bcens, wtheta):
 
 
 
+# look at galaxy distribution
+def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies'):
+    """ Plots 3D galaxy distribution.
+        galaxies assumed to be DataFrame
+    """
+    # get a random sample
+    gs = galaxies.sample(int(len(galaxies)*0.05))
+    # lg = np.arange(len(galaxies['x']))
+    # np.random.shuffle(lg)
+    # lg = lg[:int(gal_frac*len(galaxies['x']))]
+
+    plt.figure()
+    ax = plt.axes(projection='3d')
+    # plt.figure().gca(projection='3d')
+
+    ax.scatter3D(gs.x, gs.y, gs.z, s=1)
+    plt.title(title)
+    plt.tight_layout()
+    plt.show(block=False)
+
+
 
 # look at galaxy distribution
-def plot_galaxies(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
+def plot_galaxies_old(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies'):
     """ Plots 3D galaxy distribution using coords cordinate basis.
         galaxy_table assumed to be astropy table with cols {'x','y','z'}
         coords should be one of 'xyz' (h^-1 Mpc assumed),
