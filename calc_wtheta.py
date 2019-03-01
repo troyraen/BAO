@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from astropy.table import Table
+import os
+import datetime
 
 from halotools.mock_observables import mock_survey
 # import Corrfunc
@@ -60,34 +62,37 @@ def write_to_file(bcens, wtheta, zbin, mocknum, fout):
     """
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
     extra_cols = np.array(['zbin', 'mock'])
+    numbcens = len(bcens)
 
-    # check if file exists
     fpath = Path(fout)
-    if fpath.is_file(): # if it does, check column compatibility
-        print('File {} exists. Checking compatibility...'.format(fout))
-        # check that bcens are the same
-        file_cols = np.genfromtxt(fout, max_rows=1, dtype=str)
-        numbcens = len(bcens)
-        file_bcens = file_cols[:numbcens].astype(np.double)
+    # check if file exists
+    if fpath.is_file():
         rtol=1e-5
-        np.testing.assert_allclose(file_bcens, bcens, rtol=rtol, \
-            err_msg='\nbcens != bcens (first line) in {}.\nwtheta not written to file.\n'.format(fout))
-        # check that extra_cols are the same
-        file_xcols = file_cols[numbcens:]
-        assert np.array_equal(file_xcols,extra_cols), "\nextra columns don't match (first line) in {}.\nwtheta not written to file.\n".format(fout)
-        # if they are, then append to file (below)
-        print('Input data compatible with existing file (bcens rtol={}). Appending wtheta.\n'.format(rtol))
+        # print('File {} exists. Checking compatibility...'.format(fout))
+        # Check that bcens and extra_cols are the same as in current file.
+        __, file_xcols, tbool = get_tbins(fout, val_array=bcens, rtol=rtol)
+        xbool = np.array_equal(file_xcols,extra_cols)
+        if not (tbool and xbool): # columns don't match
+            # Move the current file so we can start a new one.
+            dtm = datetime.datetime.now() # get date and time to use in file name
+            mv_fout = fout[:-4] + dtm.strftime("_ow_%m%d%y_%H%M") + fout[-4:] # assumes fout file extension is 3 letters
+            os.rename(fout, mv_fout)
+            print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(fout))
+            print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
+        else: # columns match
+            print('Input data compatible with existing file (bcens rtol={}). Appending wtheta.\n'.format(rtol))
 
-    else: # else create new file and write header
+    # if fout has been moved (above) or never existed, create new file
+    if not fpath.is_file():
         print('Writing new file {}'.format(fout))
-        hdr = 'First row contains bin centers (theta in degrees), then extra info. All other rows contain wtheta for that bin, then extra info.\n'
+        hdr = 'Columns labeled with floats contain bin centers (theta in degrees), others are extra info.\n'
         new_cols = np.stack([np.concatenate((bcens.astype(str), extra_cols))])
         np.savetxt(fout, new_cols, fmt='%25.7s', header=hdr) # write header
 
-    # append data to the file
-    srtln = 50*(len(wtheta)+len(extra_cols))
+    # Now fout exists, so append the data
+    mlw = 50*(len(bcens)+len(extra_cols))
     dat_cols = np.append(wtheta, [zbin,mocknum]) # add extra column data to wtheta
-    str_cols = np.array2string(dat_cols, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=srtln)[1:-1]
+    str_cols = np.array2string(dat_cols, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
     print(str_cols, file=open(fout, 'a'))
 
 
