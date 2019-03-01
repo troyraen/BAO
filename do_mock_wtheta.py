@@ -39,6 +39,10 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     print('\ndo_mock_wtheta.py started at {}'.format(datetime.datetime.now()))
 
     # Setup:
+    global halocat
+    global HODmodel
+    global catLbox
+    global catboxz
     su.load_cosmo() # loads global cosmo object plus H0, Om0
     su.load_popmock()
     galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
