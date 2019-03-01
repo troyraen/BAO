@@ -13,7 +13,7 @@ import helper_fncs as hf
 
 
 def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
-        fout='wtheta.dat', zrunfout='zruntime.dat', nthreads=32, galplots=False):
+        fout='data/wtheta.dat', zrunfout='data/zruntime.dat', nthreads=32, galplots=False):
     """
     Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
     Needs update so Nstack=0 => just move origin to center of box for push consistency.
