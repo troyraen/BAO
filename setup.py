@@ -187,15 +187,17 @@ def stack_boxes(galdf, Nstack=2, ogLbox=1000):
         print('Moving origin to box center...')
         newLbox = ogLbox
         N2 = Nstack/2.
-        galdf.x = galdf.x-N2; galdf.y = galdf.y-N2; galdf.z = galdf.z-N2
+        newgals = galdf
+        newgals.x = newgals.x-N2; newgals.y = newgals.y-N2; newgals.z = newgals.z-N2
 
-    # Iterate over rows of galdf.
-    # Generate new 'xyz' coordinates. Copy all other columns.
-    nglist = [] # list to hold each new DataFrame generated from a single galaxy
-    for idx, gal in galdf.iterrows():
-        nglist.append(stack_boxes_gen_new_rows(gal, Nstack=Nstack, ogLbox=ogLbox))
-    # Create new df from dfs in nglist
-    newgals = pd.concat(nglist, ignore_index=True)
+    else:
+        # Iterate over rows of galdf.
+        # Generate new 'xyz' coordinates. Copy all other columns.
+        nglist = [] # list to hold each new DataFrame generated from a single galaxy
+        for idx, gal in galdf.iterrows():
+            nglist.append(stack_boxes_gen_new_rows(gal, Nstack=Nstack, ogLbox=ogLbox))
+        # Create new df from dfs in nglist
+        newgals = pd.concat(nglist, ignore_index=True)
 
     return newgals
 
