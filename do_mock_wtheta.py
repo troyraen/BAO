@@ -12,7 +12,7 @@ import myplots as mp
 import helper_fncs as hf
 
 
-def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
+def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         fout='wtheta.dat', zrunfout='zruntime.dat', nthreads=32, galplots=False):
     """
     Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
@@ -62,7 +62,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
     print('Pushing the box out to z(box face) = {0:1.2f} ...'.format(su.catboxz))
-    newgals_atz = su.push_box2z(newgals, su.catboxz, su.newLbox) # returns original ndarray with 1st column shifted
+    newgals_atz = su.push_box2z(newgals, z4push, su.newLbox) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Catalog Redshift')
