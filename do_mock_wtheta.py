@@ -17,7 +17,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
     """
     Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
     Needs update so Nstack=0 => just move origin to center of box for push consistency.
-    Pushes the box so the face is at comoving_distance(redshift = su.catboxz (loaded in load_popmock))
+    Pushes the box so the face is at comoving_distance(redshift = z4push)
     Transforms to RA, DEC, Z and bins redshift using zspace.
     Calculates wtheta using tbins, nthreads and writes results to fout.
     Calculates runtime of each wtheta calculation and outputs info to zrunfout.
@@ -71,7 +71,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
     print('\t\t*** do_mock_wtheta.py line 64. ***')
     # zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
     zgroups = newgals[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin
-    randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':su.catboxz }
+    randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':z4push, 'viewgals':galplots }
     mocknum = get_mock_num() # get mock number as date and time
     for i, (zzz, rdz_z) in enumerate(zgroups):
         print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))

@@ -176,6 +176,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
         randoms_kwargs['Nran'] = len(RA)*10
     print('Getting randoms with {}'.format(randoms_kwargs))
     rand_RA, rand_DEC = get_randoms(**randoms_kwargs)
+    print('Calculating...')
     RR_counts = DDtheta_mocks(autocorr, nthreads, bins, rand_RA, rand_DEC)
 
     # gal random
