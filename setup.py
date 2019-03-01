@@ -173,14 +173,20 @@ def stack_boxes(galdf, Nstack=2, ogLbox=1000):
             (assumes coordinates {x,y,z} in [0,Lbox]).
     Stacks Nstack^3 (must be an EVEN integer) galdf mock boxes together around the origin.
     Sets global newLbox.
-    Returns a DataFrame of galaxies with boxsize=newLbox.
+    Returns a DataFrame of galaxies with the origin at the center of the box and boxsize=newLbox.
             columns {x,y,z} generated periodically, {vx,vy,vz, all others} same as original galaxies.
     """
     # Setup
-    print('*** You should update su.stack_boxes to accept Nstack=0. ***')
     global newLbox
-    global catLbox
-    newLbox = catLbox*Nstack
+    # global catLbox
+    newLbox = ogLbox*Nstack
+    print('*** Warning: su.stack_boxes assumes the original box is strictly in the 1st quadrant with the origin at the corner. ***')
+
+    if Nstack == 0: # Just move the origin to the center of the box.
+        print('Moving origin to box center...')
+        newLbox = ogLbox
+        N2 = Nstack/2.
+        galdf.x = galdf.x-N2; galdf.y = galdf.y-N2; galdf.z = galdf.z-N2
 
     # Iterate over rows of galdf.
     # Generate new 'xyz' coordinates. Copy all other columns.
