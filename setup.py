@@ -18,6 +18,15 @@ cosmo = None
 H0 = None
 Om0 = None
 
+
+def get_galtbl():
+    global HODmodel
+    if HODmodel is None:
+        load_popmock()
+    galaxy_table = HODmodel.mock.galaxy_table
+    return galaxy_table
+
+
 def load_popmock():
     """
     Loads a repopulated mock halo (need to set up default) to the system.
