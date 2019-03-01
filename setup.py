@@ -8,16 +8,21 @@ import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
+# setup globals
+halocat = None
+HODmodel = None
+catLbox = None
+catboxz = None
 
 def load_popmock():
     """
     Loads a repopulated mock halo (need to set up default) to the system.
     Will load halocat and HODmodel if needed.
     """
-    global halocat
-    global HODmodel
-    global catLbox
-    global catboxz
+    # global halocat
+    # global HODmodel
+    # global catLbox
+    # global catboxz
     if HODmodel is None:
         print('\nSetting up halocat and HODmodel\n')
         halocat, HODmodel = setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock

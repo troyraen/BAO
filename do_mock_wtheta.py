@@ -17,7 +17,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     """
     Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
     Needs update so Nstack=0 => just move origin to center of box for push consistency.
-    Pushes the box so the face is at comoving_distance(redshift = catboxz (loaded in load_popmock))
+    Pushes the box so the face is at comoving_distance(redshift = su.catboxz (loaded in load_popmock))
     Transforms to RA, DEC, Z and bins redshift using zspace.
     Calculates wtheta using tbins, nthreads and writes results to fout.
     Calculates runtime of each wtheta calculation and outputs info to zrunfout.
@@ -41,11 +41,11 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     # Setup:
     su.load_cosmo() # loads global cosmo object plus H0, Om0
     su.load_popmock()
-    global halocat
-    global HODmodel
-    global catLbox
-    global catboxz
-    galaxy_table = HODmodel.mock.galaxy_table # get the galaxy_table
+    # global halocat
+    # global HODmodel
+    # global catLbox
+    # global catboxz
+    galaxy_table = su.HODmodel.mock.galaxy_table # get the galaxy_table
     if galplots:
         mp.plot_galaxies(galaxy_table, gal_frac=0.005, coords='xyz', title='Original Mock') # plot a random subsample of galaxies
     if tbins is None:
@@ -56,13 +56,13 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
 
     # Stack boxes, push to catalog redshift, and transform coordinates
     print('Stacking {}^3 boxes. ...'.format(Nstack))
-    newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=catLbox) # returns (ngals x 6) ndarray
+    newgals = sm.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=su.catLbox) # returns (ngals x 6) ndarray
     if galplots:
         ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
-    print('Pushing the box out to z(box face) = {} ...'.format(catboxz))
-    newgals_atz = sm.push_box2z(newgals, catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
+    print('Pushing the box out to z(box face) = {} ...'.format(su.catboxz))
+    newgals_atz = sm.push_box2z(newgals, su.catboxz, newLbox, cosmo=cosmo) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Catalog Redshift')
@@ -75,7 +75,7 @@ def getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=None, \
     print('*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
     zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
-    randoms_kwargs = { 'boxsize':newLbox, 'push_to_z':catboxz, 'cosmo':cosmo }
+    randoms_kwargs = { 'boxsize':newLbox, 'push_to_z':su.catboxz, 'cosmo':cosmo }
     mocknum = get_mock_num() # get mock number as date and time
     for zzz in zbcens:
         print('\nCalculating wtheta for zbin = {0}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
