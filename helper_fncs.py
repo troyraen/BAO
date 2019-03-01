@@ -5,6 +5,8 @@ from scipy.interpolate import interp1d
 from astropy import cosmology
 from astropy.constants import c  # the speed of light
 
+import setup as su
+
 
 
 
@@ -59,7 +61,7 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
 
 
 
-def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
+def get_ra_dec_z(ps_coords, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ndarray (ngals x 6) (columns = {x,y,z, vx,vy,vz})
         usevel = True will add reshift due to perculiar velocities
@@ -70,12 +72,10 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
     v = ps_coords[:,3:6]
 
 # calculate the observed redshift
-    if cosmo is None:
-        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
     c_km_s = c.to('km/s').value
 
     # remove h scaling from position so we can use the cosmo object
-    x = x/cosmo.h
+    x = x/su.cosmo.h
 
     # compute comoving distance from observer
     r = np.sqrt(x[:, 0]**2+x[:, 1]**2+x[:, 2]**2)
@@ -89,7 +89,7 @@ def get_ra_dec_z(ps_coords, cosmo=None, usevel=True):
 
     # compute cosmological redshift and add contribution from perculiar velocity
     yy = np.arange(0, 4.0, 0.001)
-    xx = cosmo.comoving_distance(yy).value
+    xx = su.cosmo.comoving_distance(yy).value
     f = interp1d(xx, yy, kind='cubic')
     z_cos = f(r)
     redshift = z_cos+(vr/c_km_s)*(1.0+z_cos) if usevel else z_cos

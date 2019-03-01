@@ -106,7 +106,7 @@ def load_from_file(fin):
 def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
     """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
         bins = array of theta bin edges in degrees
-        randoms_kwargs (for get_randoms) can include: {Nran=, boxsize=, push_to_z=, cosmo=}
+        randoms_kwargs (for get_randoms) can include: {Nran=, boxsize=, push_to_z=}
     Returns [theta bin centers, wtheta]
     """
 
@@ -128,8 +128,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
     autocorr=1
     if 'Nran' not in randoms_kwargs:
         randoms_kwargs['Nran'] = len(RA)*10
-    print('\nGetting randoms with')
-    print(randoms_kwargs)
+    print('Getting randoms with {}'.format(randoms_kwargs))
     rand_RA, rand_DEC = get_randoms(**randoms_kwargs)
     RR_counts = DDtheta_mocks(autocorr, nthreads, bins, rand_RA, rand_DEC)
 
@@ -149,7 +148,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
 
 
 
-def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None, viewgals=False):
+def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     """Returns random [RA, DEC] in degrees"""
     # create random points in box with side length boxsize, centered around origin
     ran_coords = np.random.random((Nran,3))*boxsize - boxsize/2
@@ -157,13 +156,13 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None, viewgals=F
     ran_vels = np.zeros((Nran,3))
     ps_coords = np.hstack([ran_coords,ran_vels])
     if push_to_z is not None:
-        ps_coords = su.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
+        ps_coords = su.push_box2z(ps_coords, push_to_z, boxsize) # returns original ndarray with 1st column shifted
         if viewgals:
             # plot to check coords
             ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
             mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
 
-    rdz = hf.get_ra_dec_z(ps_coords, cosmo=cosmo, usevel=True) # returns a DataFrame
+    rdz = hf.get_ra_dec_z(ps_coords, usevel=True) # returns a DataFrame
     ran_ra, ran_dec = np.asarray(rdz.RA), np.asarray(rdz.DEC)
     # print('numgals = {0}, len(ran_ra) = {1}, len(ran_dec) = {2}'.format(Nran, len(ran_ra), len(ran_dec)))
     # print('Sampling ran_ra, ran_dec: {}'.format(ran_ra[:10], ran_dec[:10]))

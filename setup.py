@@ -14,6 +14,9 @@ HODmodel = None
 catLbox = None
 catboxz = None
 newLbox = None
+cosmo = None
+H0 = None
+Om0 = None
 
 def load_popmock():
     """
@@ -62,7 +65,7 @@ def load_cosmo(H0in=70.0, Om0in=0.3):
 
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
-def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
+def push_box2z(galaxy_coords, redshift, Lbox):
     """Moves the x coordinates of galaxy_coords
         so the FACE of the box is at comoving_distance(redshift).
     Expects galaxy_coords as (gtot x 3) array with columns ['x','y','z'].
@@ -71,8 +74,9 @@ def push_box2z(galaxy_coords, redshift, Lbox, cosmo=None):
     Assumes coords are in Mpc/h
     Returns galaxy_coords with x coordinates shifted.
     """
+    global cosmo
     if cosmo is None:
-        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+        load_cosmo()
 
     xx = galaxy_coords[:,0]
     # shift xx so that coordinates are strictly positive (i.e. move face to x=0)
