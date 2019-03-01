@@ -94,7 +94,7 @@ def plot_wtheta_old(bcens, wtheta):
 # look at galaxy distribution
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     """ Plots 3D galaxy distribution.
-        galaxies assumed to be DataFrame
+        galaxies assumed to be DataFrame with minimum columns {'x','y','z'}
     """
     # get a random sample
     gs = galaxies.sample(int(len(galaxies)*0.05))

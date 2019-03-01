@@ -22,6 +22,7 @@ nthreads = 32
 tbins = np.logspace(np.log10(3.0), np.log10(15.0), 20)
 # tbins = np.linspace(4.0, 8.0, 20)
 z4push = 0.
-dmw.getmock_calcwtheta(Nstack=2, z4push=z4push, zspace=0.365, tbins=tbins, \
+Nstack=0
+dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=0.365, tbins=tbins, \
         fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=True)
 ###
