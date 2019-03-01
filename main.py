@@ -19,25 +19,9 @@ import myplots as mp
 fout = 'data/wtheta.dat'
 zrunfout='data/zruntime.dat'
 nthreads = 32
-# tbins = np.logspace(np.log10(4.0), np.log10(8.0), 20)
-tbins = np.linspace(4.0, 8.0, 20) # if you change tbins, move the existing file ### FIX THIS ### (bash code)
-# !tm=$(date +"%m%d%y_%H%M")
-# !mv data/wtheta.dat data/wtheta_ow_${tm}.dat
-#
-dmw.getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=tbins, \
-        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=False)
-###
-
-
-# get wtheta df from file
-import pandas as pd
-import calc_wtheta as cw
-fin = 'wtheta.dat'
-wdf = cw.load_from_file(fin)
-wdfp = pd.pivot_table(wdf, index='zbin')
-###
-
-# plot zbin wtheta calc times
-import myplots as mp
-zrf = mp.getplot_zruntimes(zrunfout='data/zruntime.dat') # get and plot zrun calc times
+tbins = np.logspace(np.log10(3.0), np.log10(15.0), 20)
+# tbins = np.linspace(4.0, 8.0, 20)
+z4push = 0.
+dmw.getmock_calcwtheta(Nstack=2, z4push=z4push, zspace=0.365, tbins=tbins, \
+        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=True)
 ###
