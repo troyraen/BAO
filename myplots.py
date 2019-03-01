@@ -15,7 +15,7 @@ mpl.rcParams['figure.titlesize'] = 'medium'
 
 
 
-def getplot_zruntimes():
+def getplot_zruntimes(zrunfout='zruntime.dat'):
     # get and plot zrun calc times
     zrf = pd.read_csv(zrunfout, delim_whitespace=True)
     zrf.plot.scatter(x='nthreads',y='calctime', c='numgals')
