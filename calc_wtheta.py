@@ -54,18 +54,19 @@ def write_to_file(bcens, wtheta, zbin, mocknum, fout):
     """ bcens = array of theta bin centers
         wtheta = array of wtheta values for each theta bin
         zbin = center of the redshift bin of galaxies used for wtheta
+        mocknum = float to use as mock ID number
         fout = path (as string) of file to write or append to
 
-        Writes file fout:
-            First line is bcens values, then 'zbin' and 'mock' number
-            All following lines are wtheta values for corresponding bcen, then 'zbin' and 'mock'
+        Writes wtheta info to fout.
+        Moves existing file if structure is not compatible.
     """
+    # Setup
     print('\nYou should update this function (calc_wtheta.write_to_file) to print the proper PRECISION!\n')
     extra_cols = np.array(['zbin', 'mock'])
     numbcens = len(bcens)
-
     fpath = Path(fout)
-    # check if file exists
+
+    # Check if file exists
     if fpath.is_file():
         rtol=1e-5
         # print('File {} exists. Checking compatibility...'.format(fout))
@@ -80,16 +81,17 @@ def write_to_file(bcens, wtheta, zbin, mocknum, fout):
             print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(fout))
             print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
         else: # columns match
-            print('Input data compatible with existing file (bcens rtol={}). Appending wtheta.\n'.format(rtol))
+            print('Input data compatible (bcens rtol={0}) with existing file {1}.'.format(rtol, fout))
 
-    # if fout has been moved (above) or never existed, create new file
+    # If fout has been moved (above) or never existed, create new file.
     if not fpath.is_file():
         print('Writing new file {}'.format(fout))
         hdr = 'Columns labeled with floats contain bin centers (theta in degrees), others are extra info.\n'
         new_cols = np.stack([np.concatenate((bcens.astype(str), extra_cols))])
         np.savetxt(fout, new_cols, fmt='%25.7s', header=hdr) # write header
 
-    # Now fout exists, so append the data
+    # Now fout exists, so append the data.
+    print('Appending wtheta to {}'.format(fout))
     mlw = 50*(len(bcens)+len(extra_cols))
     dat_cols = np.append(wtheta, [zbin,mocknum]) # add extra column data to wtheta
     str_cols = np.array2string(dat_cols, formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
