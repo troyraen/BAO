@@ -8,7 +8,7 @@ from halotools.mock_observables import mock_survey
 from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
 
-import setup_mock as sm
+import setup as su
 import helper_fncs as hf
 import myplots as mp
 
@@ -157,7 +157,7 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, cosmo=None, viewgals=F
     ran_vels = np.zeros((Nran,3))
     ps_coords = np.hstack([ran_coords,ran_vels])
     if push_to_z is not None:
-        ps_coords = sm.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
+        ps_coords = su.push_box2z(ps_coords, push_to_z, boxsize, cosmo=cosmo) # returns original ndarray with 1st column shifted
         if viewgals:
             # plot to check coords
             ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
