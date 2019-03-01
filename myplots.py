@@ -9,16 +9,19 @@ from astropy import cosmology
 import calc_wtheta as cw
 
 # set plot defaults
+mpl.rcParams['figure.figsize'] = [8.0, 6.0]
 mpl.rcParams['font.size'] = 14
 mpl.rcParams['legend.fontsize'] = 'small'
 mpl.rcParams['figure.titlesize'] = 'medium'
 
 
 
-def getplot_zruntimes(zrunfout='zruntime.dat'):
+def getplot_zruntimes(zrunfout='data/zruntime.dat'):
     # get and plot zrun calc times
     zrf = pd.read_csv(zrunfout, delim_whitespace=True)
-    zrf.plot.scatter(x='nthreads',y='calctime', c='numgals')
+    zrf.plot.scatter(x='nthreads',y='calctime', s=zrf.index.values*10, \
+            c='numgals', colormap='YlGnBu', alpha=.75 )
+    plt.title('zbin calc_wtheta runtimes.')
     plt.tight_layout()
     plt.show(block=False)
     return zrf

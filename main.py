@@ -15,8 +15,9 @@ import myplots as mp
 # import helper_fncs as hf
 
 
-fout = 'wtheta.dat'
-zrunfout='zruntime.dat'
+# gen mock, calc wtheta, and write to file
+fout = 'data/wtheta.dat'
+zrunfout='data/zruntime.dat'
 nthreads = 32
 # tbins = np.logspace(np.log10(4.0), np.log10(8.0), 20)
 tbins = np.linspace(4.0, 8.0, 20) # if you change tbins, move the existing file ### FIX THIS ### (bash code)
@@ -25,9 +26,18 @@ tbins = np.linspace(4.0, 8.0, 20) # if you change tbins, move the existing file 
 #
 dmw.getmock_calcwtheta(Nstack=2, zspace=0.365, tbins=tbins, \
         fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=False)
+###
 
-fin = fout
+
+# get wtheta df from file
+import pandas as pd
+import calc_wtheta as cw
+fin = 'wtheta.dat'
 wdf = cw.load_from_file(fin)
 wdfp = pd.pivot_table(wdf, index='zbin')
+###
 
-# zrf = mp.getplot_zruntimes() # get and plot zrun calc times
+# plot zbin wtheta calc times
+import myplots as mp
+zrf = mp.getplot_zruntimes(zrunfout='data/zruntime.dat') # get and plot zrun calc times
+###
