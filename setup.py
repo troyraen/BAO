@@ -117,45 +117,65 @@ def push_box2z(galaxy_coords, redshift, Lbox):
 
 
 
-def stack_boxes(galaxy_table, Nstack=20, Lbox=1000):
-    """Takes object HODmodel.mock.galaxy_table (gtin, assumed coordinates {x,y,z} in [0,Lbox]) and
-            stacks Nstack^3 (must be an EVEN integer) of them together around the origin.
-        Returns newgals = (gtot x 6) array with columns ['x','y','z','vx','vy','vz']
-            {x,y,z} generated periodically, {vx,vy,vz} same as original galaxy.
-        Sets global newLbox.
+def stack_boxes_gen_new_rows(gal, Nstack=None, ogLbox=None):
+    """ This gets applied to each row of the original dataframe.
+        gal = single galaxy data as series (single row from original df)
+        Generates new 'xyz' coordinates by stacking Nstack**3 boxes.
+        Copy all other columns.
+        Returns a DataFrame with Nstack**3 galaxies (rows)
     """
-    global newLbox
-    newLbox = catLbox*Nstack
-
     N2 = int(Nstack/2)
     assert Nstack%2 == 0, 'Nstack should be an even integer.'
-    print('*** You should update su.stack_boxes to accept Nstack=0. ***')
 
-    gt = galaxy_table
-    x = gt['x']; y = gt['y']; z = gt['z']
-    vx = gt['vx']; vy = gt['vy']; vz = gt['vz']
+    dfcols = list(gal.index.values)
+    extra_vals = gal[[c for c in dfcols if c not in ['x','y','z']]] # get series of just extra values
 
-    ng = len(x) # number of galaxies in original box
-    gtot = ng* Nstack**3 # new total # galaxies
-    newgals = np.zeros((gtot,6))
-    nLin = np.linspace(-N2,N2-1,Nstack)*Lbox  # array of ints -N2 to N2-1
+    numcols = len(dfcols)
+    gtot = Nstack**3 # num galaxies generated from single original galaxy
+    newgals = np.zeros((gtot,numcols)) # create an array to hold the output
+    nLin = np.linspace(-N2,N2-1,Nstack)*ogLbox  # array of ints -N2 to N2-1
     # boxes will be stacked around the origin by adding nLin to each galaxy coordinate
+    # create coordinates for stacked boxes in each direction
+    xstk = gal.x*np.ones(Nstack) +nLin # array of length Nstack
+    ystk = gal.y*np.ones(Nstack) +nLin
+    zstk = gal.z*np.ones(Nstack) +nLin
     gnew = 0
-    for g in range(ng): # for each galaxy
-        vg = [ vx[g], vy[g], vz[g] ] # get x,y,z velocities (same for each created coord)
-        # create coordinates for stacked boxes in each direction
-        xstk = x[g]*np.ones(Nstack) +nLin # array of length Nstack
-        ystk = y[g]*np.ones(Nstack) +nLin
-        zstk = z[g]*np.ones(Nstack) +nLin
-        for i in xstk:
-            for j in ystk:
-                for k in zstk:
-                    coords = np.array([ i, j, k ] + vg)
-                    newgals[gnew] = coords # add the new galaxy
-                    gnew = gnew+1
+    for i in xstk:
+        for j in ystk:
+            for k in zstk:
+                coords = np.array([ i, j, k ] + list(extra_vals))
+                newgals[gnew] = coords # add the new galaxy
+                gnew = gnew+1
+    ngdf = pd.DataFrame(newgals, columns=dfcols)
+    return ngdf
+
+
+
+def stack_boxes(galdf, Nstack=2, ogLbox=1000):
+    """
+    galdf = DataFrame representing a mock box,
+            with minimum columns {'x','y','z', 'vx','vy','vz'},
+            (assumes coordinates {x,y,z} in [0,Lbox]).
+    Stacks Nstack^3 (must be an EVEN integer) galdf mock boxes together around the origin.
+    Sets global newLbox.
+    Returns a DataFrame of galaxies with boxsize=newLbox.
+            columns {x,y,z} generated periodically, {vx,vy,vz, all others} same as original galaxies.
+    """
+    # Setup
+    print('*** You should update su.stack_boxes to accept Nstack=0. ***')
+    global newLbox
+    global catLbox
+    newLbox = catLbox*Nstack
+
+    # Iterate over rows of galdf.
+    # Generate new 'xyz' coordinates. Copy all other columns.
+    nglist = [] # list to hold each new DataFrame generated from a single galaxy
+    for idx, gal in galdf.iterrows():
+        nglist.append(stack_boxes_gen_new_rows(gal, Nstack=Nstack, ogLbox=ogLbox))
+    # Create new df from dfs in nglist
+    newgals = pd.concat(nglist, ignore_index=True)
 
     return newgals
-
 
 
 
