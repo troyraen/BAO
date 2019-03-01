@@ -186,9 +186,9 @@ def stack_boxes(galdf, Nstack=2, ogLbox=1000):
     if Nstack == 0: # Just move the origin to the center of the box.
         print('Moving origin to box center...')
         newLbox = ogLbox
-        N2 = Nstack/2.
+        L2 = newLbox/2.
         newgals = galdf
-        newgals.x = newgals.x-N2; newgals.y = newgals.y-N2; newgals.z = newgals.z-N2
+        newgals.x = newgals.x-L2; newgals.y = newgals.y-L2; newgals.z = newgals.z-L2
 
     else:
         # Iterate over rows of galdf.
