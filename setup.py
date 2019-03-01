@@ -86,11 +86,27 @@ def load_cosmo(H0in=70.0, Om0in=0.3):
     cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
 
 
+# cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
+# from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
+def push_box2z(galdf, redshift, Lbox):
+    """ Moves the box so the x-FACE is at comoving_distance(redshift).
+        Returns galdf with only 'x' column changed.
+    """
+    global cosmo
+    if cosmo is None:
+        load_cosmo()
+
+    # Shift x so coordinates are strictly positive (i.e. move face to x=0)
+    # Then push the face to comoving_distance(redshift)
+    deltax = Lbox/2. + (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
+    galdf.x = galdf.x + deltax
+
+    return galdf
 
 
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
 # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
-def push_box2z(galaxy_coords, redshift, Lbox):
+def push_box2z_old(galaxy_coords, redshift, Lbox):
     """Moves the x coordinates of galaxy_coords
         so the FACE of the box is at comoving_distance(redshift).
     Expects galaxy_coords as (gtot x 3) array with columns ['x','y','z'].
@@ -113,7 +129,6 @@ def push_box2z(galaxy_coords, redshift, Lbox):
     # change given x coords and return the array (otherwise unchanged)
     galaxy_coords[:,0] = xx
     return galaxy_coords
-
 
 
 
