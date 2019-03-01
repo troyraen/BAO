@@ -50,7 +50,7 @@ def plot_wtheta(wdf):
 
     plt.figure()
     wtheta.plot()
-    plt.set_xlabel(r'$\theta$ [deg]'')
+    plt.set_xlabel(r'$\theta$ [deg]')
     plt.set_ylabel(r'$w(\theta)$')
     plt.tight_layout()
     plt.show(block=False)
