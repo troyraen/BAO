@@ -35,19 +35,14 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         # print(zrunhdrstr, file=open(zrunfout, 'a'))
 
 
+    # Setup:
     start_script = time.time() # time the script
     print('\ndo_mock_wtheta.py started at {}'.format(datetime.datetime.now()))
-
-    # Setup:
     su.load_cosmo() # loads global cosmo object plus H0, Om0
     su.load_popmock()
-    # global halocat
-    # global HODmodel
-    # global catLbox
-    # global catboxz
-    galaxy_table = su.HODmodel.mock.galaxy_table # get the galaxy_table
+    galdf = su.get_galtbl(getas='DF') # get the galaxy_table as a DataFrame
     if galplots:
-        mp.plot_galaxies(galaxy_table, gal_frac=0.005, coords='xyz', title='Original Mock') # plot a random subsample of galaxies
+        mp.plot_galaxies(galdf, gal_frac=0.005, coords='xyz', title='Original Mock') # plot a random subsample of galaxies
     if tbins is None:
         tbins = np.logspace(np.log10(1.0), np.log10(10.0), 15)
     print('*** You should update do_mock_wtheta to check if zrunfout exists, create/write header if not. ***')
@@ -56,12 +51,12 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
 
     # Stack boxes, push to catalog redshift, and transform coordinates
     print('Stacking {}^3 boxes. ...'.format(Nstack))
-    newgals = su.stack_boxes(galaxy_table, Nstack=Nstack, Lbox=su.catLbox) # returns (ngals x 6) ndarray
+    newgals = su.stack_boxes(galdf, Nstack=Nstack, ogLbox=su.catLbox) # returns df
     if galplots:
-        ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
-        mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
+        # ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
+        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
-    print('Pushing the box out to z(box face) = {0:1.2f} ...'.format(su.catboxz))
+    print('Pushing the box out to z(box face) = {0:1.2f} ...'.format(z4push))
     newgals_atz = su.push_box2z(newgals, z4push, su.newLbox) # returns original ndarray with 1st column shifted
     if galplots:
         ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
