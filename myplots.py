@@ -19,8 +19,11 @@ mpl.rcParams['figure.titlesize'] = 'medium'
 def getplot_zruntimes(zrunfout='data/zruntime.dat'):
     # get and plot zrun calc times
     zrf = pd.read_csv(zrunfout, delim_whitespace=True)
-    zrf.plot.scatter(x='nthreads',y='calctime', s=zrf.index.values*10, \
-            c='numgals', colormap='YlGnBu', alpha=.75 )
+    # size = np.log10(zrf.index.values+1.1)*1000
+    size = zrf.index.values*50
+    zrf.plot.scatter(x='nthreads',y='calctime', s=size, \
+            c='numgals', colormap='YlGnBu', alpha=.5 )
+    # plt.semilogy()
     plt.title('zbin calc_wtheta runtimes.')
     plt.tight_layout()
     plt.show(block=False)
@@ -46,28 +49,28 @@ def plot_wtheta(wdf):
 
     plt.figure()
     wtheta.plot()
-    plt.set_xlabel(r'$\theta$ [deg]')
-    plt.set_ylabel(r'$w(\theta)$')
+    plt.xlabel(r'$\theta$ [deg]')
+    plt.ylabel(r'$w(\theta)$')
     plt.tight_layout()
     plt.show(block=False)
     # for idx, row in wtheta.iterrows():
     #     print(row[bincols[0]])
     #     # ax.scatter(row[1], loc, label=row[1].name)
 
-    plt.figure()
-    tbins = np.asarray(bincols,dtype=np.double)
-    zbcens = wdf.zbin.unique()
-    for zzz in zbcens:
-        # if there are multiple mock nums for given zbin, get average
-        wtheta = wdf[bincols].loc[wdf.zbin == zzz] # get wtheta columns of row corresponding to zzz
-        plt.plot(tbins, wtheta, label='zbin = {0:1.5f}'.format(zzz))
-
-    plt.xlabel(r'$\theta$ [deg]')
-    plt.ylabel(r'w($\theta$)')
-    plt.legend()
-    plt.title(r'w($\theta$)')
-    plt.tight_layout()
-    plt.show(block=False)
+    # plt.figure()
+    # tbins = np.asarray(bincols,dtype=np.double)
+    # zbcens = wdf.zbin.unique()
+    # for zzz in zbcens:
+    #     # if there are multiple mock nums for given zbin, get average
+    #     wtheta = wdf[bincols].loc[wdf.zbin == zzz] # get wtheta columns of row corresponding to zzz
+    #     plt.plot(tbins, wtheta, label='zbin = {0:1.5f}'.format(zzz))
+    #
+    # plt.xlabel(r'$\theta$ [deg]')
+    # plt.ylabel(r'w($\theta$)')
+    # plt.legend()
+    # plt.title(r'w($\theta$)')
+    # plt.tight_layout()
+    # plt.show(block=False)
 
 
 
