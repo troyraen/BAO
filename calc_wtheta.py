@@ -201,15 +201,17 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
 
     ran_vels = np.zeros((Nran,3))
     ps_coords = np.hstack([ran_coords,ran_vels])
+    # convert to DF to work with my functions
+    pscdf = pd.DataFrame(ps_coords, columns=['x','y','z', 'vx','vy','vz'])
     if push_to_z is not None:
-        ps_coords = su.push_box2z(ps_coords, push_to_z, boxsize) # returns original ndarray with 1st column shifted
+        pscdf = su.push_box2z(pscdf, push_to_z, boxsize) # returns original ndarray with 1st column shifted
         if viewgals:
             # plot to check coords
-            ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
-            mp.plot_galaxies(ngtbl, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
+            # ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
+            mp.plot_galaxies(pscdf, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
 
-    rdz = hf.get_ra_dec_z(ps_coords, usevel=True) # returns a DataFrame
-    ran_ra, ran_dec = np.asarray(rdz.RA), np.asarray(rdz.DEC)
+    pscdf = hf.get_ra_dec_z(pscdf, usevel=True) # returns a DataFrame
+    ran_ra, ran_dec = np.asarray(pscdf.RA), np.asarray(pscdf.DEC)
     # print('numgals = {0}, len(ran_ra) = {1}, len(ran_dec) = {2}'.format(Nran, len(ran_ra), len(ran_dec)))
     # print('Sampling ran_ra, ran_dec: {}'.format(ran_ra[:10], ran_dec[:10]))
 # using Duncan's function:
