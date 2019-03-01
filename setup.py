@@ -84,6 +84,7 @@ def load_cosmo(H0in=70.0, Om0in=0.3):
     Om0 = Om0in
 
     cosmo = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
+    print('*** cosmo changed to {}'.format(cosmo))
 
 
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
