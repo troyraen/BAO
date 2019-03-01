@@ -99,6 +99,45 @@ def load_from_file(fin):
     return pd.read_csv(fin, delim_whitespace=True, comment='#')
 
 
+def get_tbins(wdat, val_array=None, rtol=1e-5):
+    """
+    wdat = DataFrame or a file path as a string
+    Assumes all column names that can be converted to floats are theta bins.
+    bincols = list of theta bin column names as strings,
+    ocols = list of other column names as strings
+    If val_array is None
+        Returns [ bincols, ocols ]
+    Else
+        Returns [bincols, ocols, boolean = (wdat tbins == val_array)]
+    """
+
+    wdf = cw.load_from_file(wdat) if (type(wdat) == str) else wdat
+    allcols = list(wdf.columns.values)
+    bincols = []
+    ocols = []
+    for c in allcols:
+        try:
+            float(c)
+            bincols.append(c)
+        except:
+            ocols.append(c)
+
+    if val_array is None:
+        return [ bincols, ocols ]
+
+    else:
+        barr = np.asarray(bincols, dtype=np.double) # convert to array
+        try:
+            val_array = np.asarray(val_array, dtype=np.double) # try to convert
+            np.testing.assert_allclose(barr, val_array, rtol=rtol )
+        except TypeError:
+            print('\nTypeError: val_array must be of type that can be converted to np.asarray(type=np.double)')
+            return [bincols, ocols, False]
+        except: # the bincols arrays are not equal
+            print('\nbincols from input != val_array.')
+            return [bincols, ocols, False]
+        else:
+            return [bincols, ocols, True]
 
 
 

@@ -36,15 +36,7 @@ def plot_wtheta(wdf):
         Plots wtheta(theta_bcens), one line for each zbin
     """
 
-    # get list of theta bin column names
-    allcols = list(wdf.columns.values)
-    bincols = []
-    for c in allcols:
-        try:
-            float(c)
-            bincols.append(c)
-        except:
-            pass
+    bincols = cw.get_tbins(wdf) # get list of theta bin column names
     # create new df of wtheta values using pivot_table
         # calculating mean wtheta for each zbin.
         # Transpose to use df.plot()
