@@ -60,7 +60,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
     newgals = su.push_box2z(newgals, z4push, su.newLbox) # returns original DF with 'x' column shifted to so box x-face is at redshift z4push
     if galplots:
         # ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
-        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Catalog Redshift')
+        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(z4push))
 
     print('Converting to RA, DEC, Redshift. ...')
     newgals = hf.get_ra_dec_z(newgals, usevel=True) # Adds columns to newgals
@@ -70,10 +70,10 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
     print('*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
     # zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
-    zgroups = newgals.groupby('zbin') # group by redshift bin
+    zgroups = newgals[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin
     randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':su.catboxz }
     mocknum = get_mock_num() # get mock number as date and time
-    for i, (zzz, rdz_z) in zgroups:
+    for i, (zzz, rdz_z) in enumerate(zgroups):
         print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
         start_zbin = time.time() # time the wtheta calculation
         # rdz_z = rdz.loc[rdz.zbin == zzz]
