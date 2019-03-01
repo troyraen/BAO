@@ -1,6 +1,46 @@
+
+
+Use main.py:
+
+Use do_mock_wtheta.getmock_calcwtheta() to populate a mock, stack boxes,
+transform coordinates, calculate wtheta, and write the results to a file.
+
+Use calc_wtheta:
+Load wtheta stats from file: cw.load_from_file(fout)
+
+# get wtheta df from file
+import pandas as pd
+import calc_wtheta as cw
+fin = 'wtheta.dat'
+wdf = cw.load_from_file(fin)
+wdfp = pd.pivot_table(wdf, index='zbin')
+wdfp
+###
+
+# plot wtheta calc times
+import myplots as mp
+zrunfout='data/zruntime.dat'
+zrf = mp.getplot_zruntimes(zrunfout=zrunfout) # get zrun calc times as DF and plot
+###
+
+# get a galaxy_table
+import setup as su
+galtbl = su.get_galtbl(getas='HOD') # get as original astropy table
+galdf = su.get_galtbl(getas='DF') # get as a DataFrame
+###
+
+
+
+
+
+
+conda create -n halotools_env astropy numpy scipy h5py requests beautifulsoup4 cython python=3.6.8
+
+
 # Run notebook
 need "conda install nb_conda" to use env in notebook
 source activate halotools_env
+<!-- conda activate halotools_env -->
 jupyter notebook
 source deactivate
 
