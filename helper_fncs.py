@@ -12,7 +12,7 @@ import setup as su
 
 # SDSS DR10 max photo zErr = 0.365106
 def bin_redshifs(rdz, zspace = 0.365, validate=False):
-    """rdz = DataFrame with ngals x 3 {ra, dec, redshift} (as returned by get_ra_dec_z)
+    """rdz = DataFrame with minimum columns {RA, DEC, Redshift} (as returned by get_ra_dec_z)
         zspace = desired spacing between bins (result will not be exact)
 
     Returns:
@@ -58,10 +58,90 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
     print('{} did not fall within any bins.'.format(inval))
     return None
 
+# First, interp redshift once
+yy = np.arange(0, 2.0, 0.001)
+xx = su.cosmo.comoving_distance(yy).value
+f = interp1d(xx, yy, kind='cubic')
+def get_ra_dec_z_calculate(gal, usevel=True):
+    """ This is intended to be called using galdf.apply(get_ra_dec_z_calculate, axis=1)
+        Returns a Series with indices {RA,DEC,Redshift} for the given row.
+    """
+
+
+    x = np.array([gal.x, gal.y, gal.z])
+    v = np.array([gal.vx, gal.vy, gal.vz])
+
+# calculate the observed redshift
+    c_km_s = c.to('km/s').value
+
+    # remove h scaling from position so we can use the cosmo object
+    x = x/su.cosmo.h
+
+    # compute comoving distance from observer
+    r = np.sqrt(x[0]**2+x[1]**2+x[2]**2)
+
+    # compute radial velocity
+    ct = x[2]/r
+    st = np.sqrt(1.0 - ct**2)
+    cp = x[0]/np.sqrt(x[0]**2 + x[1]**2)
+    sp = x[1]/np.sqrt(x[0]**2 + x[1]**2)
+    vr = v[0]*st*cp + v[1]*st*sp + v[2]*ct # = radial peculiar velocity (comoving)?
+
+    # compute cosmological redshift and add contribution from perculiar velocity
+    # yy = np.arange(0, 2.0, 0.001)
+    # xx = su.cosmo.comoving_distance(yy).value
+    # f = interp1d(xx, yy, kind='cubic')
+    z_cos = f(r)
+    redshift = z_cos+(vr/c_km_s)*(1.0+z_cos) if usevel else z_cos
+
+    # calculate spherical coordinates
+    theta = np.arccos(x[2]/r)
+    phi = np.arctan2(x[1], x[0])
+
+    # convert spherical coordinates into ra,dec
+    dec = np.degrees(np.pi/2.0 - theta)
+    ra = np.degrees(phi)
+    # convert ra to interval [0,360] for calc_wtheta
+    ra = 360+ ra if ra<0 else ra
+    # print(max(ra), min(ra))
+    # msk = (np.ma.masked_less(ra,0)).mask # True for all values of ra < 0
+    # ra[msk] = 360+ ra[msk]
+    # print(max(ra), min(ra))
+
+    # collect results
+    # rdz = np.vstack((ra,dec,redshift)).T
+    # rdz = pd.DataFrame(rdz, columns=['RA','DEC','Redshift'])
+
+    # coords = np.vstack([galaxy_table['x'], galaxy_table['y'], galaxy_table['z']]).T # check these units, mock_survey.ra_dec_z expects Mpc/h
+    # vels = np.vstack([galaxy_table['vx'], galaxy_table['vy'], galaxy_table['vz']]).T # mock_survey.ra_dec_z expects km/s
+    #
+    # ra, dec, z = mock_survey.ra_dec_z(coords, vels) # returns ra, dec in radians
+    # ra = np.degrees(ra) # [0, 90] degrees
+    # dec = np.degrees(dec) # [-90, 0] degrees
+    #
+    # return [ra, dec, z]
+
+    rdzdic = {'RA':ra, 'DEC':dec, 'Redshift':redshift}
+    rdz = pd.Series(data=rdzdic)
+    return rdz
+
+
+def get_ra_dec_z(galdf, usevel=True):
+    """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
+        galdf should be a DataFrame with minimum columns {x,y,z, vx,vy,vz}
+        usevel = True will add reshift due to perculiar velocities
+        Returns galdf columns {RA, DEC, Redshift} added (or updated) with ra, dec in degrees
+    """
+
+    # Get new DF with RA,DEC,Z. galdf indexing is preserved.
+    rdz = galdf.apply(get_ra_dec_z_calculate, axis=1)
+    # Join it to the original galdf and return it
+    galdf = galdf.join(rdz)
+    return galdf
 
 
 
-def get_ra_dec_z(ps_coords, usevel=True):
+def get_ra_dec_z_old(ps_coords, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         ps_coords should be ndarray (ngals x 6) (columns = {x,y,z, vx,vy,vz})
         usevel = True will add reshift due to perculiar velocities
