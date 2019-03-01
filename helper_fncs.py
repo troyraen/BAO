@@ -60,7 +60,7 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
 
 # First, interp redshift once
 yy = np.arange(0, 2.0, 0.001)
-su.load_cosmo
+su.load_cosmo()
 xx = su.cosmo.comoving_distance(yy).value
 f = interp1d(xx, yy, kind='cubic')
 def get_ra_dec_z_calculate(gal, usevel=True):
