@@ -197,6 +197,8 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
 
 def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     """Returns random [RA, DEC] in degrees"""
+    start_rands = time.time() # time the function
+
     # create random points in box with side length boxsize, centered around origin
     ran_coords = np.random.random((Nran,3))*boxsize - boxsize/2
 
@@ -220,5 +222,9 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     # ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
     # ran_ra = np.degrees(ran_ra) # [0, 90] degrees
     # ran_dec = np.degrees(ran_dec) # [-90, 0] degrees
+
+    end_rands = time.time() # time the function
+    rtime = (end_rands-start_rands)/60. # in minutes
+    print('\tget_randoms() took {0:.1f} minutes'.format(rtime))
 
     return [ran_ra, ran_dec]
