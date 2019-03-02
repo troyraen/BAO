@@ -8,7 +8,7 @@ from astropy.table import Table
 import datetime
 import time
 
-# import setup_mock as sm
+import setup as su
 import do_mock_wtheta as dmw
 import calc_wtheta as cw
 import myplots as mp
@@ -19,10 +19,11 @@ import myplots as mp
 fout = 'data/wtheta.dat'
 zrunfout='data/zruntime.dat'
 nthreads = 32
-tbins = np.logspace(np.log10(3.0), np.log10(15.0), 20)
+tbins = np.logspace(np.log10(1.0), np.log10(13.0), 50)
 # tbins = np.linspace(4.0, 8.0, 20)
-z4push = 0.
+# z4push = 0.
 Nstack=0
-dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=0.365, tbins=tbins, \
-        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=True)
+for z4push = [0., su.catboxz]:
+    dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=0.365, tbins=tbins, \
+        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=False)
 ###
