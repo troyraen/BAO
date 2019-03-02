@@ -83,9 +83,11 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         # print/save calculation time
         end_zbin = time.time() # time the wtheta calculation
         ztime = (end_zbin-start_zbin)/60. # in minutes
-        zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index)])
-        zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
-        print(zrunstr, file=open(zrunfout, 'a'))
+        dtm = get_mock_num() # use this to write date & time to zrunfout
+        # zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index), dtm])
+        # zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
+        # print(zrunstr, file=open(zrunfout, 'a'))
+        print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm), file=open(zrunfout, 'a'))
         print('wtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
         print('Results written to {0}. Calc time written to {1}.'.format(fout, zrunfout))
 
