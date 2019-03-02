@@ -209,7 +209,7 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
         if viewgals:
             # plot to check coords
             # ngtbl = Table(ps_coords, names=['x','y','z', 'vx','vy','vz'])
-            mp.plot_galaxies(pscdf, gal_frac=5e-4, coords='xyz', title="Galaxy Randoms")
+            mp.plot_galaxies(pscdf, gal_frac=5e-5, coords='xyz', title="Galaxy Randoms")
 
     pscdf = hf.get_ra_dec_z(pscdf, usevel=True) # returns a DataFrame
     ran_ra, ran_dec = np.asarray(pscdf.RA), np.asarray(pscdf.DEC)

@@ -39,7 +39,7 @@ def plot_wtheta(wdf):
         Plots wtheta(theta_bcens), one line for each zbin
     """
 
-    bincols = cw.get_tbins(wdf) # get list of theta bin column names
+    bincols, __ = cw.get_tbins(wdf) # get list of theta bin column names
     # create new df of wtheta values using pivot_table
         # calculating mean wtheta for each zbin.
         # Transpose to use df.plot()
@@ -48,12 +48,13 @@ def plot_wtheta(wdf):
     wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
 
     plt.figure()
-    wtheta.plot()
+    wtheta.sort_index().plot()
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
+    # plt.loglog()
     plt.tight_layout()
     plt.show(block=False)
-    # for idx, row in wtheta.iterrows():
+# for idx, row in wtheta.iterrows():
     #     print(row[bincols[0]])
     #     # ax.scatter(row[1], loc, label=row[1].name)
 
