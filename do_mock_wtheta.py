@@ -30,7 +30,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         # see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
         # http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
     # zrunfout code to print header:
-        # zrunhdr = ['nthreads', 'zbin', 'calctime', 'numgals']
+        # zrunhdr = ['nthreads', 'zbin', 'calctime', 'numgals', 'datetime', 'numtbins']
         # zrunhdrstr = ''.join(str(x).rjust(16) for x in zrunhdr)
         # print(zrunhdrstr, file=open(zrunfout, 'a'))
 
@@ -87,7 +87,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         # zrundat = np.asarray([nthreads, zzz, ztime, len(rdz_z.index), dtm])
         # zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
         # print(zrunstr, file=open(zrunfout, 'a'))
-        print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm), file=open(zrunfout, 'a'))
+        print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(zrunfout, 'a'))
         print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
         print('Results written to {0}. Calc time written to {1}.\n'.format(fout, zrunfout))
 
