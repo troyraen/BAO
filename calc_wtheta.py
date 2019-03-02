@@ -118,7 +118,7 @@ def get_tbins(wdat, val_array=None, rtol=1e-5):
         Returns [bincols, ocols, boolean = (wdat tbins == val_array)]
     """
 
-    wdf = cw.load_from_file(wdat) if (type(wdat) == str) else wdat
+    wdf = load_from_file(wdat) if (type(wdat) == str) else wdat
     allcols = list(wdf.columns.values)
     bincols = []
     ocols = []
