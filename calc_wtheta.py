@@ -197,7 +197,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48):
 
 def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     """Returns random [RA, DEC] in degrees"""
-    start_rands = time.time() # time the function
+    start_time = hf.time_code('start') # get function start time
 
     # create random points in box with side length boxsize, centered around origin
     ran_coords = np.random.random((Nran,3))*boxsize - boxsize/2
@@ -215,16 +215,8 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
 
     pscdf = hf.get_ra_dec_z(pscdf, usevel=True) # returns a DataFrame
     ran_ra, ran_dec = np.asarray(pscdf.RA), np.asarray(pscdf.DEC)
-    # print('numgals = {0}, len(ran_ra) = {1}, len(ran_dec) = {2}'.format(Nran, len(ran_ra), len(ran_dec)))
-    # print('Sampling ran_ra, ran_dec: {}'.format(ran_ra[:10], ran_dec[:10]))
-# using Duncan's function:
-# https://halotools.readthedocs.io/en/latest/_modules/halotools/mock_observables/mock_survey.html
-    # ran_ra, ran_dec, ran_z = mock_survey.ra_dec_z(ran_coords, ran_vels)
-    # ran_ra = np.degrees(ran_ra) # [0, 90] degrees
-    # ran_dec = np.degrees(ran_dec) # [-90, 0] degrees
 
-    end_rands = time.time() # time the function
-    rtime = (end_rands-start_rands)/60. # in minutes
-    print('\tget_randoms() took {0:.1f} minutes'.format(rtime))
+    run_time = hf.time_code(start_time) # get function runtime [min]
+    print('\tget_randoms() took {0:.1f} minutes'.format(run_time))
 
     return [ran_ra, ran_dec]

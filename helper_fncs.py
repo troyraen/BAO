@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import time
+import datetime
 from scipy.interpolate import interp1d
 
 from astropy import cosmology
@@ -7,6 +9,26 @@ from astropy.constants import c  # the speed of light
 
 import setup as su
 
+
+
+def time_code(start):
+    """ Usage:
+start_time = hf.time_code('start') # get function start time
+"<<-- Code you want to time goes here. -->>"
+run_time = hf.time_code(start_time) # get function runtime [min]
+print('\tCode took {0:.1f} minutes'.format(run_time))
+
+        start == 'start' returns system time as a float.
+        Pass the result of time_code(start) as the argument in the next call to the function.
+        type(start) == float => returns the runtime in minutes.
+                                            Assumes start_stop is the start time.
+    """
+    if start == 'start':
+        return time.time() # float
+    elif type(start) == float:
+        stop = time.time() # time the function
+        runtime = (stop-start)/60. # in minutes
+        return runtime
 
 
 
