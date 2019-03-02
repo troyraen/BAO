@@ -50,24 +50,24 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
 
 
     # Stack boxes, push to catalog redshift, and transform coordinates
-    print('Stacking {}^3 boxes. ...'.format(Nstack))
+    print('\nStacking {}^3 boxes. ...'.format(Nstack))
     newgals = su.stack_boxes(galdf, Nstack=Nstack, ogLbox=su.catLbox) # returns df
     if galplots:
         # ngtbl = Table(newgals, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
-    print('Pushing the box out to box x-face redshift = {0:1.2f} ...'.format(z4push))
+    print('\nPushing the box out to box x-face redshift = {0:1.2f} ...'.format(z4push))
     newgals = su.push_box2z(newgals, z4push, su.newLbox) # returns original DF with 'x' column shifted to so box x-face is at redshift z4push
     if galplots:
         # ngtbl = Table(newgals_atz, names=['x','y','z','vx','vy','vz'])
         mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(z4push))
 
-    print('Converting to RA, DEC, Redshift. ...')
+    print('\nConverting to RA, DEC, Redshift. ...')
     newgals = hf.get_ra_dec_z(newgals, usevel=True) # Adds columns to newgals
 
     # Bin redshifts calculate wtheta for each zbin and write to file
     newgals, zbin_edges = hf.bin_redshifs(newgals, zspace=zspace, validate=False)
-    print('*** You should fix redshift bins so you get consistent binning with different mocks. ***')
+    print('\n*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
     # zbcens = rdz.zbin.unique() # get set of zbin centers to use as masks
     zgroups = newgals[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin
@@ -88,8 +88,8 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         # zrunstr = np.array2string(zrundat, formatter={'float_kind':lambda x: "%15.1f" % x})[1:-1]
         # print(zrunstr, file=open(zrunfout, 'a'))
         print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm), file=open(zrunfout, 'a'))
-        print('wtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
-        print('Results written to {0}. Calc time written to {1}.'.format(fout, zrunfout))
+        print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+        print('Results written to {0}. Calc time written to {1}.\n'.format(fout, zrunfout))
 
 
 
