@@ -11,24 +11,40 @@ import setup as su
 
 
 
-def time_code(start):
-    """ Usage:
-start_time = hf.time_code('start') # get function start time
-"<<-- Code you want to time goes here. -->>"
-run_time = hf.time_code(start_time) # get function runtime [min]
-print('\tCode took {0:.1f} minutes'.format(run_time))
+def time_code(start, unit=None):
+    """ Usage, assuming rt is a dict collecting code runtimes:
+
+rt['CODE_NAME'] = time_code('start') #.TS. get code start time
+"<<-- Code you want to time goes here. -->> #.TC. "
+rt['CODE_NAME'] = time_code(rt['CODE_NAME'], unit='min') #.TE. replace start time with runtime in minutes
 
         start == 'start' returns system time as a float.
         Pass the result of time_code(start) as the argument in the next call to the function.
-        type(start) == float => returns the runtime in minutes.
-                                            Assumes start_stop is the start time.
+        type(start) == float => returns the runtime in units {'sec', 'min', 'hr', 'day'}.
+                                            Assumes start is the start time.
     """
     if start == 'start':
         return time.time() # float
+
     elif type(start) == float:
         stop = time.time() # time the function
-        runtime = (stop-start)/60. # in minutes
-        return runtime
+        runtime = (stop-start) # in seconds
+
+        if unit == None or unit == 'min':
+            return runtime/60. # in minutes
+        elif unit == 'sec':
+            return runtime # in seconds
+        elif unit == 'hr':
+            return runtime/3600. # in hours
+        elif unit == 'day':
+            return runtime/3600./24. # in days
+        else:
+            print('\n*** time_code given invaid unit. (start={0}, unit={1}.) Returning minutes. ***\n'.format(start,unit))
+            return runtime/60. # in minutes
+
+    else:
+        print('\n*** time_code received invalid argument, start = {}. ***\n\t*** Returning 0. ***\n'.format(start))
+        return 0
 
 
 
