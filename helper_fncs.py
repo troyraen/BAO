@@ -70,7 +70,8 @@ def write_report_times(report_times, fname):
 
 
 def time_code(start, unit=None):
-    """ Usage, assuming rt is a dict collecting code runtimes:
+    """ Usage:  Use an OrderedDict, rt, to collect code runtimes as follows.
+                Then use write_report_times(rt, file_name) to write everything to a file.
 
 rt['CODE_NAME'] = hf.time_code('start') #.TS. get code start time
 "<<-- Code you want to time goes here. -->> " #.TC.

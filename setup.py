@@ -21,6 +21,7 @@ Om0 = None
 
 def get_galtbl(getas='HOD'):
     """ getas='DF' returns the galaxy_table as a DF using galtbl_to_DF().
+                            Only columns are galaxy phase space!
         else returns HODmodel.mock.galaxy_table (astropy table).
     """
     global HODmodel

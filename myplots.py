@@ -111,7 +111,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
-    plt.pause(5.0)
+    plt.pause(10.0)
 
 
 

@@ -1,27 +1,39 @@
 
+# run wtheta calculation beginning to end
+<!-- first move main.out if it exists -->
+python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
+python -u main.py >> main.out # -u forces unbuffered stdout
 
-Use main.py:
 
-Use do_mock_wtheta.getmock_calcwtheta() to populate a mock, stack boxes,
-transform coordinates, calculate wtheta, and write the results to a file.
 
-Use calc_wtheta:
-Load wtheta stats from file: cw.load_from_file(fout)
-
-# get wtheta df from file
+# get and plot wtheta df from file
 import pandas as pd
 import calc_wtheta as cw
-fin = 'wtheta.dat'
+fin = 'data/wtheta.dat'
 wdf = cw.load_from_file(fin)
 wdfp = pd.pivot_table(wdf, index='zbin')
 wdfp
+import myplots as mp
+mp.plot_wtheta(wdf)
 ###
 
-# plot wtheta calc times
+
+# report_time calculation times
+import pandas as pd
+pd.set_option('display.max_columns', 20)
+zrunfout='data/zruntime.dat'
+zrf = pd.read_csv(zrunfout, delim_whitespace=True)
+mock_problem_fncs = ['mocknum','stack_boxes','get_ra_dec_z']
+zbin_problem_fncs = ['mocknum','zbin','numgals','galgal_counts','get_randoms','numrands','randrand_counts','galrand_counts']
+zrf[mock_problem_fncs]
+zrf[zbin_problem_fncs]
+
+-or get df and plot at same time-
 import myplots as mp
 zrunfout='data/zruntime.dat'
 zrf = mp.getplot_zruntimes(zrunfout=zrunfout) # get zrun calc times as DF and plot
 ###
+
 
 # get a galaxy_table
 import setup as su
@@ -29,6 +41,15 @@ galtbl = su.get_galtbl(getas='HOD') # get as original astropy table
 galdf = su.get_galtbl(getas='DF') # get as a DataFrame
 ###
 
+
+
+# other:
+su.load_cosmo() # loads global cosmo object plus H0, Om0
+su.load_popmock() #
+
+Use do_mock_wtheta.getmock_calcwtheta() to populate a mock, stack boxes,
+transform coordinates, calculate wtheta, and write the results to a file.
+###
 
 
 
