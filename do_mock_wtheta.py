@@ -47,46 +47,25 @@ print(zrunhdrstr, file=open(zrunfout, 'a'))
     print('\ngetmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
 
     su.load_cosmo() # loads global cosmo object plus H0, Om0
-    su.load_popmock() # unnecessary, called from get_galtbl
-    galdf = su.get_galtbl(getas='DF') # get the galaxy_table as a DataFrame
-    if galplots:
-        mp.plot_galaxies(galdf, gal_frac=0.005, coords='xyz', title='Original Mock') # plot a random subsample of galaxies
+
     if tbins is None:
         tbins = np.logspace(np.log10(1.0), np.log10(10.0), 25)
-    print('*** You should update do_mock_wtheta to check if zrunfout exists, create/write header if not. ***')
-    print('\t\t*** getmock_calcwtheta has header code in Notes. ***')
-    ###
 
-    # Stack boxes
-    print('\nStacking {}^3 boxes. ...'.format(Nstack))
-    rt['stack_boxes'] = hf.time_code('start') #.TS. get code start time
-    newgals = su.stack_boxes(galdf, Nstack=Nstack, ogLbox=su.catLbox)  #.TC. Returns new DF with boxes stacked around the origin.
-    rt['stack_boxes'] = hf.time_code(rt['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
-    print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), rt['stack_boxes']))
-    if galplots:
-        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
+    # Get the mock box
+    newgals = setup_mock(Nstack, z4push, report_times)
 
-    # Push to redshift z4push
-    print('\nPushing the box out to box x-face redshift = {0:1.2f} ...'.format(z4push))
-    rt['push_box2z'] = hf.time_code('start') #.TS. get code start time
-    newgals = su.push_box2z(newgals, z4push, su.newLbox) #.TC. returns original DF with 'x' column shifted to so box x-face is at redshift z4push
-    rt['push_box2z'] = hf.time_code(rt['push_box2z'], unit='min') #.TE. replace start time with runtime in minute
-    if galplots:
-        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(z4push))
-
-    # Transform coordinates
-    print('\nConverting to RA, DEC, Redshift. ...')
-    rt['get_ra_dec_z'] = hf.time_code('start') #.TS. get code start time
-    newgals = hf.get_ra_dec_z(newgals, usevel=True) #.TC. Adds columns to newgals
-    rt['get_ra_dec_z'] = hf.time_code(rt['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
+    # Get the randoms
+    randgals = cw.get_rand_mock(su.newLbox, z4push)
 
 
-    # Bin redshifts calculate wtheta for each zbin and write to file
+    # Bin redshifts (mock and rands)
     rt['bin_redshifs'] = hf.time_code('start') #.TS. get code start time
     newgals, zbin_edges = hf.bin_redshifs(newgals, zspace=zspace, validate=False) #.TC. "
     rt['bin_redshifs'] = hf.time_code(rt['bin_redshifs'], unit='min') #.TE. replace start time with runtime in minutes
     print('\n*** You should fix redshift bins so you get consistent binning with different mocks. ***')
     print('\t\t*** do_mock_wtheta.py line 64. ***')
+
+    # Calculate wtheta for each zbin and write to file
     zgroups = newgals[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin, only need these columns
     randoms_kwargs = { 'boxsize':su.newLbox, 'push_to_z':z4push, 'viewgals':galplots }
     for i, (zzz, rdz_z) in enumerate(zgroups):
@@ -112,6 +91,48 @@ print(zrunhdrstr, file=open(zrunfout, 'a'))
     print('\n\t{0}\ndo_mock_wtheta.py ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), rt['getmock_calcwtheta']))
 
     return
+
+
+
+
+def setup_mock(Nstack, z4push, report_times):
+    """ Gets a galaxy_table from HOD model and
+            sets up a mock box with galaxies.
+        Returns a DataFrame with galaxy coordinates (cartesian phase-space and RA, DEC, Redshift).
+    """
+    rt = report_times
+
+    # su.load_popmock() # unnecessary, called from get_galtbl
+    galdf = su.get_galtbl(getas='DF') # get the galaxy_table as a DataFrame
+    if galplots:
+        mp.plot_galaxies(galdf, gal_frac=0.005, coords='xyz', title='Original Mock') # plot a random subsample of galaxies
+    ###
+
+    # Stack boxes
+    print('\nStacking {}^3 boxes. ...'.format(Nstack))
+    rt['stack_boxes'] = hf.time_code('start') #.TS. get code start time
+    newgals = su.stack_boxes(galdf, Nstack=Nstack, ogLbox=su.catLbox)  #.TC. Returns new DF with boxes stacked around the origin.
+    rt['stack_boxes'] = hf.time_code(rt['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
+    print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), rt['stack_boxes']))
+    if galplots:
+        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
+
+    # Push to redshift z4push
+    print('\nPushing the box out to box x-face redshift = {0:1.2f} ...'.format(z4push))
+    rt['push_box2z'] = hf.time_code('start') #.TS. get code start time
+    newgals = su.push_box2z(newgals, z4push, su.newLbox) #.TC. returns original DF with 'x' column shifted to so box x-face is at redshift z4push
+    rt['push_box2z'] = hf.time_code(rt['push_box2z'], unit='min') #.TE. replace start time with runtime in minute
+    if galplots:
+        mp.plot_galaxies(newgals, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(z4push))
+
+    # Transform coordinates
+    print('\nConverting to RA, DEC, Redshift. ...')
+    rt['get_ra_dec_z'] = hf.time_code('start') #.TS. get code start time
+    newgals = hf.get_ra_dec_z(newgals, usevel=True) #.TC. Adds columns to newgals
+    rt['get_ra_dec_z'] = hf.time_code(rt['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
+
+    return newgals
+
 
 
 def get_mock_num():
