@@ -96,7 +96,7 @@ print(zrunhdrstr, file=open(zrunfout, 'a'))
         rt['numgals'] = len(rdz_z.index) # save this
         print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
         rt['calc_wtheta'] = hf.time_code('start') #.TS. get code start time
-        # tbcens, wtheta, rt = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads, report_times=rt) #.TC.
+        tbcens, wtheta, rt = cw.calc_wtheta(rdz_z, tbins, randoms_kwargs, nthreads=nthreads, report_times=rt) #.TC.
         rt['calc_wtheta'] = hf.time_code(rt['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
         cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
 

@@ -23,8 +23,10 @@ tbins = np.logspace(np.log10(1.0), np.log10(13.0), 50)
 # tbins = np.linspace(4.0, 8.0, 20)
 su.load_popmock()
 z4push = su.catboxz
-Nstack=0
+galplots=False
+zspace=0.365
+Nstack=2
 # for z4push in [0., su.catboxz]:
-dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=0.365, tbins=tbins, \
-        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=False)
+dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=zspace, tbins=tbins, \
+        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=galplots)
 ###
