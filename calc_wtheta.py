@@ -47,7 +47,6 @@ def get_wtheta(halocat, HODmodel, bins, repop=True, fout=None):
 
 
 
-
 #### HELPER FUNCTIONS ####
 
 def write_to_file(bcens, wtheta, zbin, mocknum, fout):
@@ -150,7 +149,7 @@ def get_tbins(wdat, val_array=None, rtol=1e-5):
 def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48, report_times={}):
     """galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
         bins = array of theta bin edges in degrees
-        randoms_kwargs (for get_randoms) can include: {Nran=, boxsize=, push_to_z=}
+        randoms_kwargs (for get_random_coords) can include: {Nran=, boxsize=, push_to_z=}
         report_times = dict to hold code runtimes
     Returns [theta bin centers, wtheta, report_times]
     """
@@ -178,9 +177,9 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48, report_times={}):
     if 'Nran' not in randoms_kwargs:
         randoms_kwargs['Nran'] = len(RA)*10
     print('Getting randoms with {}'.format(randoms_kwargs))
-    rt['get_randoms'] = hf.time_code('start') #.TS. get code start time
-    rand_RA, rand_DEC = get_randoms(**randoms_kwargs) #.TC.
-    rt['get_randoms'] = hf.time_code(rt['get_randoms'], unit='min') #.TE. replace start time with runtime in minutes
+    rt['get_random_coords'] = hf.time_code('start') #.TS. get code start time
+    rand_RA, rand_DEC = get_random_coords(**randoms_kwargs) #.TC.
+    rt['get_random_coords'] = hf.time_code(rt['get_random_coords'], unit='min') #.TE. replace start time with runtime in minutes
     rt['numrands'] = len(rand_RA)
 
     print('Calculating...')
@@ -209,7 +208,7 @@ def calc_wtheta(galaxy_df, bins, randoms_kwargs, nthreads=48, report_times={}):
 
 
 
-def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
+def get_random_coords(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     """Returns random [RA, DEC] in degrees"""
     start_time = hf.time_code('start') # get function start time
 
@@ -231,6 +230,26 @@ def get_randoms(Nran=10**5, boxsize=1000, push_to_z=None, viewgals=False):
     ran_ra, ran_dec = np.asarray(pscdf.RA), np.asarray(pscdf.DEC)
 
     run_time = hf.time_code(start_time) # get function runtime [min]
-    print('\tget_randoms() took {0:.1f} minutes'.format(run_time))
+    print('\tget_random_coords() took {0:.1f} minutes'.format(run_time))
 
     return [ran_ra, ran_dec]
+
+
+
+
+def get_rand_mock(Lbox, zbox, numrands, viewgals=False):
+    """ Returns a DataFrame with columns {'RA','DEC','Redshift'}
+                of random points in a mock box with:
+                    Lbox = box side length in Mpc/h.
+                    zbox = redshift of center of box.
+                    numrands = number of random galaxies in box.
+
+        First searches dir ./rand_gals/ for a suitable file (within tolerances).
+        If a suitable pre-written file doesn't exist, it creates one.
+
+    """
+
+    # CHECK FOR EXISTING FILE
+
+    # IF IT DOES NOT EXIST:
+    randcoors = get_random_coords(Nran=numrands, boxsize=Lbox, push_to_z=zbox, viewgals=viewgals):
