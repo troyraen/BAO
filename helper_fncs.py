@@ -72,9 +72,9 @@ def write_report_times(report_times, fname):
 def time_code(start, unit=None):
     """ Usage, assuming rt is a dict collecting code runtimes:
 
-rt['CODE_NAME'] = time_code('start') #.TS. get code start time
-"<<-- Code you want to time goes here. -->> #.TC. "
-rt['CODE_NAME'] = time_code(rt['CODE_NAME'], unit='min') #.TE. replace start time with runtime in minutes
+rt['CODE_NAME'] = hf.time_code('start') #.TS. get code start time
+"<<-- Code you want to time goes here. -->> " #.TC.
+rt['CODE_NAME'] = hf.time_code(rt['CODE_NAME'], unit='min') #.TE. replace start time with runtime in minutes
 
         start == 'start' returns system time as a float.
         Pass the result of time_code(start) as the argument in the next call to the function.
@@ -89,7 +89,7 @@ rt['CODE_NAME'] = time_code(rt['CODE_NAME'], unit='min') #.TE. replace start tim
         runtime = (stop-start) # in seconds
 
         if unit == None or unit == 'min':
-            return runtime/60. # in minutes
+            return np.round(runtime/60., 2) # in minutes
         elif unit == 'sec':
             return runtime # in seconds
         elif unit == 'hr':
