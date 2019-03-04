@@ -48,7 +48,7 @@ def bin_redshifs(rdz, zspace = 0.365, validate=False):
     # zbins = np.arange(zmin, zmax+eps, zspace)
     num_binedges = int(np.ceil((zmax-zmin)/zspace))
     zbins = np.linspace(zmin,zmax,num_binedges)
-    zbcens = (zbins[:-1]+zbins[1:])/2
+    zbcens = np.round((zbins[:-1]+zbins[1:])/2, 2) # keep 2 decimal places
     # create zbin masks for rdz dataframe
         # add a column to rdz containing the zbin (zbcens value) the galaxy resides in
     # given z, find which bin it's in and get the value of the bin center
