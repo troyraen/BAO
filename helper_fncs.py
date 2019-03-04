@@ -3,12 +3,70 @@ import pandas as pd
 import time
 import datetime
 from scipy.interpolate import interp1d
+from pathlib import Path
+import os
 
 from astropy import cosmology
 from astropy.constants import c  # the speed of light
 
 import setup as su
 
+
+def file_ow(fin):
+    """ Moves file fin.txt to fin_ow_%m%d%y_%H%M.txt
+        Returns the new file name.
+    """
+
+    # split file name
+    fsplit = fin.split('.')
+    beg, end = '.'.join(fsplit[0:-1]), '.'+fsplit[-1]
+
+    # get date and time to use in new file name
+    dtm = datetime.datetime.now()
+    owdtm = dtm.strftime("_ow_%m%d%y_%H%M")
+
+    # create new file name
+    fout = beg + owdtm + end
+
+    # move the file
+    print('Moving existing file {0} to {1}'.format(fin, fout))
+    os.rename(fin, fout)
+
+    return fout
+
+
+
+def write_report_times(report_times, fname):
+    """ report_times should be a dict with key = column_name, val = column_value
+        Writes values to fname.
+            Moves an existing file if columns don't match.
+    """
+    # Setup
+    rt = report_times
+    fcol_width = rt.pop('fcol_width', 20) # = 20 if fcol_width not in ft.keys
+    rtcols = list(rt.keys())
+    rtvals = list(rt.values())
+    print(rtvals)
+
+    fpath = Path(fname)
+    if fpath.is_file(): # Check the header
+        fcols = list(np.genfromtxt(fname, max_rows=1, dtype=str))
+        try:
+            assert rtcols == fcols
+        except: # columns don't match. Move the file
+            print('*** report_times columns do not match existing file {}. ***'.format(fname))
+            file_ow(fname)
+
+    # If fname has been moved (above) or never existed, create new file.
+    if not fpath.is_file():
+        hdr = ''.join(str(x).rjust(fcol_width) for x in rtcols)
+        print(hdr, file=open(fname, 'w'))
+
+    # Now fname exists, so append data
+    rtdat = ''.join(str(x).rjust(fcol_width) for x in rtvals)
+    print(rtdat, file=open(fname, 'a'))
+
+    return
 
 
 def time_code(start, unit=None):

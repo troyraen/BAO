@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from astropy.table import Table
-import os
+# import os
 import datetime
 
 from halotools.mock_observables import mock_survey
@@ -75,9 +75,7 @@ def write_to_file(bcens, wtheta, zbin, mocknum, fout):
         xbool = np.array_equal(file_xcols,extra_cols)
         if not (tbool and xbool): # columns don't match
             # Move the current file so we can start a new one.
-            dtm = datetime.datetime.now() # get date and time to use in file name
-            mv_fout = fout[:-4] + dtm.strftime("_ow_%m%d%y_%H%M") + fout[-4:] # assumes fout file extension is 3 letters
-            os.rename(fout, mv_fout)
+            mv_fout = hf.file_ow(fout)
             print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(fout))
             print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
         else: # columns match
