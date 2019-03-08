@@ -41,7 +41,7 @@ print(zrunhdrstr, file=open(zrunfout, 'a'))
     # Setup:
     mocknum = get_mock_num() # get mock number as date and time
     # rt['mocknum'] = mocknum # keep track of this
-    rt = OD([('mocknum', mocknum)]) # report_times dict for functions to report times
+    rt = OD([('mocknum', mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
     rt['fcol_width'] = 25 # set report_times file column width
     rt['getmock_calcwtheta'] = hf.time_code('start') #.TS. get code start time
     print('\ngetmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
