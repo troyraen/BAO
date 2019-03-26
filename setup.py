@@ -19,6 +19,28 @@ H0 = None
 Om0 = None
 
 
+
+#### REMOVE THIS AFTER MOVING GET_RANDOMS TO MOCKBOX CLASS !!!!
+# cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
+# from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
+def push_box2z(galdf, redshift, Lbox):
+    """ Moves the box so the x-FACE is at comoving_distance(redshift).
+        Returns galdf with only 'x' column changed.
+    """
+    global cosmo
+    if cosmo is None:
+        load_cosmo()
+
+    # Shift x so coordinates are strictly positive (i.e. move face to x=0)
+    # Then push the face to comoving_distance(redshift)
+    deltax = Lbox/2. + (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
+    galdf.x = galdf.x + deltax
+
+    return galdf
+
+
+
+
 def get_galtbl(getas='HOD'):
     """ getas='DF' returns the galaxy_table as a DF using galtbl_to_DF().
                             Only columns are galaxy phase space!
