@@ -187,7 +187,7 @@ class MockBox:
 
         # Write current zbin wtheta info to file
         # Do this now so it is not lost if a future zbin calculation fails
-        cw.write_to_file(tbcens, wtheta, zzz, mocknum, fout)
+        cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, fout)
 
         if self.rtfout is not None:
             self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
