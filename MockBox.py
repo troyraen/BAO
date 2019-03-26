@@ -181,7 +181,8 @@ class MockBox:
             # stops execution with error if theta bin centers to not match
 
         # Set or append to self.wtheta
-        tmpdf = pd.DataFrame(data=wtheta, index=zzz, columns=tbcens)
+        tmpdf = pd.DataFrame(data=wtheta, columns=[zzz], index=tbcens)
+        tmpdf = tmpdf.T # so that theta bins are columns
         self.wtheta = tmpdf if self.wtheta is None else self.wtheta.append(tmpdf, ignore_index=False, sort=True)
 
         # Write current zbin wtheta info to file
