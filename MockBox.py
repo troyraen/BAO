@@ -348,9 +348,9 @@ class MockBox:
                 comoving_distance(self.cat_zbox). (Only 'x' column is changed.)
             Sets self.zbox = self.cat_zbox
         """
-        global cosmo
-        if cosmo is None:
-            load_cosmo()
+        # global cosmo
+        if su.cosmo is None:
+            su.load_cosmo()
 
         print('\nPushing the box out to box x-face redshift = {0:1.2f} ...'.format(self.cat_zbox))
         if self.rtfout is not None: # track function runtimes
@@ -358,7 +358,7 @@ class MockBox:
 
         # Shift x so coordinates are strictly positive (i.e. move face to x=0)
         # Then push the face to comoving_distance(self.cat_zbox)
-        deltax = self.Lbox/2. + (cosmo.comoving_distance(self.cat_zbox).value)*cosmo.h # Mpc/h
+        deltax = self.Lbox/2. + (su.cosmo.comoving_distance(self.cat_zbox).value)*su.cosmo.h # Mpc/h
         self.PhaseSpace.x = self.PhaseSpace.x + deltax
 
         self.zbox = self.cat_zbox
