@@ -222,7 +222,7 @@ class MockBox:
         # create zbin masks for rdz dataframe
             # add a column to rdz containing the zbin (self.zbins value) the galaxy resides in
         # given z, find which bin it's in and get the value of the bin center
-        self.RDZ['zbin'] = self.RDZ['Redshift'].apply(find_bin_center, **{"bin_edges":self.zbin_edges, "bin_centers":self.zbins})
+        self.RDZ['zbin'] = self.RDZ['Redshift'].apply(hf.find_bin_center, **{"bin_edges":self.zbin_edges, "bin_centers":self.zbins})
         # rdz.apply(lambda inval: hf.find_bin_center(inval, self.zbin_edges, self.zbins), rdz.Redshift)
 
         # make sure the operation worked as expected:
@@ -239,20 +239,6 @@ class MockBox:
         return None
 
 
-
-    def find_bin_center(self, inval, bin_edges=None, bin_centers=None):
-        """Returns the bin_centers value corresponding to the
-            bin (defined by bin_edges) that inval (scalar) falls in to.
-        """
-        print('\n*** find_bin_center has not been updated since moving to MockBox class.\n')
-        for i in range(len(bin_centers)):
-            if (bin_edges[i] <= inval) and (inval < bin_edges[i+1]):
-                return bin_centers[i]
-        if inval == bin_edges[-1]: # inval == top edge of last bin
-            return bin_centers[-1]
-        # if you get here, inval is not in any of the bins
-        print('{} did not fall within any bins.'.format(inval))
-        return None
 
 
 

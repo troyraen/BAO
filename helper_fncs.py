@@ -107,6 +107,21 @@ rt['CODE_NAME'] = hf.time_code(rt['CODE_NAME'], unit='min') #.TE. replace start 
         return 0
 
 
+def find_bin_center(inval, bin_edges=None, bin_centers=None):
+    """Returns the bin_centers value corresponding to the
+        bin (defined by bin_edges) that inval (scalar) falls in to.
+    """
+    for i in range(len(bin_centers)):
+        if (bin_edges[i] <= inval) and (inval < bin_edges[i+1]):
+            return bin_centers[i]
+    if inval == bin_edges[-1]: # inval == top edge of last bin
+        return bin_centers[-1]
+    # if you get here, inval is not in any of the bins
+    print('{} did not fall within any bins.'.format(inval))
+    return None
+
+
+
 
 def get_ra_dec_z(galdf, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
