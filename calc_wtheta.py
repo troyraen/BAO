@@ -153,7 +153,7 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
     """ Pass a MockBox instance to use the following variables:
             tbins = MockBox.tbin_edges
             report_times = MockBox.report_times
-            randoms_kwargs gets these added: 'boxsize':self.Lbox, 'push_to_z':self.zbox
+            randoms_kwargs gets these added: 'boxsize':self.Lbox, 'push_to_z':self.zbox, 'viewgals':self.galplots
         Should still pass galaxy_df since usually want to bin MockBox galaxies in redshift space.
 
         galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
@@ -168,6 +168,7 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
         report_times = MockBox.report_times
         randoms_kwargs['boxsize'] = MockBox.Lbox
         randoms_kwargs['push_to_z'] = MockBox.zbox
+        randoms_kwargs['viewgals'] = MockBox.galplots 
 
     rt = report_times
 

@@ -25,6 +25,7 @@ class MockBox:
         self.mocknum = get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = None # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
+        self.galplots = galplots # bool. Whether to plot galaxy positions at each transformation (use to check whether transformations are correct.)
 
         self.Lbox = None # scalar. Length of box side (assumed square). Mpc/h
         self.zbox = None # scalar. Redshift at face of box.
@@ -67,7 +68,7 @@ class MockBox:
 
 
 
-    def getmock_calcwtheta(self, tbin_edges=None, fout='data/wtheta.dat', Nstack=None, rtfout=None, zbin_width=None, nthreads=32, galplots=False):
+    def getmock_calcwtheta(self, tbin_edges=None, fout='data/wtheta.dat', Nstack=None, rtfout=None, zbin_width=None, nthreads=32, galplots=None):
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
         DONE: Needs update so Nstack=0 => just move origin to center of box for push consistency.
@@ -111,12 +112,15 @@ class MockBox:
         if tbin_edges is not None: # this is set on __init__, but can be changed here
             self.tbin_edges = tbin_edges
 
+        if galplots is not None: # this is set on __init__, but can be changed here
+            self.galplots = galplots
+
         su.load_cosmo() # loads default global cosmo object plus H0, Om0
         ###
 
         # Get galaxy DF by populating DM mock using HODmodel
         self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
-        if galplots: # plot a random subsample of galaxies
+        if self.galplots: # plot a random subsample of galaxies
             mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
 
         # Stack boxes and push box face to appropriate redshift.
@@ -263,12 +267,12 @@ class MockBox:
 
         # Stack boxes
         self.stack_boxes() # Sets self.PhaseSpace by stacking cat_galtbl, centered on origin.
-        if galplots:
+        if self.galplots:
             mp.plot_galaxies(self.PhaseSpace, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
         # Push box face to redshift = self.cat_zbox
         self.push_box2catz()
-        if galplots:
+        if self.galplots:
             mp.plot_galaxies(self.PhaseSpace, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(self.zbox))
 
 
