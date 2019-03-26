@@ -70,6 +70,7 @@ def write_report_times(report_times, fname):
 
 
 def time_code(start, unit=None):
+
     """ Usage:  Use an OrderedDict, rt, to collect code runtimes as follows.
                 Then use write_report_times(rt, file_name) to write everything to a file.
 
@@ -107,66 +108,19 @@ rt['CODE_NAME'] = hf.time_code(rt['CODE_NAME'], unit='min') #.TE. replace start 
 
 
 
-# SDSS DR10 max photo zErr = 0.365106
-def bin_redshifs(rdz, zspace = 0.365, validate=False):
-    """rdz = DataFrame with minimum columns {RA, DEC, Redshift} (as returned by get_ra_dec_z)
-        zspace = desired spacing between bins (result will not be exact)
-
-    Returns:
-        Original DataFrame with added column
-            containing the bin (zbcens value) the galaxy resides in.
-        Array of bin edges
-    """
-    zmin = rdz.Redshift.min()
-    zmax = rdz.Redshift.max()
-    # eps = 0.01
-    # zbins = np.arange(zmin, zmax+eps, zspace)
-    num_binedges = int(np.ceil((zmax-zmin)/zspace))
-    zbins = np.linspace(zmin,zmax,num_binedges)
-    zbcens = np.round((zbins[:-1]+zbins[1:])/2, 2) # keep 2 decimal places
-    # create zbin masks for rdz dataframe
-        # add a column to rdz containing the zbin (zbcens value) the galaxy resides in
-    # given z, find which bin it's in and get the value of the bin center
-    rdz['zbin'] = rdz['Redshift'].apply(find_bin_center, **{"bin_edges":zbins, "bin_centers":zbcens})
-    # rdz.apply(lambda inval: hf.find_bin_center(inval, zbins, zbcens), rdz.Redshift)
-
-    # make sure the operation worked as expected:
-    if validate:
-        for index, row in rdz.iterrows():
-            rdzbin = row.zbin
-            truezbin = find_bin_center(row.Redshift, bin_edges=zbins, bin_centers=zbcens)
-            assert(rdzbin==truezbin)
-
-
-    return [rdz, zbins]
-
-
-
-def find_bin_center(inval, bin_edges=None, bin_centers=None):
-    """Returns the bin_centers value corresponding to the
-        bin (defined by bin_edges) that inval (scalar) falls in to.
-    """
-    for i in range(len(bin_centers)):
-        if (bin_edges[i] <= inval) and (inval < bin_edges[i+1]):
-            return bin_centers[i]
-    if inval == bin_edges[-1]: # inval == top edge of last bin
-        return bin_centers[-1]
-    # if you get here, inval is not in any of the bins
-    print('{} did not fall within any bins.'.format(inval))
-    return None
-
 def get_ra_dec_z(galdf, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         galdf should be a DataFrame with minimum columns {x,y,z, vx,vy,vz}
-        usevel = True will add reshift due to perculiar velocities
-        Returns galdf columns {RA, DEC, Redshift} added (or updated) with ra, dec in degrees
+        usevel = True will add reshift due to peculiar velocities
+        Returns DF with columns {RA, DEC, Redshift} with ra, dec in degrees
     """
 
     # Get new DF with RA,DEC,Z. galdf indexing is preserved.
-    rdz = galdf.apply(get_ra_dec_z_calculate, axis=1)
+    rdz = galdf.apply(get_ra_dec_z_calculate, axis=1, **{'usevel':usevel})
     # Join it to the original galdf and return it
-    galdf = galdf.join(rdz)
-    return galdf
+    # galdf = galdf.join(rdz)
+    return rdz
+
 
 # First, interp redshift once
 yy = np.arange(0, 2.0, 0.001)
