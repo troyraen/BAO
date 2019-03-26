@@ -21,8 +21,8 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rtfout='data/runtimes.dat'):
-        self.mocknum = get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rtfout='data/runtimes.dat', galplots=False):
+        self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = None # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
         self.galplots = galplots # bool. Whether to plot galaxy positions at each transformation (use to check whether transformations are correct.)
@@ -95,7 +95,7 @@ class MockBox:
         if rtfout is not None: # this is set on __init__, but can be changed here
             self.rtfout = rtfout
         if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times = OD([('mocknum', mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
+            self.report_times = OD([('mocknum', self.mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
             self.report_times['fcol_width'] = 25 # set report_times file column width
             self.report_times['getmock_calcwtheta'] = hf.time_code('start') #.TS. get code start time
             print('Function runtimes will be written to {}'.format(self.rtfout))
@@ -169,7 +169,7 @@ class MockBox:
             print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
             self.report_times['calc_wtheta'] = hf.time_code('start') #.TS. get code start time
 
-        randoms_kwargs = { 'Nran':len(rdz.index), 'viewgals':galplots }
+        randoms_kwargs = { 'Nran':len(rdz.index) }
         tbcens, wtheta, self.report_times = cw.calc_wtheta(rdz, MockBox=self, randoms_kwargs=randoms_kwargs, nthreads=nthreads)
 
         # Set self.tbins or check that it equals tbcens
@@ -328,7 +328,7 @@ class MockBox:
         print('\nStacking {}^3 boxes. ...'.format(self.Nstack))
         print('*** Warning: MockBox.stack_boxes assumes the original box is strictly in the 1st quadrant with the origin at the corner. ***')
 
-        if Nstack == 0: # Just move the origin to the center of the box.
+        if self.Nstack == 0: # Just move the origin to the center of the box.
             print('Moving origin to box center...')
             self.Lbox = self.cat_Lbox
             L2 = self.Lbox/2.

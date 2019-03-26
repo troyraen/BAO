@@ -200,7 +200,7 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
     autocorr=1
     if 'Nran' not in randoms_kwargs:
         randoms_kwargs['Nran'] = N
-    print('Getting randoms with {}\n# galaxies in mock = {}'.format(randoms_kwargs, N)
+    print('Getting randoms with {}\n# galaxies in mock = {}'.format(randoms_kwargs, N))
     rt['get_randoms'] = hf.time_code('start') #.TS. get code start time
     rand_RA, rand_DEC = get_randoms(**randoms_kwargs) #.TC.
     rt['get_randoms'] = hf.time_code(rt['get_randoms'], unit='min') #.TE. replace start time with runtime in minutes
@@ -227,7 +227,7 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
     wtheta = convert_3d_counts_to_cf(N, N, rand_N, rand_N, DD_counts, DR_counts, DR_counts, RR_counts) #.TC.
     rt['counts_to_cf'] = hf.time_code(rt['counts_to_cf'], unit='min') #.TE. replace start time with runtime in minutes
 
-    bcens = np.around(tbins[:-1]+tbins[1:])/2, decimals=5)
+    bcens = np.around((tbins[:-1]+tbins[1:])/2, decimals=5)
     return [bcens, wtheta, rt]
 
 
