@@ -1,12 +1,15 @@
 # Example Usage
 
+### SETUP
+From terminal:
+htenv
 
 ### View run stats: report_time calculation times
 
 ```python
 import pandas as pd
 pd.set_option('display.max_columns', 20)
-zrunfout='data/zruntime.dat'
+zrunfout='data/runtimes.dat'
 zrf = pd.read_csv(zrunfout, delim_whitespace=True)
 mock_problem_fncs = ['mocknum','stack_boxes','get_ra_dec_z']
 zbin_problem_fncs = ['mocknum','zbin','numgals','galgal_counts','get_randoms','numrands','randrand_counts','galrand_counts']
@@ -41,6 +44,11 @@ import pandas as pd
 import calc_wtheta as cw
 fin = 'data/wtheta.dat'
 wdf = cw.load_from_file(fin)
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+
 wdfp = pd.pivot_table(wdf, index='zbin')
 wdfp
 import myplots as mp

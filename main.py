@@ -1,18 +1,31 @@
 # %matplotlib
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from astropy import cosmology
-from astropy.table import Table
-import datetime
-import time
+# import matplotlib.pyplot as plt
+# import matplotlib as mpl
+# from astropy import cosmology
+# from astropy.table import Table
+# import datetime
+# import time
 
-import setup as su
-import do_mock_wtheta as dmw
-import calc_wtheta as cw
-import myplots as mp
+from MockBox import MockBox as MB
+# import setup as su
+# import do_mock_wtheta as dmw
+# import calc_wtheta as cw
+# import myplots as mp
 # import helper_fncs as hf
+
+# # NOTE:
+# see http://gouthamanbalaraman.com/blog/numpy-vs-pandas-comparison.html
+# for operation speed comparisons
+#
+
+mb = MB()
+mb.getmock_calcwtheta()
+
+
+
+
 
 
 # gen mock, calc wtheta, and write to file

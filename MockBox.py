@@ -115,7 +115,8 @@ class MockBox:
         if galplots is not None: # this is set on __init__, but can be changed here
             self.galplots = galplots
 
-        su.load_cosmo() # loads default global cosmo object plus H0, Om0
+        if su.cosmo is None:
+            su.load_cosmo() # loads default global cosmo object plus H0, Om0
         ###
 
         # Get galaxy DF by populating DM mock using HODmodel
@@ -124,7 +125,7 @@ class MockBox:
             mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
 
         # Stack boxes and push box face to appropriate redshift.
-        self.transform_mock()
+        self.transform_mock() # Sets self.PhaseSpace
 
         # Transform coordinates
         print('\nConverting to RA, DEC, Redshift. ...')
@@ -146,9 +147,9 @@ class MockBox:
             self.calc_write_wtheta(zzz, rdz_z, fout, nthreads=nthreads)
 
             if self.rtfout is not None:
-                hf.write_report_times(self.report_times, rtfout)
+                hf.write_report_times(self.report_times, self.rtfout)
                 print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
-                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(fout, rtfout))
+                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(fout, self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
 

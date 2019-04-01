@@ -17,7 +17,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
         fout='data/wtheta.dat', zrunfout='data/zruntime.dat', nthreads=32, galplots=False):
     """
     Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
-    Needs update so Nstack=0 => just move origin to center of box for push consistency.
+    DONE: Needs update so Nstack=0 => just move origin to center of box for push consistency.
     Pushes the box so the face is at comoving_distance(redshift = z4push)
     Transforms to RA, DEC, Z and bins redshift using zspace.
     Calculates wtheta using tbins, nthreads and writes results to fout.
@@ -31,7 +31,7 @@ def getmock_calcwtheta(Nstack=2, z4push=su.catboxz, zspace=0.365, tbins=None, \
     zspace: max redshift error in SDSS DR10 Photoz table is 0.365106,
         see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
         http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
-    zrunfout code to print header:
+    OBSOLETE (dict now contains header names which are written automatically): zrunfout code to print header:
 zrunhdr = ['nthreads', 'zbin', 'calctime', 'numgals', 'datetime', 'numtbins']
 zrunhdrstr = ''.join(str(x).rjust(16) for x in zrunhdr)
 print(zrunhdrstr, file=open(zrunfout, 'a'))

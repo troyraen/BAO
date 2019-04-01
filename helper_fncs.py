@@ -46,7 +46,7 @@ def write_report_times(report_times, fname):
     fcol_width = rt.pop('fcol_width', 20) # = 20 if fcol_width not in ft.keys
     rtcols = list(rt.keys())
     rtvals = list(rt.values())
-    print(rtvals)
+    # print(rtvals)
 
     fpath = Path(fname)
     if fpath.is_file(): # Check the header
