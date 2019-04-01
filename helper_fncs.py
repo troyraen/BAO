@@ -124,6 +124,52 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
 
 
 def get_ra_dec_z(galdf, usevel=True):
+    """ galdf = DataFrame with minimum columns {x,y,z, [h/Mpc] vx,vy,vz}, rows=galaxies
+        usevel = True will add reshift due to peculiar velocities
+        Returns DF with columns {RA, DEC, Redshift} with ra, dec in degrees
+    """
+    if su.cosmo is None:
+        su.load_cosmo()
+
+    # remove h scaling from position so we can use cosmo.comoving_distance
+    h = su.cosmo.h
+    x = galdf.x/h; y = galdf.y/h; z = galdf.z/h
+
+    ### Observed Redshift
+    c_km_s = c.to('km/s').value # speed of light
+    r = np.sqrt(x**2+y**2+z**2) # comoving distance from observer
+    # compute radial velocity
+    ct = z/r
+    st = np.sqrt(1.0 - ct**2)
+    cp = x/np.sqrt(x**2 + y**2)
+    sp = y/np.sqrt(x**2 + y**2)
+    vr = galdf.vx*st*cp + galdf.vy*st*sp + galdf.vz*ct # = radial peculiar velocity (comoving)?
+
+    # compute cosmological redshift and add contribution from peculiar velocity
+    yy = np.arange(0, 2.5, 0.001)
+    xx = su.cosmo.comoving_distance(yy).value
+    f = interp1d(xx, yy, kind='cubic')
+    z_cos = f(r)
+    redshift = z_cos+(vr/c_km_s)*(1.0+z_cos) if usevel else z_cos
+    ###
+
+    # calculate spherical coordinates
+    theta = np.arccos(z/r)
+    phi = np.arctan2(y, x)
+
+    # convert spherical coordinates into ra,dec
+    dec = np.degrees(np.pi/2.0 - theta)
+    ra = np.degrees(phi)
+    # convert ra to interval [0,360] for calc_wtheta
+    ra[ra<0.] = 360.+ ra
+
+    rdz = pd.DataFrame(data={'RA':ra, 'DEC':dec, 'Redshift':redshift})
+    return rdz
+
+
+
+# NO LONGER IN USE
+def get_ra_dec_z_dfapply(galdf, usevel=True):
     """Most of this is taken from Duncan Campbell's function mock_survey.ra_dec_z
         galdf should be a DataFrame with minimum columns {x,y,z, vx,vy,vz}
         usevel = True will add reshift due to peculiar velocities
@@ -135,7 +181,6 @@ def get_ra_dec_z(galdf, usevel=True):
     # Join it to the original galdf and return it
     # galdf = galdf.join(rdz)
     return rdz
-
 
 # First, interp redshift once
 yy = np.arange(0, 2.0, 0.001)
