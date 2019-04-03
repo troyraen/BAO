@@ -192,7 +192,7 @@ class MockBox:
         # Set self.Randoms DF
         self.Randoms = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
         self.push_box2catz(box='Randoms') # pushes the x-face to the catalog mock redshift
-        if viewgals:
+        if self.galplots:
             mp.plot_galaxies(self.Randoms, gal_frac=5e-5, coords='xyz', title="Galaxy Randoms at z_catalog")
 
         # transform coords to RA, DEC, Redshift
