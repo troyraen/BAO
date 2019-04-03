@@ -280,9 +280,9 @@ class MockBox:
             self.zbins
             print('\nCheck this mock and make sure zBINS is a larger interval than zVALUES:')
             print('zBINS min, max = [{binmin},{binmax}]'.format(binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
-            print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min, zmax=self.RDZ.Redshift.max))
+            print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
         except:
-            tol = 0.09
+            tol = 0.03
             zmin = int(np.floor((self.RDZ.Redshift.min()-tol)*10))/10 # floor fnc (value-tol) in 1st decimal place
             zmax = int(np.ceil((self.RDZ.Redshift.max()+tol)*10))/10 # gives float to 1 decimal place
             # eps = 0.01
@@ -290,6 +290,9 @@ class MockBox:
             num_binedges = int(np.ceil((zmax-zmin)/self.zbin_width))
             self.zbin_edges = np.linspace(zmin,zmax,num_binedges)
             self.zbins = np.round((self.zbin_edges[:-1]+self.zbin_edges[1:])/2, 2) # keep 2 decimal places
+            print('\nMB.zbin_edges and MB.zbins have been set.')
+            print('zBINS min, max = [{binmin},{binmax}]'.format(binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
+            print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
 
         # create zbin masks for rdz dataframe
             # add a column to rdz containing the zbin (self.zbins value) the galaxy resides in
