@@ -186,8 +186,8 @@ class MockBox:
             self.report_times['get_randoms'] = hf.time_code('start') #.TS. get code start time
             self.report_times['numrands'] = self.Nrands
 
-        # create random points in box with side length boxsize, centered around origin
-        ran_coords = np.random.random((self.Nrands,3))*boxsize - boxsize/2
+        # create random points in box with side length self.Lbox, centered around origin
+        ran_coords = np.random.random((self.Nrands,3))*self.Lbox - self.Lbox/2
         ran_vels = np.zeros((self.Nrands,3))
         # Set self.Randoms DF
         self.Randoms = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
