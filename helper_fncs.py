@@ -124,7 +124,7 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
 
 
 def get_ra_dec_z(galdf, usevel=True):
-    """ galdf = DataFrame with minimum columns {x,y,z, [h/Mpc] vx,vy,vz}, rows=galaxies
+    """ galdf = DataFrame with minimum columns {x,y,z,[h/Mpc] vx,vy,vz}, rows=galaxies
         usevel = True will add reshift due to peculiar velocities
         Returns DF with columns {RA, DEC, Redshift} with ra, dec in degrees
     """
@@ -163,7 +163,10 @@ def get_ra_dec_z(galdf, usevel=True):
     # convert ra to interval [0,360] for calc_wtheta
     ra[ra<0.] = 360.+ ra
 
-    rdz = pd.DataFrame(data={'RA':ra, 'DEC':dec, 'Redshift':redshift})
+    # Create DF with dtype float32.
+    # This ensures that Corrfunc gets galaxies and randoms with same type (as required).
+    # Use float32 since this is the output from HODmodel.mock.galaxy_table.
+    rdz = pd.DataFrame(data={'RA':ra, 'DEC':dec, 'Redshift':redshift}, dtype='float32')
     return rdz
 
 
