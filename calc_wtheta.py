@@ -180,7 +180,7 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
         try: # make sure nthreads was passed through correctly
             assert nthreads == rt.nthreads
         except:
-            print('\n*** WARNING: calc_wtheta() using a different nthreads than set in report_times\n')
+            print('\n*** WARNING: calc_wtheta() using nthreads={cwn}\n\tThis is different than set in MB.report_times.nthreads={rtn}\n'.format(cwn=nthreads, rtn=rt.nthreads))
         # randoms_kwargs['boxsize'] = MockBox.Lbox
         # randoms_kwargs['push_to_z'] = MockBox.zbox
         # randoms_kwargs['viewgals'] = MockBox.galplots
