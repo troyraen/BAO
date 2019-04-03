@@ -144,6 +144,9 @@ class MockBox:
 
         # Bin redshifts, add column to self.RDZ
         self.bin_redshifs(box='RDZ', validate=False)
+        if self.galplots:
+            # plot colored by zbins
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), coords='xyz', title="Final Galaxies box colored by zbin")
 
         # Get box of random points and groupby redshift bins
         self.get_randoms()
@@ -192,10 +195,10 @@ class MockBox:
         # Set self.Randoms DF
         self.Randoms = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
         self.push_box2catz(box='Randoms') # pushes the x-face to the catalog mock redshift
-        if self.galplots:
-            mp.plot_galaxies(self.Randoms, gal_frac=5e-5, coords='xyz', title="Galaxy Randoms at z_catalog")
 
         # transform coords to RA, DEC, Redshift
+        if self.galplots: # save phase space coords for plotting, colored by zbin
+            pstmp = self.Randoms.copy(deep=True)
         if self.rtfout is not None:
             self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start') #.TS. get code start time
         self.Randoms = hf.get_ra_dec_z(self.Randoms, usevel=True) # DF of {RA,DEC,Redshift} (overwrites/erases all previous columns)
@@ -204,6 +207,8 @@ class MockBox:
 
         # Find/set redshift bins
         self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin'
+        if self.galplots:
+            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), gal_frac=5e-5, coords='xyz', title="Galaxy Randoms at z_catalog")
 
         if self.rtfout is not None:
             self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]

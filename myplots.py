@@ -96,9 +96,10 @@ def plot_wtheta_old(bcens, wtheta):
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     """ Plots 3D galaxy distribution.
         galaxies assumed to be DataFrame with minimum columns {'x','y','z'}
+            including column 'zbin' will use this to color points.
     """
     # get a random sample
-    gs = galaxies.sample(int(len(galaxies)*0.05))
+    gs = galaxies.sample(int(len(galaxies)*gal_frac))
     # lg = np.arange(len(galaxies['x']))
     # np.random.shuffle(lg)
     # lg = lg[:int(gal_frac*len(galaxies['x']))]
@@ -107,10 +108,15 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     ax = plt.axes(projection='3d')
     # plt.figure().gca(projection='3d')
 
-    ax.scatter3D(gs.x, gs.y, gs.z, s=1)
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.zlabel('z')
+    # plot and color by zbin if available
+    if 'zbin' in gs.columns:
+        ax.scatter3D(gs.x, gs.y, gs.z, s=1, c=gs.zbin)
+    else:
+        ax.scatter3D(gs.x, gs.y, gs.z, s=1)
+    # ax.scatter3D(gs.x, gs.y, gs.z, s=1)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
