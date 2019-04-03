@@ -23,7 +23,7 @@ import helper_fncs as hf
 class MockBox:
     def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rtfout='data/runtimes.dat', Nrands=None, galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
-        self.report_times = None # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
+        self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
         self.galplots = galplots # bool. Whether to plot galaxy positions at each transformation (use to check whether transformations are correct.)
 
