@@ -108,6 +108,9 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     # plt.figure().gca(projection='3d')
 
     ax.scatter3D(gs.x, gs.y, gs.z, s=1)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.zlabel('z')
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
