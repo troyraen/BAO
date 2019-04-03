@@ -149,47 +149,65 @@ def get_tbins(wdat, val_array=None, rtol=1e-5):
 
 
 
-def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads=32, report_times={}):
+def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads=32, rt={}):
     """ Pass a MockBox instance to use the following variables:
+            randoms_kwargs['randbox'] (this should be a DataFrame with min cols {RA,DEC} of random points to use)
             tbins = MockBox.tbin_edges
             report_times = MockBox.report_times
-            randoms_kwargs gets these added: 'boxsize':self.Lbox, 'push_to_z':self.zbox, 'viewgals':self.galplots
+            OLD: randoms_kwargs gets these added: 'boxsize':self.Lbox, 'push_to_z':self.zbox, 'viewgals':self.galplots
         Should still pass galaxy_df since usually want to bin MockBox galaxies in redshift space.
 
         galaxy_df = DataFrame including (at least) columns 'RA' and 'DEC'
         randoms_kwargs (for get_randoms) can (must?) include: {Nran=, boxsize=, push_to_z=, viewgals=}
         tbins = array of theta bin edges in degrees
-        report_times = dict to hold code runtimes
+        rt = report_times = dict to hold code runtimes
     Returns [theta bin centers, wtheta, report_times]
     """
 
-    if MockBox is not None: # unpack the object to use in this function
-        tbins = MockBox.tbin_edges
-        report_times = MockBox.report_times
-        randoms_kwargs['boxsize'] = MockBox.Lbox
-        randoms_kwargs['push_to_z'] = MockBox.zbox
-        randoms_kwargs['viewgals'] = MockBox.galplots 
+    RA, DEC = np.asarray(galaxy_df.RA), np.asarray(galaxy_df.DEC)
+    N = len(RA)
 
-    rt = report_times
+    if MockBox is not None: # unpack the object to use in this function
+        try:
+            rand_RA = np.asarray(randoms_kwargs['randbox'].RA)
+            rand_DEC = np.asarray(randoms_kwargs['randbox'].DEC)
+        except:
+            print("MockBox was passed to calc_wtheta(), but randoms_kwargs['randbox'] is not a DataFrame with min cols {RA, DEC} of random points.\n\tCannot continue without Randoms.")
+            raise
+        rand_N = len(rand_RA)
+        tbins = MockBox.tbin_edges
+        rt = MockBox.report_times
+        try: # make sure nthreads was passed through correctly
+            assert nthreads == rt.nthreads
+        except:
+            print('\n*** WARNING: calc_wtheta() using a different nthreads than set in report_times\n')
+        # randoms_kwargs['boxsize'] = MockBox.Lbox
+        # randoms_kwargs['push_to_z'] = MockBox.zbox
+        # randoms_kwargs['viewgals'] = MockBox.galplots
+
+    else: # get a box of randoms
+        if 'Nran' not in randoms_kwargs:
+            randoms_kwargs['Nran'] = N
+        print('Getting randoms with {}\n# galaxies in mock = {}'.format(randoms_kwargs, N))
+        rt['get_randoms'] = hf.time_code('start') #.TS. get code start time
+        rand_RA, rand_DEC = get_randoms(**randoms_kwargs) #.TC.
+        rt['get_randoms'] = hf.time_code(rt['get_randoms'], unit='min') #.TE. replace start time with runtime in minutes
+        rand_N = len(rand_RA)
+        rt['numrands'] = rand_N
 
     if tbins is None:
-        print('*** No theta bin edges provided to calc_wtheta.')
         tbins = np.logspace(np.log10(1.0), np.log10(10.0), 25)
-        print('\t Using default tbins = {}'.format(tbins))
+        print('*** No theta bin edges provided to calc_wtheta.\n\t Using default tbins = {}'.format(tbins))
 
-    # Calc pair counts---
-    # tbins = np.linspace(binrange[0], binrange[1], nbins + 1) # theta values [degrees] for bin-edges
+
+    #--- Calc pair counts---
 
     # DDtheta_mocks expects ra in [0.0, 360.0] and dec in [-90.0, 90.0] degrees
     # DDtheta_mocks returns numpy structured array containing
-    # [thetamin, thetamax, thetaavg, npairs, weightavg] for each angular bin
+    #   [thetamin, thetamax, thetaavg, npairs, weightavg] for each angular bin
 
     # gal gal
     autocorr=1
-    # RA, DEC, __ = get_ra_dec_z(galaxy_table)
-    RA, DEC = np.asarray(galaxy_df.RA), np.asarray(galaxy_df.DEC)
-    N = len(RA)
-    # CHECK PLOT TO MAKE SURE CORRD TRANSFORM IS AS EXPECTED
     print('Calculating DD_counts...')
     rt['galgal_counts'] = hf.time_code('start') #.TS. get code start time
     DD_counts = DDtheta_mocks(autocorr, nthreads, tbins, RA, DEC) #.TC.
@@ -198,14 +216,6 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
 
     # random random
     autocorr=1
-    if 'Nran' not in randoms_kwargs:
-        randoms_kwargs['Nran'] = N
-    print('Getting randoms with {}\n# galaxies in mock = {}'.format(randoms_kwargs, N))
-    rt['get_randoms'] = hf.time_code('start') #.TS. get code start time
-    rand_RA, rand_DEC = get_randoms(**randoms_kwargs) #.TC.
-    rt['get_randoms'] = hf.time_code(rt['get_randoms'], unit='min') #.TE. replace start time with runtime in minutes
-    rt['numrands'] = len(rand_RA)
-
     print('Calculating RR_counts...')
     rt['randrand_counts'] = hf.time_code('start') #.TS. get code start time
     RR_counts = DDtheta_mocks(autocorr, nthreads, tbins, rand_RA, rand_DEC) #.TC.
@@ -222,7 +232,6 @@ def calc_wtheta(galaxy_df, MockBox=None, tbins=None, randoms_kwargs={}, nthreads
 
     # calc w(theta)
     print('Converting counts to correlation...')
-    rand_N = len(rand_RA)
     rt['counts_to_cf'] = hf.time_code('start') #.TS. get code start time
     wtheta = convert_3d_counts_to_cf(N, N, rand_N, rand_N, DD_counts, DR_counts, DR_counts, RR_counts) #.TC.
     rt['counts_to_cf'] = hf.time_code(rt['counts_to_cf'], unit='min') #.TE. replace start time with runtime in minutes

@@ -21,25 +21,25 @@ from MockBox import MockBox as MB
 #
 
 mb = MB()
-mb.getmock_calcwtheta()
+mb.getmock_calcwtheta(galplots=True)
 
 
 
 
+### OLD ###
 
-
-# gen mock, calc wtheta, and write to file
-fout = 'data/wtheta.dat'
-zrunfout='data/zruntime.dat'
-nthreads = 32
-tbins = np.logspace(np.log10(1.0), np.log10(13.0), 50)
-# tbins = np.linspace(4.0, 8.0, 20)
-su.load_popmock()
-z4push = su.catboxz
-galplots=False
-zspace=0.365
-Nstack=2
-# for z4push in [0., su.catboxz]:
-dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=zspace, tbins=tbins, \
-        fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=galplots)
-###
+# # gen mock, calc wtheta, and write to file
+# fout = 'data/wtheta.dat'
+# zrunfout='data/zruntime.dat'
+# nthreads = 32
+# tbins = np.logspace(np.log10(1.0), np.log10(13.0), 50)
+# # tbins = np.linspace(4.0, 8.0, 20)
+# su.load_popmock()
+# z4push = su.catboxz
+# galplots=False
+# zspace=0.365
+# Nstack=2
+# # for z4push in [0., su.catboxz]:
+# dmw.getmock_calcwtheta(Nstack=Nstack, z4push=z4push, zspace=zspace, tbins=tbins, \
+#         fout=fout, zrunfout=zrunfout, nthreads=nthreads, galplots=galplots)
+# ###
