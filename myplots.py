@@ -102,7 +102,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', plotd
     """
     # get a random sample
     l = len(galaxies)
-    max_points = 5e3 # max number of points to plot
+    max_points = 1e5 # max number of points to plot
     gal_frac = min(1,max_points/l) # fraction of points to actually plot
     gs = galaxies.sample(int(l*gal_frac))
     # lg = np.arange(len(galaxies['x']))
