@@ -353,7 +353,7 @@ class MockBox:
             Returns a DataFrame with self.Nstack**3 galaxies (rows)
         """
         N2 = int(self.Nstack/2)
-        assert Nstack%2 == 0, 'Nstack should be an even integer.'
+        assert self.Nstack%2 == 0, 'Nstack should be an even integer.'
 
         dfcols = list(gal.index.values)
         extra_vals = gal[[c for c in dfcols if c not in ['x','y','z']]] # get series of just extra values
@@ -381,12 +381,12 @@ class MockBox:
 
     def stack_boxes(self):
         """
-        galdf = DataFrame representing a mock box,
+        uses galdf = self.cat_galtbl: DataFrame representing a mock box,
                 with minimum columns {'x','y','z', 'vx','vy','vz'},
                 (assumes coordinates {x,y,z} in [0,Lbox]).
-        Stacks Nstack^3 (must be an EVEN integer) galdf mock boxes together around the origin.
+        Stacks self.Nstack^3 (must be an EVEN integer) galdf mock boxes together around the origin.
         Sets self.Lbox.
-        Returns a DataFrame of galaxies with the origin at the center of the box and boxsize=self.Lbox.
+        Sets self.PhaseSpace: DataFrame of galaxies with the origin at the center of the box and boxsize=self.Lbox.
                 columns {x,y,z} generated periodically, {vx,vy,vz, all others} same as original galaxies.
         """
         # Setup
@@ -409,7 +409,7 @@ class MockBox:
             # Generate new 'xyz' coordinates. Copy all other columns.
             nglist = [] # list to hold each new DataFrame generated from a single galaxy
             for idx, gal in self.cat_galtbl.iterrows():
-                nglist.append(stack_boxes_gen_new_rows(gal))
+                nglist.append(self.stack_boxes_gen_new_rows(gal))
             # Create new df from dfs in nglist
             newgals = pd.concat(nglist, ignore_index=True)
 
