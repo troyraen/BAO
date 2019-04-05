@@ -1,19 +1,14 @@
 # Example Usage
 
-### SETUP
+# SETUP
 From terminal:
 cd Documents/BAO
 htenv
 
 
-### run wtheta calculation beginning to end
+# run wtheta calculation beginning to end
 
-```bash
-# first move main.out if it exists
-python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
-python -u main.py >> main.out # -u forces unbuffered stdout
-```
-<!-- OR in ipython: -->
+<!-- in ipython: -->
 ```python
 %run main.py
 
@@ -46,13 +41,19 @@ for i, (zzz, rdz_z) in enumerate(zgroups):
     mb.calc_write_wtheta(zzz, rdz_z, Randoms_z, fout, nthreads=nthreads)
 
 ```
+<!-- OR in Bash -->
+```bash
+# first move main.out if it exists
+python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
+python -u main.py >> main.out # -u forces unbuffered stdout
+```
 
 
-### View run stats: report_time calculation times
+# View run stats: report_time calculation times
 
 ```python
 import pandas as pd
-pd.set_option('display.max_columns', 20)
+pd.set_option('display.max_columns', 30)
 zrunfout='data/runtimes.dat'
 zrf = pd.read_csv(zrunfout, delim_whitespace=True)
 mock_problem_fncs = ['mocknum','stack_boxes','get_ra_dec_z']
@@ -71,7 +72,7 @@ zrf = mp.getplot_zruntimes(zrunfout=zrunfout) # get zrun calc times as DF and pl
 ```
 
 
-### get and plot wtheta df from file
+# get and plot wtheta df from file
 
 ```python
 import pandas as pd
@@ -92,7 +93,7 @@ mp.plot_wtheta(wdf)
 
 
 
-### get a galaxy_table
+# get a galaxy_table
 ```python
 import setup as su
 if su.cosmo is None:
@@ -104,7 +105,7 @@ mb.cat_galtbl, mb.cat_Lbox, mb.cat_zbox = su.get_galtbl(getas='DF')
 ```
 
 
-### other:
+# other:
 
 ```python
 import setup as su
