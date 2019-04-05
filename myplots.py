@@ -43,16 +43,16 @@ def plot_wtheta(wdf):
     # create new df of wtheta values using pivot_table
         # calculating mean wtheta for each zbin.
         # Transpose to use df.plot()
-    wdf.zbin = np.round(wdf.zbin,1) # zbin centers are not exactly the same. this needs to be fixed
-    wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T
+    # wdf.zbin = np.round(wdf.zbin,1) # zbin centers are not exactly the same. i think this is fixed
+    wtheta = (pd.pivot_table(wdf.loc[:,[bincols+['zbin']]], index='zbin')).T
     wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
 
     plt.figure()
-    wtheta.sort_index().plot()
+    wtheta.sort_index().plot.scatter()
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
     # plt.loglog()
-    plt.tight_layout()
+    # plt.tight_layout() # causes an empty window in Xquartz
     plt.show(block=False)
 # for idx, row in wtheta.iterrows():
     #     print(row[bincols[0]])
