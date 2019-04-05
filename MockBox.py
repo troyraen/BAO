@@ -146,8 +146,8 @@ class MockBox:
         self.bin_redshifs(box='RDZ', validate=False)
         if self.galplots:
             # plot colored by zbins
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), coords='xyz', title="Final Galaxies box colored by zbin")
-
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), title="Final Galaxies box colored by zbin")
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="Final Galaxies box colored by zbin")
         # Get box of random points and groupby redshift bins
         self.get_randoms()
         rgroups = self.Randoms.groupby('zbin', axis=0)
@@ -201,14 +201,15 @@ class MockBox:
             pstmp = self.Randoms.copy(deep=True)
         if self.rtfout is not None:
             self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start') #.TS. get code start time
-        self.Randoms = hf.get_ra_dec_z(self.Randoms, usevel=True) # DF of {RA,DEC,Redshift} (overwrites/erases all previous columns)
+        self.Randoms = hf.get_ra_dec_z(self.Randoms, usevel=False) # DF of {RA,DEC,Redshift} (overwrites/erases all previous columns)
         if self.rtfout is not None: # set up dict to track function runtimes
             self.report_times['get_ra_dec_z_Rands'] = hf.time_code(self.report_times['get_ra_dec_z_Rands'], unit='min') #.TE. replace start time with runtime in minutes
 
         # Find/set redshift bins
         self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin'
         if self.galplots:
-            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), gal_frac=5e-5, coords='xyz', title="Galaxy Randoms at z_catalog")
+            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), title="Galaxy Randoms at z_catalog")
+            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), plotdim=2, title="Galaxy Randoms at z_catalog")
 
         if self.rtfout is not None:
             self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
