@@ -93,12 +93,12 @@ def plot_wtheta_old(bcens, wtheta):
 
 
 # look at galaxy distribution
-def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', dim=3):
+def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', plotdim=3):
     """ Plots 3D galaxy distribution.
         galaxies assumed to be DataFrame with minimum columns {'x','y','z'}
             including column 'zbin' will use this to color points.
-        dim=3 plots all 3 coordinates (x,y,z)
-        dim=2 plots x vs. y (useful to see redshift binning)
+        plotdim=3 plots all 3 coordinates (x,y,z)
+        plotdim=2 plots x vs. y (useful to see redshift binning)
     """
     # get a random sample
     l = len(galaxies)
@@ -110,23 +110,23 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', dim=3
     # lg = lg[:int(gal_frac*len(galaxies['x']))]
 
     plt.figure()
-    proj = None if dim==2 else '3d'
+    proj = None if plotdim==2 else '3d'
     ax = plt.axes(projection=proj)
     # plt.figure().gca(projection='3d')
 
     # plot and color by zbin if available
     c = gs.zbin if ('zbin' in gs.columns) else 'b'
 
-    if dim==3:
+    if plotdim==3:
         ax.scatter3D(gs.x, gs.y, gs.z, s=1, c=c)
-    elif dim==2:
+        ax.set_zlabel('z')
+    elif plotdim==2:
         ax.scatter(gs.x, gs.y, s=1, c=c)
     else: # raise an error
-        assert 0, 'plot_galaxies() received invalid argument dim = {}'.format(dim)
+        assert 0, 'plot_galaxies() received invalid argument plotdim = {}'.format(dim)
 
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    ax.set_zlabel('z')
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
