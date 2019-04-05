@@ -345,7 +345,86 @@ class MockBox:
         return None
 
 
-    def stack_boxes_gen_new_rows(self, gal):#, Nstack=None, ogLbox=None):
+
+    def stack_boxes(self):
+        """
+        uses galdf = self.cat_galtbl: DataFrame representing a mock box,
+                with minimum columns {'x','y','z', 'vx','vy','vz'},
+                (assumes coordinates {x,y,z} in [0,Lbox]).
+        Stacks self.Nstack^3 (must be an EVEN integer) galdf mock boxes together around the origin.
+        Sets self.Lbox.
+        Sets self.PhaseSpace: DataFrame of galaxies with the origin at the center of the box and boxsize=self.Lbox.
+                columns {x,y,z} generated periodically, {vx,vy,vz, all others} same as original galaxies.
+        """
+        print('\nStacking {}^3 boxes. ...'.format(self.Nstack))
+
+        # Setup
+        if self.rtfout is not None: # track function runtimes
+            self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
+
+        self.Lbox = self.cat_Lbox*self.Nstack
+
+        # check quadrant
+        galdf = self.cat_galtbl
+        print('*** Warning: MockBox.stack_boxes assumes the original box is strictly in the 1st quadrant with the origin at the corner. ***')
+        print('\t\tVerifying that original coordinates are non-negative (this fnc does not check for a positive offset from 0).')
+        assert sum(pd.concat([galdf.x<0, galdf.y<0, galdf.z<0])) == 0, \
+                'Quadrant test failed: Some MockBox.cat_galtbl coordinates are not in the 1st quadrant as required.'
+
+        # Stack boxes
+        if self.Nstack == 0: # Just move the origin to the center of the box.
+            print('Moving origin to box center...')
+            self.Lbox = self.cat_Lbox
+            L2 = self.Lbox/2.
+            newgals = galdf.copy(deep=True)
+            newgals.x = newgals.x-L2; newgals.y = newgals.y-L2; newgals.z = newgals.z-L2
+
+        else:
+            newgals = self.stack_boxes_doit()
+            # index of original galaxy is retained => each index is repeated Nstack^3 times.
+
+        self.PhaseSpace = newgals
+
+        if self.rtfout is not None: # track function runtimes
+            self.report_times['stack_boxes'] = hf.time_code(self.report_times['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
+            print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['stack_boxes']))
+
+        return None
+
+
+    def stack_boxes_doit(self):
+        """ Uses df = self.cat_galtbl
+            Generates new 'xyz' coordinates by stacking Nstack**3 boxes.
+            Copy all other columns.
+            Returns a DataFrame with Nstack^3 galaxies (rows)
+        """
+        df = self.cat_galtbl
+        Nstack = self.Nstack
+
+        N2 = int(Nstack/2)
+        assert Nstack%2 == 0, 'Nstack should be an even integer.'
+
+        dfcols = list(df.columns.values)
+        extra_vals = df[[c for c in dfcols if c not in ['x','y','z']]] # get df of just extra values
+
+        nblist = [] # list to hold DataFrames for each new box
+        nLin = np.linspace(-N2,N2-1,Nstack)*self.cat_Lbox  # array of ints -N2 to N2-1, defines deltas in each direction
+        deltax,deltay,deltaz = np.meshgrid(nLin,nLin,nLin) # holds deltas for each new box
+        for b in range(Nstack**3): # for each new box
+            boxdf = extra_vals.copy(deep=True)
+            dx,dy,dz = deltax.flat[b], deltay.flat[b], deltaz.flat[b]
+            boxdf['x'] = df.x + dx
+            boxdf['y'] = df.y + dy
+            boxdf['z'] = df.z + dz
+            nblist.append(boxdf)
+
+        newdf = pd.concat(nblist, ignore_index=False)
+        # index of original galaxy is retained => each index is repeated Nstack^3 times.
+
+        return newdf
+
+
+    def stack_boxes_gen_new_rows_old(self, gal):#, Nstack=None, ogLbox=None):
         """ This gets applied to each row of the original dataframe.
             gal = single galaxy data as series (single row from original df)
             Generates new 'xyz' coordinates by stacking self.Nstack**3 boxes.
@@ -379,7 +458,7 @@ class MockBox:
 
 
 
-    def stack_boxes(self):
+    def stack_boxes_old(self):
         """
         uses galdf = self.cat_galtbl: DataFrame representing a mock box,
                 with minimum columns {'x','y','z', 'vx','vy','vz'},
