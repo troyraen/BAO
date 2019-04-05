@@ -21,7 +21,7 @@ from MockBox import MockBox as MB
 #
 
 mb = MB()
-mb.getmock_calcwtheta(galplots=True)
+mb.getmock_calcwtheta(galplots=True, Nstack=2)
 
 
 
