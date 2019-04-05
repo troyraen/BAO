@@ -2,13 +2,15 @@
 
 # SETUP
 From terminal:
+```bash
 cd Documents/BAO
 htenv
+```
 
 
-# run wtheta calculation beginning to end
+# Run wtheta calculation beginning to end
 
-<!-- in ipython: -->
+In ipython:
 ```python
 %run main.py
 
@@ -41,7 +43,8 @@ for i, (zzz, rdz_z) in enumerate(zgroups):
     mb.calc_write_wtheta(zzz, rdz_z, Randoms_z, fout, nthreads=nthreads)
 
 ```
-<!-- OR in Bash -->
+
+OR in Bash:
 ```bash
 # first move main.out if it exists
 python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
@@ -56,6 +59,7 @@ import pandas as pd
 pd.set_option('display.max_columns', 30)
 zrunfout='data/runtimes.dat'
 zrf = pd.read_csv(zrunfout, delim_whitespace=True)
+
 mock_problem_fncs = ['mocknum','stack_boxes','get_ra_dec_z']
 zbin_problem_fncs = ['mocknum','zbin','numgals','galgal_counts','get_randoms','numrands','randrand_counts','galrand_counts']
 zrf[mock_problem_fncs]

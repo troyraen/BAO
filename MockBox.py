@@ -147,7 +147,7 @@ class MockBox:
         if self.galplots:
             # plot colored by zbins
             mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), title="Final Galaxies box colored by zbin")
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="Final Galaxies box colored by zbin")
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="2D: Final Galaxies box colored by zbin")
         # Get box of random points and groupby redshift bins
         self.get_randoms()
         rgroups = self.Randoms.groupby('zbin', axis=0)
@@ -209,7 +209,7 @@ class MockBox:
         self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin'
         if self.galplots:
             mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), title="Galaxy Randoms at z_catalog")
-            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), plotdim=2, title="Galaxy Randoms at z_catalog")
+            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), plotdim=2, title="2D: Galaxy Randoms at z_catalog")
 
         if self.rtfout is not None:
             self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
@@ -368,7 +368,7 @@ class MockBox:
         # check quadrant
         galdf = self.cat_galtbl
         print('*** Warning: MockBox.stack_boxes assumes the original box is strictly in the 1st quadrant with the origin at the corner. ***')
-        print('\t\tVerifying that original coordinates are non-negative (this fnc does not check for a positive offset from 0).')
+        print('\tVerifying that original coordinates are non-negative (this fnc does not check for a positive offset from 0).')
         assert sum(pd.concat([galdf.x<0, galdf.y<0, galdf.z<0])) == 0, \
                 'Quadrant test failed: Some MockBox.cat_galtbl coordinates are not in the 1st quadrant as required.'
 
