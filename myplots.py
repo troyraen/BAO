@@ -99,7 +99,10 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
             including column 'zbin' will use this to color points.
     """
     # get a random sample
-    gs = galaxies.sample(int(len(galaxies)*gal_frac))
+    l = len(galaxies)
+    max_points = 1e5 # max number of points to plot
+    gal_frac = min(1,max_points/l) # fraction of points to actually plot
+    gs = galaxies.sample(int(l*gal_frac))
     # lg = np.arange(len(galaxies['x']))
     # np.random.shuffle(lg)
     # lg = lg[:int(gal_frac*len(galaxies['x']))]
