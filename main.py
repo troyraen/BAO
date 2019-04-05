@@ -20,9 +20,11 @@ from MockBox import MockBox as MB
 # for operation speed comparisons
 #
 
-mb = MB()
-mb.getmock_calcwtheta(galplots=True, Nstack=2)
-
+zbin_width = [0.3, 0.4, 0.5]
+for zw in zbin_width:
+    for i in range(10):
+        mb = MB()
+        mb.getmock_calcwtheta(Nstack=2, zbin_width=zw, galplots=False)
 
 
 
