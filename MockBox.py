@@ -118,6 +118,7 @@ class MockBox:
 
         if tbin_edges is not None: # this is set on __init__, but can be changed here
             self.tbin_edges = tbin_edges
+        self.report_times['numtbins'] = len(self.tbin_edges)-1
 
         if galplots is not None: # this is set on __init__, but can be changed here
             self.galplots = galplots
