@@ -99,6 +99,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
         galaxies assumed to be DataFrame with minimum columns {'x','y','z'}.
             Must include 'Redshift' column if coords='rz'.
             Including column 'zbin' will use this to color points.
+        gal_frac NOT CURRENTLY USED!
         coords = 'xyz' plots all 3 coordinates (x,y,z)
                  'rz' plots sqrt(x^2+y^2+z^2) vs. Redshift (useful to see redshift binning)
     """
@@ -112,8 +113,8 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     # lg = lg[:int(gal_frac*len(galaxies['x']))]
 
     plt.figure()
-    # proj = None if plotdim==2 else '3d'
-    ax = plt.axes(projection='3d')
+    proj = '3d' if coords=='xyz' else None
+    ax = plt.axes(projection=proj)
     # plt.figure().gca(projection='3d')
 
     # plot and color by zbin if available
