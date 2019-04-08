@@ -43,12 +43,13 @@ def plot_wtheta(wdf):
     # create new df of wtheta values using pivot_table
         # calculating mean wtheta for each zbin.
         # Transpose to use df.plot()
-    wdf.zbin = np.round(wdf.zbin,1) # should store zbin this way from the beginning
+    wdf.zbin = np.round(wdf.zbin,2) # should store zbin this way from the beginning
     wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T
     wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
 
     plt.figure()
-    wtheta.sort_index().plot()
+    # plt.scatter()
+    wtheta.sort_index().plot(kind='scatter')
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
     # plt.loglog()
@@ -93,12 +94,13 @@ def plot_wtheta_old(bcens, wtheta):
 
 
 # look at galaxy distribution
-def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', plotdim=3):
+def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
     """ Plots 3D galaxy distribution.
-        galaxies assumed to be DataFrame with minimum columns {'x','y','z'}
-            including column 'zbin' will use this to color points.
-        plotdim=3 plots all 3 coordinates (x,y,z)
-        plotdim=2 plots x vs. y (useful to see redshift binning)
+        galaxies assumed to be DataFrame with minimum columns {'x','y','z'}.
+            Must include 'Redshift' column if coords='rz'.
+            Including column 'zbin' will use this to color points.
+        coords = 'xyz' plots all 3 coordinates (x,y,z)
+                 'rz' plots sqrt(x^2+y^2+z^2) vs. Redshift (useful to see redshift binning)
     """
     # get a random sample
     l = len(galaxies)
@@ -110,23 +112,26 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', plotd
     # lg = lg[:int(gal_frac*len(galaxies['x']))]
 
     plt.figure()
-    proj = None if plotdim==2 else '3d'
-    ax = plt.axes(projection=proj)
+    # proj = None if plotdim==2 else '3d'
+    ax = plt.axes(projection='3d')
     # plt.figure().gca(projection='3d')
 
     # plot and color by zbin if available
     c = gs.zbin if ('zbin' in gs.columns) else 'b'
 
-    if plotdim==3:
+    if coords=='xyz':
         ax.scatter3D(gs.x, gs.y, gs.z, s=1, c=c)
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
         ax.set_zlabel('z')
-    elif plotdim==2:
-        ax.scatter(gs.x, gs.y, s=1, c=c)
+    elif coords=='rz':
+        r = np.sqrt(gs.x**2 + gs.y**2 + gs.z**2)
+        ax.scatter(r, gs.Redshift, s=1, c=c)
+        plt.xlabel('r [h^-1 Mpc]')
+        plt.ylabel('Redshift')
     else: # raise an error
-        assert 0, 'plot_galaxies() received invalid argument plotdim = {}'.format(dim)
+        assert 0, 'plot_galaxies() received invalid argument coords = {}'.format(coords)
 
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
