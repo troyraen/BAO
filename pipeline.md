@@ -7,7 +7,7 @@ cd Documents/BAO
 htenv
 ```
 
-
+----------------------------------------------------------------
 # Run wtheta calculation beginning to end
 
 In ipython:
@@ -51,19 +51,30 @@ python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
 python -u main.py >> main.out # -u forces unbuffered stdout
 ```
 
-
+----------------------------------------------------------------
 # View run stats: report_time calculation times
 
 ```python
+# get the df
 import pandas as pd
+from matplotlib import pyplot as plt
 pd.set_option('display.max_columns', 30)
 zrunfout='data/runtimes.dat'
 zrf = pd.read_csv(zrunfout, delim_whitespace=True)
 
-mock_problem_fncs = ['mocknum','stack_boxes','get_ra_dec_z']
-zbin_problem_fncs = ['mocknum','zbin','numgals','galgal_counts','get_randoms','numrands','randrand_counts','galrand_counts']
-zrf[mock_problem_fncs]
-zrf[zbin_problem_fncs]
+# plot mean runtimes
+histcols = ['stack_boxes', 'push_box2catz', 'get_ra_dec_z', 'bin_redshifs', 'get_randoms', 'push_box2catz_Rands', 'get_ra_dec_z_Rands', 'bin_redshifs_Rands', 'calc_wtheta', 'galgal_counts', 'randrand_counts', 'galrand_counts', 'counts_to_cf']
+mns = zrf[histcols].mean(axis=0)
+plt.figure()
+mns.plot(kind='bar')
+plt.ylabel('Runtime [min]')
+plt.show(block=False)
+
+# plot histogram
+plt.figure()
+zrf[histcols].hist()
+plt.show(block=False)
+
 ```
 
 - does not work with new file format:
@@ -75,28 +86,41 @@ zrunfout='data/zruntime.dat'
 zrf = mp.getplot_zruntimes(zrunfout=zrunfout) # get zrun calc times as DF and plot
 ```
 
-
+----------------------------------------------------------------
 # get and plot wtheta df from file
 
 ```python
 import pandas as pd
+import myplots as mp
 import calc_wtheta as cw
 fin = 'data/wtheta.dat'
 wdf = cw.load_from_file(fin)
-
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-
+mp.plot_wtheta(wdf)
+# import matplotlib.pyplot as plt
+# import matplotlib as mpl
 
 wdfp = pd.pivot_table(wdf, index='zbin')
 wdfp
-import myplots as mp
 mp.plot_wtheta(wdf)
+
+wdfg = wdf.groupby('zbin')
+for i, (zzz, df) in enumerate(wdfg):
+    mp.plot_wtheta(df)
 ```
 
 
+----------------------------------------------------------------
+# plot a galaxy table from MB instance
+
+```python
+import pandas as pd
+import myplots as mp
+df = pd.concat(mb.PhaseSpace[['x','y','z']], mb.RDZ[['Redshift','zbin']])
+mp.plot_galaxies(df, coords='rz')
+```
 
 
+----------------------------------------------------------------
 # get a galaxy_table
 ```python
 import setup as su
