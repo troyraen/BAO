@@ -126,8 +126,9 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
         ax.set_ylabel('y')
         ax.set_zlabel('z')
     elif coords=='rz':
+        # sz = c*1000
         r = np.sqrt(gs.x**2 + gs.y**2 + gs.z**2)
-        ax.scatter(r, gs.Redshift, s=1, c=c)
+        ax.scatter(r, gs.Redshift, s=1, alpha=0.5, c=c)
         plt.xlabel('r [h^-1 Mpc]')
         plt.ylabel('Redshift')
     else: # raise an error
