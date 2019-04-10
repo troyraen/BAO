@@ -17,4 +17,4 @@ zbin_width = 0.4 # [0.3, 0.4, 0.5]
 zw = zbin_width
 for i in range(10):
     mb = MB(Nstack=2, zbin_width=zw, tbin_edges=tbin_edges, galplots=False)
-    mb.getmock_calcwtheta()
+    mb.getmock_calcwtheta(fow='all')

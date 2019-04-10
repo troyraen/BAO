@@ -21,7 +21,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rtfout='data/runtimes.dat', Nrands=None, galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, wtfout='data/wtheta.dat', rtfout='data/runtimes.dat', Nrands=None, galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
@@ -47,6 +47,7 @@ class MockBox:
         self.Nrands = Nrands # number of random points to generate
 
         # wtheta
+        self.wtfout = wtfout # string. file name to save wtheta
         self.tbins = None # array. Theta [deg] at center of bin.
         self.tbin_edges = tbin_edges # array. Theta bin edges. if == None, set default below
         self.wtheta = None # DataFrame. Columns {theta bins}, rows wtheta, index zbin
@@ -73,7 +74,7 @@ class MockBox:
 
 
 
-    def getmock_calcwtheta(self, tbin_edges=None, fout='data/wtheta.dat', Nstack=None, rtfout=None, zbin_width=None, Nrands=None, nthreads=32, galplots=None):
+    def getmock_calcwtheta(self, tbin_edges=None, wtfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, galplots=None):
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
@@ -83,6 +84,7 @@ class MockBox:
         Calculates runtime of each wtheta calculation and outputs info to rtfout.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
+        fow == one of 'wtheta', 'runtimes', 'all' => current file will be renamed, new file started
 
         Notes:
 
@@ -116,6 +118,9 @@ class MockBox:
         if zbin_width is not None: # this is set on __init__, but can be changed here
             self.zbin_width = zbin_width
 
+        if wtfout is not None: # this is set on __init__, but can be changed here
+            self.wtfout = wtfout
+
         if tbin_edges is not None: # this is set on __init__, but can be changed here
             self.tbin_edges = tbin_edges
         self.report_times['numtbins'] = len(self.tbin_edges)-1
@@ -125,6 +130,9 @@ class MockBox:
 
         if su.cosmo is None:
             su.load_cosmo() # loads default global cosmo object plus H0, Om0
+
+        if fow is not None: # rename current files and start new ones
+            self.ow_files(which=fow)
         ###
 
         # Get galaxy DF by populating DM mock using HODmodel
@@ -160,7 +168,7 @@ class MockBox:
 
             # Several report_times entries are set in calc_write_wtheta and overwritten for each zzz.
             # Be sure to write report_times to file before the end of this for loop
-            self.calc_write_wtheta(zzz, rdz_z, Randoms_z, fout, nthreads=nthreads)
+            self.calc_write_wtheta(zzz, rdz_z, Randoms_z, nthreads=nthreads)
 
             if self.rtfout is not None: # Write report_times to file
                 hf.write_report_times(self.report_times, self.rtfout)
@@ -175,6 +183,21 @@ class MockBox:
 
         return None
 
+
+    def ow_files(self, which='all'):
+        # move current files so not overwritten
+
+        if which == 'wtheta':
+            mv_fout = hf.file_ow(self.wtfout)
+        elif which == 'runtimes':
+            mv_fout = hf.file_ow(self.rtfout)
+        elif which == 'all':
+            mv_fout = hf.file_ow(self.wtfout)
+            mv_fout = hf.file_ow(self.rtfout)
+        else:
+            print('ow_files received invalid argument, which = {}'.format(which))
+
+        return None
 
 
     def get_randoms(self, Nrands=None):
@@ -220,7 +243,10 @@ class MockBox:
 
 
 
-    def calc_write_wtheta(self, zzz, rdz, randoms, fout, nthreads=32):
+    def calc_write_wtheta(self, zzz, rdz, randoms, wtfout=None, nthreads=32):
+
+        if wtfout is not None: # this is set on __init__, but can be changed here
+            self.wtfout = wtfout
 
         if self.rtfout is not None: # Save some info to report_times
             self.report_times['zbin'] = zzz
@@ -246,7 +272,7 @@ class MockBox:
 
         # Write current zbin wtheta info to file
         # Do this now so it is not lost if a future zbin calculation fails
-        cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, fout)
+        cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.wtfout)
 
         if self.rtfout is not None:
             self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
