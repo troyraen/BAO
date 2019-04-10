@@ -80,7 +80,7 @@ class MockBox:
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
         Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
         Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
-        Calculates wtheta using tbins, nthreads and writes results to fout.
+        Calculates wtheta using tbins, nthreads and writes results to wtfout.
         Calculates runtime of each wtheta calculation and outputs info to rtfout.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
@@ -173,7 +173,7 @@ class MockBox:
             if self.rtfout is not None: # Write report_times to file
                 hf.write_report_times(self.report_times, self.rtfout)
                 print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
-                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(fout, self.rtfout))
+                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.wtfout, self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
 

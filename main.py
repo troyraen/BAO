@@ -11,7 +11,8 @@ from MockBox import MockBox as MB
 # for operation speed comparisons
 #
 
-tbin_edges = np.linspace(np.log10(0.1), np.log10(15.0), 75)
+# tbin_edges = np.logspace(np.log10(0.1), np.log10(15.0), 75)
+tbin_edges = np.linspace(0.1, 15.0, 75)
 zbin_width = 0.4 # [0.3, 0.4, 0.5]
 # for zw in zbin_width:
 zw = zbin_width
