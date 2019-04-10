@@ -127,15 +127,24 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=
 
     if coords=='xyz':
         ax.scatter3D(gs.x, gs.y, gs.z, s=1, c=c)
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+        ax.set_xlabel(r'x [h$^{-1}$ Mpc]')
+        ax.set_ylabel(r'y [h$^{-1}$ Mpc]')
+        ax.set_zlabel(r'z [h$^{-1}$ Mpc]')
     elif coords=='rz':
         # sz = c*1000
         r = np.sqrt(gs.x**2 + gs.y**2 + gs.z**2)
         ax.scatter(r, gs.Redshift, s=1, alpha=0.5, c=c)
-        plt.xlabel('r [h^-1 Mpc]')
+        # plt.loglog()
+        plt.xlabel(r'r [h$^{-1}$ Mpc]')
         plt.ylabel('Redshift')
+
+        # calc and display num galaxies in each zbin
+        gsg = gs.groupby('zbin')
+        str = 'zbin   # Galaxies'
+        for i, (zzz,gsgz) in enumerate(gsg):
+            str = str+ '\n{z:4.2f}  {gals}'.format(z=zzz, gals=len(gsgz))
+        plt.annotate(str, (0.15,0.75), xycoords='figure fraction')
+
     else: # raise an error
         assert 0, 'plot_galaxies() received invalid argument coords = {}'.format(coords)
 
