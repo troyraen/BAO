@@ -98,7 +98,7 @@ def plot_wtheta_old(bcens, wtheta):
 
 
 # look at galaxy distribution
-def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
+def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=None):
     """ Plots 3D galaxy distribution.
         galaxies assumed to be DataFrame with minimum columns {'x','y','z'}.
             Must include 'Redshift' column if coords='rz'.
@@ -106,6 +106,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
         gal_frac NOT CURRENTLY USED!
         coords = 'xyz' plots all 3 coordinates (x,y,z)
                  'rz' plots sqrt(x^2+y^2+z^2) vs. Redshift (useful to see redshift binning)
+        save = string. path to save plot
     """
     # get a random sample
     l = len(galaxies)
@@ -140,6 +141,8 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz'):
 
     plt.title(title)
     plt.tight_layout()
+    if save is not None:
+        plt.savefig(save)
     plt.show(block=False)
     plt.pause(10.0)
 
