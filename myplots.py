@@ -46,10 +46,14 @@ def plot_wtheta(wdf):
     wdf.zbin = np.round(wdf.zbin,2) # should store zbin this way from the beginning
     wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T
     wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
+    wtheta = wtheta.sort_index()
 
     plt.figure()
     # plt.scatter()
-    wtheta.sort_index().plot(kind='scatter')
+    wtheta.plot()
+    # wtheta.plot(x=, y=kind='scatter')
+    plt.axhline(0, c='k')
+    # plt.scatter(wtheta.index.values, wtheta.)
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
     # plt.loglog()
