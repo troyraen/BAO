@@ -9,7 +9,7 @@ htenv
 
 ----------------------------------------------------------------
 # Run wtheta calculation beginning to end
-
+<!-- fs -->
 In ipython:
 ```python
 %run main.py
@@ -51,9 +51,65 @@ python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
 python -u main.py >> main.out # -u forces unbuffered stdout
 ```
 
+<!-- fe wtheta calculation -->
+
+
+----------------------------------------------------------------
+# get and plot wtheta df from file
+<!-- fs -->
+```python
+import pandas as pd
+import myplots as mp
+import calc_wtheta as cw
+fin = 'data/wtheta.dat'
+wdf = cw.load_from_file(fin)
+fout = 'plots/wtheta.png'
+mp.plot_wtheta(wdf, save=fout)
+
+# the rest is not working:
+wdfp = pd.pivot_table(wdf, index='zbin')
+wdfp
+mp.plot_wtheta(wdf)
+
+wdfg = wdf.groupby('zbin')
+for i, (zzz, df) in enumerate(wdfg):
+    mp.plot_wtheta(df)
+```
+<!-- fe get, plot wtheta from file -->
+
+----------------------------------------------------------------
+# get and plot a galaxy table
+<!-- fs -->
+```python
+# get the table
+import helper_fncs as hf
+import setup as su
+if su.cosmo is None:
+    su.load_cosmo() # loads default global cosmo object plus H0, Om0
+from MockBox import MockBox as MB
+zw = 0.4
+mb = MB(Nstack=2, zbin_width=zw)
+mb.cat_galtbl, mb.cat_Lbox, mb.cat_zbox = su.get_galtbl(getas='DF')
+mb.transform_mock(box='PhaseSpace') # Sets mb.PhaseSpace
+mb.RDZ = hf.get_ra_dec_z(mb.PhaseSpace, usevel=True)
+mb.bin_redshifs(box='RDZ', validate=False)
+
+# plot the table
+import pandas as pd
+import myplots as mp
+df = pd.concat([mb.PhaseSpace[['x','y','z']], mb.RDZ[['Redshift','zbin']]],axis=1)
+# plot r vs redshift
+mp.plot_galaxies(df, coords='rz', title='zbin_width = {}'.format(zw), save='plots/gals_rvsz.png')
+# plot x,y,z coordinates
+mp.plot_galaxies(df, coords='xyz', title='zbin_width = {}'.format(zw), save='plots/gals_xyz.png')
+```
+
+
+<!-- fe galaxy table -->
+
 ----------------------------------------------------------------
 # View run stats: report_time calculation times
-
+<!-- fs -->
 ```python
 # get the df
 import pandas as pd
@@ -85,56 +141,12 @@ import myplots as mp
 zrunfout='data/zruntime.dat'
 zrf = mp.getplot_zruntimes(zrunfout=zrunfout) # get zrun calc times as DF and plot
 ```
-
-----------------------------------------------------------------
-# get and plot wtheta df from file
-
-```python
-import pandas as pd
-import myplots as mp
-import calc_wtheta as cw
-fin = 'data/wtheta.dat'
-wdf = cw.load_from_file(fin)
-mp.plot_wtheta(wdf)
-# import matplotlib.pyplot as plt
-# import matplotlib as mpl
-
-wdfp = pd.pivot_table(wdf, index='zbin')
-wdfp
-mp.plot_wtheta(wdf)
-
-wdfg = wdf.groupby('zbin')
-for i, (zzz, df) in enumerate(wdfg):
-    mp.plot_wtheta(df)
-```
+<!-- fe report times -->
 
 
 ----------------------------------------------------------------
-# plot a galaxy table from MB instance
-
-```python
-import pandas as pd
-import myplots as mp
-df = pd.concat(mb.PhaseSpace[['x','y','z']], mb.RDZ[['Redshift','zbin']])
-mp.plot_galaxies(df, coords='rz')
-```
-
-
-----------------------------------------------------------------
-# get a galaxy_table
-```python
-import setup as su
-if su.cosmo is None:
-    su.load_cosmo() # loads default global cosmo object plus H0, Om0
-from MockBox import MockBox as MB
-mb = MB()
-mb.cat_galtbl, mb.cat_Lbox, mb.cat_zbox = su.get_galtbl(getas='DF')
-# use getas='HOD' to get as original astropy table
-```
-
-
 # other:
-
+<!-- fs -->
 ```python
 import setup as su
 if su.cosmo is None:
@@ -145,7 +157,7 @@ su.load_popmock() #
 Use do_mock_wtheta.getmock_calcwtheta() to populate a mock, stack boxes,
 transform coordinates, calculate wtheta, and write the results to a file.
 
-
+<!-- fe other -->
 
 
 
@@ -157,7 +169,7 @@ Length units are comoving and assumed to be in Mpc/h throughout Halotools.
 
 ----
 # The following is old:
-
+<!-- fs -->
 
 conda create -n halotools_env astropy numpy scipy h5py requests beautifulsoup4 cython python=3.6.8
 
@@ -201,3 +213,6 @@ From command line:
     mp.plot_galaxies(galaxy_table, gal_frac=0.05, coords='radecz')
 
     mp.plot_wtheta(bcens, wtheta)
+
+
+<!-- fe old -->
