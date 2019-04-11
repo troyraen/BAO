@@ -58,6 +58,7 @@ def plot_wtheta(wdf, save=None):
     plt.ylabel(r'$w(\theta)$')
     plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
     if save is not None:
+        plt.xlim(-0.0015, 0.002)
         plt.tight_layout()
         plt.savefig(save)
     plt.show(block=False)

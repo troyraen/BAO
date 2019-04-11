@@ -15,7 +15,8 @@ cat_gals = 5e5 # approx num gals in cat mock
 Nrands = int(10*cat_gals) # cat has ~5e5 galaxies
 
 # tbin_edges = np.logspace(np.log10(0.1), np.log10(15.0), 75)
-tbin_edges = np.linspace(0.1, 20.0, 75)
+tbin_edges = np.linspace(0.1, 20.0, 50)
+# tbin_edges = np.logspace(np.log10(0.1), np.log10(20.0), 75)
 
 zbin_width = 0.4 # [0.3, 0.4, 0.5]
 # for zw in zbin_width:
