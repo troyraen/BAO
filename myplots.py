@@ -32,7 +32,7 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
 
 
 
-def plot_wtheta(wdf):
+def plot_wtheta(wdf, save=None):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
@@ -51,34 +51,16 @@ def plot_wtheta(wdf):
     plt.figure()
     # plt.scatter()
     wtheta.plot()
-    # wtheta.plot(x=, y=kind='scatter')
-    plt.axhline(0, c='k')
+    # wtheta.plot(x = , y = , kind='scatter')
+    plt.axhline(0, c='0.5')
     # plt.scatter(wtheta.index.values, wtheta.)
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
-    # plt.loglog()
-    # plt.tight_layout() # causes an empty window in Xquartz
+    plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+    if save is not None:
+        plt.tight_layout()
+        plt.savefig(save)
     plt.show(block=False)
-# for idx, row in wtheta.iterrows():
-    #     print(row[bincols[0]])
-    #     # ax.scatter(row[1], loc, label=row[1].name)
-
-    # plt.figure()
-    # tbins = np.asarray(bincols,dtype=np.double)
-    # zbcens = wdf.zbin.unique()
-    # for zzz in zbcens:
-    #     # if there are multiple mock nums for given zbin, get average
-    #     wtheta = wdf[bincols].loc[wdf.zbin == zzz] # get wtheta columns of row corresponding to zzz
-    #     plt.plot(tbins, wtheta, label='zbin = {0:1.5f}'.format(zzz))
-    #
-    # plt.xlabel(r'$\theta$ [deg]')
-    # plt.ylabel(r'w($\theta$)')
-    # plt.legend()
-    # plt.title(r'w($\theta$)')
-    # plt.tight_layout()
-    # plt.show(block=False)
-
-
 
 
 def plot_wtheta_old(bcens, wtheta):
