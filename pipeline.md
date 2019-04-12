@@ -5,19 +5,26 @@ From terminal:
 ```bash
 cd Documents/BAO
 htenv
+source activate halotools_env
 ```
+
+# To Do
+- [ ] run bottom of main to gen plots
 
 ----------------------------------------------------------------
 # Run wtheta calculation beginning to end
 <!-- fs -->
-In ipython:
+
+In Bash:
+```bash
+# first move main.out if it exists
+python -c "import helper_fncs as hf; hf.file_ow('main.out')"
+python -u main.py >> main.out # -u forces unbuffered stdout
+```
+
+OR in ipython:
 ```python
 %run main.py
-
-# --- OR (this is currently in main.py, but in case it changes...)
-from MockBox import MockBox as MB
-mb = MB()
-mb.getmock_calcwtheta(galplots=True)
 
 # --- OR run this step-by-step:
 import setup as su
@@ -25,30 +32,26 @@ import calc_wtheta as cw
 import myplots as mp
 import helper_fncs as hf
 from MockBox import MockBox as MB
-
 if su.cosmo is None:
     su.load_cosmo() # loads default global cosmo object plus H0, Om0
-
-mb = MB()
+Nstack=2
+cat_gals = 5e5 # approx num gals in cat mock
+Nrands = int(10*cat_gals*Nstack**3)
+tbin_edges = np.linspace(0.1, 20.0, 51)
+zw = 0.4
+mb = MB(Nstack=Nstack, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, wtfout='data/wthetatmp.dat', rtfout='data/runtimestmp.dat')
+# mb.getmock_calcwtheta(nthreads=24) # THIS DOES EVERYTHING BELOW
 mb.cat_galtbl, mb.cat_Lbox, mb.cat_zbox = su.get_galtbl(getas='DF')
 mb.transform_mock(box='PhaseSpace') # Sets mb.PhaseSpace
 mb.RDZ = hf.get_ra_dec_z(mb.PhaseSpace, usevel=True)
 mb.bin_redshifs(box='RDZ', validate=False)
 mb.get_randoms()
 rgroups = mb.Randoms.groupby('zbin', axis=0)
-
 zgroups = mb.RDZ[['RA','DEC','zbin']].groupby('zbin', axis=0)
 for i, (zzz, rdz_z) in enumerate(zgroups):
     Randoms_z = rgroups.get_group(zzz) # get the randoms within this zbin
     mb.calc_write_wtheta(zzz, rdz_z, Randoms_z, fout, nthreads=nthreads)
 
-```
-
-OR in Bash:
-```bash
-# first move main.out if it exists
-python -c 'import helper_fncs as hf; hf.file_ow('main.out')'
-python -u main.py >> main.out # -u forces unbuffered stdout
 ```
 
 <!-- fe wtheta calculation -->
@@ -64,7 +67,7 @@ import calc_wtheta as cw
 fin = 'data/wtheta.dat'
 wdf = cw.load_from_file(fin)
 fout = 'plots/wtheta.png'
-mp.plot_wtheta(wdf, save=fout)
+mp.plot_wtheta(wdf)#, save=fout)
 
 # the rest is not working:
 wdfp = pd.pivot_table(wdf, index='zbin')
@@ -124,6 +127,7 @@ mns = zrf[histcols].mean(axis=0)
 plt.figure()
 mns.plot(kind='bar')
 plt.ylabel('Runtime [min]')
+plt.tight_layout()
 plt.show(block=False)
 
 # plot histogram

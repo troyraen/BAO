@@ -20,7 +20,8 @@ cat_gals = 5e5 # approx num gals in cat mock
 Nstack_lst = [0, 2]
 for Nstack in Nstack_lst:
     print('\n\n*** Starting Nstack = {}\n\n'.format(Nstack))
-    Nrands = int(10*cat_gals* max(Nstack,1)**3)
+    nrfact = 1
+    Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
 
     imax=10
     for i in range(imax):
