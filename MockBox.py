@@ -289,7 +289,7 @@ class MockBox:
 
 
 
-    def write_wtheta_to_file(bcens, wtheta, zbin, Ngals, Nrands, fout=None):
+    def write_wtheta_to_file(self, bcens, wtheta, zbin, Ngals, Nrands, fout=None):
         """ bcens = array of theta bin centers
             wtheta = array of wtheta values for each theta bin
             zbin = center of the redshift bin of galaxies used to calc wtheta
