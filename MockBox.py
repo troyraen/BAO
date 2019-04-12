@@ -12,6 +12,7 @@ from collections import OrderedDict as OD
 # from astropy.table import Table
 import datetime
 # import time
+from pathlib import Path
 
 import setup as su
 import calc_wtheta as cw
