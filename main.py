@@ -11,25 +11,27 @@ import myplots as mp
 # for operation speed comparisons
 #
 
-cat_gals = 5e5 # approx num gals in cat mock
-Nrands = int(10*cat_gals) # cat has ~5e5 galaxies
 
 # tbin_edges = np.logspace(np.log10(0.1), np.log10(15.0), 75)
-tbin_edges = np.linspace(0.1, 20.0, 50)
-# tbin_edges = np.logspace(np.log10(0.1), np.log10(20.0), 75)
+tbin_edges = np.linspace(0.1, 15.0, 51)
+zw = 0.4 # [0.3, 0.4, 0.5] # zbin width
 
-zbin_width = 0.4 # [0.3, 0.4, 0.5]
-# for zw in zbin_width:
-zw = zbin_width
+cat_gals = 5e5 # approx num gals in cat mock
+Nstack_lst = [0, 2]
+for Nstack in Nstack_lst:
+    print('\n\n*** Starting Nstack = {}\n\n'.format(Nstack))
+    Nrands = int(10*cat_gals* max(Nstack,1)**3)
 
-imax=10
-for i in range(imax):
-    print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
-    mb = MB(Nstack=2, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, galplots=False)
-    mb.getmock_calcwtheta(nthreads=24)#fow='all')
+    imax=10
+    for i in range(imax):
+        print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
+        mb = MB(Nstack=Nstack, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, galplots=False)
+        mb.getmock_calcwtheta(nthreads=24)#fow='all')
 
 
 # get and plot wtheta from file
 fin = 'data/wtheta.dat'
 wdf = cw.load_from_file(fin)
-mp.plot_wtheta(wdf, save='plots/wtheta.png')
+wdf_nstackg = wdf.groupby('Nstack')
+for i, (Ns, wdfn) in enumerate(wdf_nstackg):
+    mp.plot_wtheta(wdfn, save='plots/wtheta_Nstack{}.png'.format(Ns), show=False)
