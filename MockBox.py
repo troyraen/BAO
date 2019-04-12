@@ -84,7 +84,8 @@ class MockBox:
         Calculates runtime of each wtheta calculation and outputs info to rtfout.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
-        fow == one of 'wtheta', 'runtimes', 'all' => current file will be renamed, new file started
+        fow == one of {None, 'wtheta', 'runtimes', 'all'}
+                    => current file(s) will be renamed, new file(s) started
 
         Notes:
 
@@ -244,6 +245,12 @@ class MockBox:
 
 
     def calc_write_wtheta(self, zzz, rdz, randoms, wtfout=None, nthreads=32):
+        """ zzz = Redshift at center of the mock or the mock slice
+            rdz = DataFrame with min cols {RA, DEC} of galaxy positions
+            randoms = DataFrame with min cols {RA, DEC} of random positions
+                        in the same box or slice as rdz.
+            wtfout = string, path of file to write wtheta to
+        """
 
         if wtfout is not None: # this is set on __init__, but can be changed here
             self.wtfout = wtfout
@@ -272,12 +279,69 @@ class MockBox:
 
         # Write current zbin wtheta info to file
         # Do this now so it is not lost if a future zbin calculation fails
-        cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.wtfout)
+        # cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.wtfout)
+        self.write_wtheta_to_file(tbcens, wtheta, zzz, len(rdz), len(randoms))
 
         if self.rtfout is not None:
             self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
 
         return None
+
+
+
+    def write_wtheta_to_file(bcens, wtheta, zbin, Ngals, Nrands, fout=None):
+        """ bcens = array of theta bin centers
+            wtheta = array of wtheta values for each theta bin
+            zbin = center of the redshift bin of galaxies used to calc wtheta
+            fout = path (as string) of file to write or append to
+                 = None uses self.wtfout
+
+            Writes wtheta info to fout.
+            Moves existing file if structure is not compatible.
+        """
+        # Setup
+        if fout is not None: # this is set on __init__, but can be changed here
+            self.wtfout = fout
+
+        print('You should update this function (MockBox.write_wtheta_to_file) to print the proper PRECISION!')
+        numbcens = len(bcens)
+        # if you change this you must update several things in the rest of this function:
+        extra_cols = np.array(['mock', 'zbin', 'Nstack', 'Ngals', 'Nrands'])
+
+        # Check if file exists
+        fpath = Path(self.wtfout)
+        if fpath.is_file():
+            rtol=1e-5
+            # print('File {} exists. Checking compatibility...'.format(fout))
+            # Check that bcens and extra_cols are the same as in current file.
+            __, file_xcols, tbool = cw.get_tbins(self.wtfout, val_array=bcens, rtol=rtol)
+            xbool = np.array_equal(file_xcols,extra_cols)
+            if not (tbool and xbool): # columns don't match
+                # Move the current file so we can start a new one.
+                mv_fout = hf.file_ow(self.wtfout)
+                print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(fout))
+                print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
+            # else: # columns match
+            #     print('Input data compatible (bcens rtol={0}) with existing file {1}.'.format(rtol, fout))
+
+        # If fout has been moved (above) or never existed, create new file.
+        if not fpath.is_file():
+            # print('Writing new file {}'.format(fout))
+            hdr = 'Columns labeled with floats contain bin centers (theta in degrees), others are extra info.\n'
+            new_cols = np.stack([np.concatenate((extra_cols, bcens.astype(str)))])
+            np.savetxt(self.wtfout, new_cols, fmt='%25.7s', header=hdr) # write header
+
+        # Now fout exists, so append the data.
+        print('Appending wtheta to {}'.format(self.wtfout))
+        mlw = 50*(len(extra_cols) + len(bcens))
+        dat_xcols = [self.mocknum, zbin, self.Nstack, Ngals, Nrands ]
+        str_cols = np.array2string(np.append(dat_xcols, wtheta), \
+                formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
+        print(str_cols, file=open(self.wtfout, 'a'))
+
+        return None
+
+
 
 
 
