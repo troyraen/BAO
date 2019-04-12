@@ -32,19 +32,19 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
 
 
 
-def plot_wtheta(wdf, save=None):
+def plot_wtheta(wdf, save=None, show=True):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
         Plots wtheta(theta_bcens), one line for each zbin
     """
 
-    bincols, __ = cw.get_tbins(wdf) # get list of theta bin column names
+    bincols, ocols = cw.get_tbins(wdf) # get list of theta bin column names
     # create new df of wtheta values using pivot_table
         # calculating mean wtheta for each zbin.
         # Transpose to use df.plot()
     wdf.zbin = np.round(wdf.zbin,2) # should store zbin this way from the beginning
-    wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T
+    wtheta = (pd.pivot_table(wdf[bincols+['zbin']], index='zbin')).T # cols = zbin, rows = thetabin
     wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
     wtheta = wtheta.sort_index()
 
@@ -54,6 +54,15 @@ def plot_wtheta(wdf, save=None):
     # wtheta.plot(x = , y = , kind='scatter')
     plt.axhline(0, c='0.5')
     # plt.scatter(wtheta.index.values, wtheta.)
+
+    # annotate with other info for each zbin
+    str = 'Nstack = {}\nzbin   Avg Ngals  Avg Nrands'.format(wdf.Nstack.unique()[0])
+    desc_df = pd.pivot_table(wdf[ocols], index='zbin')
+    ddfg = desc_df.groupby('zbin')
+    for i, (zzz, ddf) in enumerate(ddfg):
+        str = str+ '\n{} {} {}'.format(zzz, ddf.Ngals.values[0], ddf.Nrands.values[0])
+    plt.annotate(str, (0.75,0.75), xycoords='axes fraction')
+
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
     plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
@@ -61,7 +70,8 @@ def plot_wtheta(wdf, save=None):
         plt.xlim(-0.0015, 0.002)
         plt.tight_layout()
         plt.savefig(save)
-    plt.show(block=False)
+    if show:
+        plt.show(block=False)
 
 
 def plot_wtheta_old(bcens, wtheta):
