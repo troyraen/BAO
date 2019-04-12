@@ -56,12 +56,12 @@ def plot_wtheta(wdf, save=None, show=True):
     # plt.scatter(wtheta.index.values, wtheta.)
 
     # annotate with other info for each zbin
-    str = 'Nstack = {}\nzbin   Avg Ngals  Avg Nrands'.format(wdf.Nstack.unique()[0])
+    str = 'Nstack = {}\nzbin  Avg Ngals   Nrands'.format(wdf.Nstack.unique()[0])
     desc_df = pd.pivot_table(wdf[ocols], index='zbin')
     ddfg = desc_df.groupby('zbin')
     for i, (zzz, ddf) in enumerate(ddfg):
-        str = str+ '\n{} {} {}'.format(zzz, ddf.Ngals.values[0], ddf.Nrands.values[0])
-    plt.annotate(str, (0.75,0.75), xycoords='axes fraction')
+        str = str+ '\n{:4.2f} {:11.0f} {:11.0f}'.format(zzz, ddf.Ngals.values[0], ddf.Nrands.values[0])
+    plt.annotate(str, (0.4,0.75), xycoords='axes fraction')
 
     plt.xlabel(r'$\theta$ [deg]')
     plt.ylabel(r'$w(\theta)$')
