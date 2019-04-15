@@ -96,6 +96,8 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
                                 (1.05,0.75), xycoords='axes fraction', rotation=-90)
 
     # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+    plt.semilogx()
+    plt.tight_layout()
     if save is not None:
         # plt.ylim(-0.0015, 0.002)
         plt.tight_layout()
