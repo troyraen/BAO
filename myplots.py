@@ -49,7 +49,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
     nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
     fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
     plt.ylim(-0.002,0.006)
-    plt.xlim(0.7,max(bincols))
+    plt.xlim(0.7,float(max(bincols)))
 
     # 2 groupby's to get df for individual subplots
     wdf_rowgroup = wdf.groupby(rcol)
