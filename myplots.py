@@ -93,7 +93,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             if j==0: # left column
                 ax.set_ylabel(r'$w(\theta)$')
                 ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
-                                (1,0.9), xycoords='axes fraction', rotation=-90)
+                                (1.05,0.75), xycoords='axes fraction', rotation=-90)
 
     # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
     if save is not None:
