@@ -10,7 +10,7 @@ from astropy import cosmology
 import calc_wtheta as cw
 
 # set plot defaults
-mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+mpl.rcParams['figure.figsize'] = [14.0, 8.0]
 mpl.rcParams['font.size'] = 14
 mpl.rcParams['legend.fontsize'] = 'small'
 mpl.rcParams['figure.titlesize'] = 'medium'
@@ -83,7 +83,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             for z in wtheta.columns.values:
                 str = str+ '\n{z:^9.2f} {nm:^10.0f} {ang:13.1e}$\pm${ngstd:<9.0e}'.format(\
                         z=z, nm=nmocks.loc[z].mock, ang=ngals.loc[z].Ngals, ngstd=ngals_std.loc[z].Ngals_std)
-            ax.annotate(str, (0.4,0.75), xycoords='axes fraction')
+            ax.annotate(str, (0.25,0.75), xycoords='axes fraction')
 
             # Title subplots with rkey, ckey
             if i==0: # top row
@@ -95,7 +95,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             else: # right column (assumes 2 columns)
                 # ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
                 ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
-                                (-0.05,0.9), xycoords='axes fraction')
+                                (-0.05,0.9), xycoords='axes fraction', rotation=-90)
             if ncols==1:
                 ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
                                 (1,0.9), xycoords='axes fraction', rotation=-90)
