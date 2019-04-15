@@ -13,14 +13,14 @@ import myplots as mp
 
 
 # tbin_edges = np.logspace(np.log10(0.1), np.log10(15.0), 75)
-tbin_edges = np.linspace(0.1, 15.0, 51)
+tbin_edges = np.linspace(0.1, 6.0, 51)
 zw = 0.4 # [0.3, 0.4, 0.5] # zbin width
 
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack_lst = [0, 2]
 for Nstack in Nstack_lst:
     print('\n\n*** Starting Nstack = {}\n\n'.format(Nstack))
-    nrfact = 1
+    nrfact = 3
     Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
 
     imax=10
@@ -31,8 +31,8 @@ for Nstack in Nstack_lst:
 
 
 # get and plot wtheta from file
-fin = 'data/wtheta.dat'
-wdf = cw.load_from_file(fin)
-wdf_nstackg = wdf.groupby('Nstack')
-for i, (Ns, wdfn) in enumerate(wdf_nstackg):
-    mp.plot_wtheta(wdfn, save='plots/wtheta_Nstack{}.png'.format(Ns), show=False)
+# fin = 'data/wtheta.dat'
+# wdf = cw.load_from_file(fin)
+# wdf_nstackg = wdf.groupby('Nstack')
+# for i, (Ns, wdfn) in enumerate(wdf_nstackg):
+#     mp.plot_wtheta(wdfn, save='plots/wtheta_Nstack{}.png'.format(Ns), show=False)
