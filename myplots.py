@@ -1,8 +1,9 @@
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-import pandas as pd
+from matplotlib.ticker import FormatStrFormatter
 # import imp
 
 from astropy import cosmology
@@ -31,8 +32,87 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
 
 
 
+def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
+    """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
+        (if multiple mock nums for given zbin, get average.)
+        Assumes all column names that can be converted to a float are theta bin centers
+        spcols = list ['row_name','col_name']. Does 'groupby' on wdf to plot unique row_name and col_name values in subplots.
+        Plots wtheta(theta_bcens), one line for each zbin
+    """
 
-def plot_wtheta(wdf, save=None, show=True):
+    bincols, ocols = get_tbins(wdf) # get list of theta bin and other column names
+
+    # Set up subplots
+    if 'NR/NG' in spcols: # create this column in wdf
+        wdf['NR/NG'] = (wdf['Nrands']/wdf['Ngals']).astype(int)
+    rcol, ccol = spcols[0], spcols[1]
+    nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
+    fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
+    plt.ylim(-0.002,0.006)
+
+    # 2 groupby's to get df for individual subplots
+    wdf_rowgroup = wdf.groupby(rcol)
+    for i, (rkey, rdf) in enumerate(wdf_rowgroup):
+        wdf_rowcolgroup = rdf.groupby(ccol)
+        for j, (ckey, df) in enumerate(wdf_rowcolgroup):
+
+            # Create new df of mean wtheta values for each zbin using pivot_table.
+                # Transpose to use df.plot()
+            wtheta = (pd.pivot_table(df[bincols+['zbin']], index='zbin')).T # cols = zbin, rows = thetabin
+            wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
+
+            # Draw the subplot
+            ax = axs[i,j]
+            wtheta.sort_index().plot(ax=ax) # figure out how to include avg # galaxies in plot legend with zbin
+            ax.axhline(0, c='0.5')
+
+            # Annotate with extra info
+            nmocks = pd.pivot_table(df[['zbin','mock']], index='zbin', aggfunc=len) # count number of mocks in the average
+            ngals = pd.pivot_table(df[['zbin','Ngals']], index='zbin')
+            ngals_std = pd.pivot_table(df[['zbin','Ngals']], index='zbin', aggfunc=np.std)
+            ngals_std.rename(columns={'Ngals':'Ngals_std'}, inplace=True)
+
+            # tmp = pd.DataFrame(zip(nmocks,ngals,ngals_std), columns=[nmocks.name,ngals.name,ngals_stdev.name])
+            nwt = pd.concat([wtheta,nmocks,ngals,ngals_std], axis=1)
+            str = 'zbin, Nmocks, Ngals, NGstd'
+            for zzz in nwt.index:
+                str = str+ '\nzzz, {mock}, {NG}, {NGstd}'.format(\
+                    mock=nwt.loc[zzz].mock, NG=nwt.loc[zzz].Ngals, NGstd=nwt.loc[zzz].Ngals_std)
+            plt.annotate(str, (0.4,0.75), xycoords='axes fraction')
+            # nwt['zbin, Nmocks, Ngals, spread'] = r'{}'.format(nwt.mock)
+            # nwt['strng'] = nwt.apply(lambda row: print(row))
+
+            # wtheta.index.name = 'zbin, Nmocks, Ngals, spread'
+            # wtheta['zbin'] = wtheta.index
+            # idx = wtheta.index.values
+            # wtheta['zbin, Nmocks, Ngals, spread'] = '{}{}{}{}'.format(idx, nmocks.loc[idx],ngals.loc[idx],ngals_stdev.loc[idx])
+            #
+            # wtheta['zbin, Nmocks, Ngals, spread'] = wtheta.apply(lambda row: '{}'.format(row['zbin']))
+
+
+            # Title subplots with rkey, ckey
+            if i==0: # top row
+                ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
+            elif i==len(wdf_rowgroup.groups)-1: # bottom row
+                ax.set_xlabel(r'$\theta$ [deg]')
+            if j==0: # left column
+                ax.set_ylabel(r'$w(\theta)$')
+            else: # right column (assumes 2 columns)
+                ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
+
+
+    plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+    if save is not None:
+        plt.ylim(-0.0015, 0.002)
+        plt.tight_layout()
+        plt.savefig(save)
+    if show:
+        plt.show(block=False)
+
+    return None
+
+
+def plot_wtheta_old(wdf, save=None, show=True):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
@@ -56,11 +136,11 @@ def plot_wtheta(wdf, save=None, show=True):
     # plt.scatter(wtheta.index.values, wtheta.)
 
     # annotate with other info for each zbin
-    str = 'Nstack avg = {:2.1f}\nzbin  Ngals avg    NR/NG avg'.format(np.average(wdf.Nstack.unique()))
+    str = 'Nstack avg = {:2.1f}\nzbin  Ngals avg  NR/NG avg'.format(np.average(wdf.Nstack.unique()))
     desc_df = pd.pivot_table(wdf[ocols], index='zbin')
     ddfg = desc_df.groupby('zbin')
     for i, (zzz, ddf) in enumerate(ddfg):
-        str = str+ '\n{:4.2f} {:11.0f} {:11.2f}'.format(zzz, np.average(ddf.Ngals.values), np.average(ddf.Nrands.values/ddf.Ngals.values))
+        str = str+ '\n{:4.2f} {:11.2e} {:11.2f}'.format(zzz, np.average(ddf.Ngals.values), np.average(ddf.Nrands.values/ddf.Ngals.values))
     plt.annotate(str, (0.4,0.75), xycoords='axes fraction')
 
     plt.xlabel(r'$\theta$ [deg]')
@@ -74,7 +154,7 @@ def plot_wtheta(wdf, save=None, show=True):
         plt.show(block=False)
 
 
-def plot_wtheta_old(bcens, wtheta):
+def plot_wtheta_old_old(bcens, wtheta):
     plt.figure()
     plt.scatter(bcens, wtheta)
     plt.plot(bcens, wtheta)
@@ -203,12 +283,46 @@ def plot_galaxies_old(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies
 
 
 
+def plot_redshift_thetaBAO(cosmo=None, save=None):
+    """ plots expected theta of BAO feature (mapped from d_BAO = 150 Mpc)
+            as a function of redshift.
+        save = string of path to save plot
+    """
+
+    if cosmo is None:
+        cosmo = cosmology.FlatLambdaCDM(H0=70.0, Om0=0.3)
+
+    zz = np.logspace(np.log10(0.1), np.log10(3.0), int(1e4))
+    rz = cosmo.comoving_distance(zz).value # = r(zz) [Mpc]
+    rzh = cosmo.comoving_distance(zz).value*cosmo.h # = r(zz) [Mpc/h]
+    dBAO = 150 # [Mpc/h]
+    thetaBAO = np.degrees(np.arctan2(dBAO,rz))
+    thetaBAOh = np.degrees(np.arctan2(dBAO,rzh))
+
+    ax = plt.subplot(111)
+    plt.plot(zz, thetaBAO, label='r(z) in [Mpc]')
+    plt.plot(zz, thetaBAOh, label='r(z) in [Mpc/h]')
+    plt.semilogy()
+    plt.xlabel('Redshift')
+    plt.ylabel(r'$\theta_{BAO} = atan(\frac{150Mpc}{r(Redshift)})$')
+    plt.grid(which='both')
+    plt.ylim(1.2,13)
+    ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+    ax.yaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+    plt.legend()
+    plt.title(r'Expected $\theta$ of BAO signal in w($\theta$)')
+    if save is not None:
+        plt.savefig(save)
+    plt.show(block=False)
+
+    return None
+
 
 # plot comoving distance vs redshift
 # call with:
     # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
     # zred = halocat.redshift
-    # plot_dist_redshift(log=False, fout=False, zred=zred)
+    # plot_codist_redshift(log=False, fout=False, zred=zred)
 def plot_codist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None):
     """ pass zspace array for plotting
         pass zred = redshift of box to put point on plot
