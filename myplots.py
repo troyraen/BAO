@@ -40,7 +40,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
         Plots wtheta(theta_bcens), one line for each zbin
     """
 
-    bincols, ocols = get_tbins(wdf) # get list of theta bin and other column names
+    bincols, ocols = cw.get_tbins(wdf) # get list of theta bin and other column names
 
     # Set up subplots
     if 'NR/NG' in spcols: # create this column in wdf
