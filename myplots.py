@@ -49,6 +49,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
     nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
     fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
     plt.ylim(-0.002,0.006)
+    plt.xlim(0.7,max(bincols))
 
     # 2 groupby's to get df for individual subplots
     wdf_rowgroup = wdf.groupby(rcol)
@@ -97,6 +98,8 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
 
     # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
     plt.semilogx()
+    ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
     plt.tight_layout()
     if save is not None:
         # plt.ylim(-0.0015, 0.002)
