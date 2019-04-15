@@ -53,16 +53,24 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
     # 2 groupby's to get df for individual subplots
     wdf_rowgroup = wdf.groupby(rcol)
     for i, (rkey, rdf) in enumerate(wdf_rowgroup):
+        # print('i=',i)
         wdf_rowcolgroup = rdf.groupby(ccol)
         for j, (ckey, df) in enumerate(wdf_rowcolgroup):
-
+            # print('j=',j)
             # Create new df of mean wtheta values for each zbin using pivot_table.
                 # Transpose to use df.plot()
             wtheta = (pd.pivot_table(df[bincols+['zbin']], index='zbin')).T # cols = zbin, rows = thetabin
             wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
 
             # Draw the subplot
-            ax = axs[i,j]
+            if (nrows == 1) & (ncols == 1):
+                ax = axs
+            elif nrows == 1:
+                ax = axs[j]
+            elif ncols == 1:
+                ax = axs[i]
+            else:
+                ax = axs[i,j]
             wtheta.sort_index().plot(ax=ax) # figure out how to include avg # galaxies in plot legend with zbin
             ax.axhline(0, c='0.5')
 
@@ -71,24 +79,11 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             ngals = pd.pivot_table(df[['zbin','Ngals']], index='zbin')
             ngals_std = pd.pivot_table(df[['zbin','Ngals']], index='zbin', aggfunc=np.std)
             ngals_std.rename(columns={'Ngals':'Ngals_std'}, inplace=True)
-
-            # tmp = pd.DataFrame(zip(nmocks,ngals,ngals_std), columns=[nmocks.name,ngals.name,ngals_stdev.name])
-            nwt = pd.concat([wtheta,nmocks,ngals,ngals_std], axis=1)
-            str = 'zbin, Nmocks, Ngals, NGstd'
-            for zzz in nwt.index:
-                str = str+ '\nzzz, {mock}, {NG}, {NGstd}'.format(\
-                    mock=nwt.loc[zzz].mock, NG=nwt.loc[zzz].Ngals, NGstd=nwt.loc[zzz].Ngals_std)
-            plt.annotate(str, (0.4,0.75), xycoords='axes fraction')
-            # nwt['zbin, Nmocks, Ngals, spread'] = r'{}'.format(nwt.mock)
-            # nwt['strng'] = nwt.apply(lambda row: print(row))
-
-            # wtheta.index.name = 'zbin, Nmocks, Ngals, spread'
-            # wtheta['zbin'] = wtheta.index
-            # idx = wtheta.index.values
-            # wtheta['zbin, Nmocks, Ngals, spread'] = '{}{}{}{}'.format(idx, nmocks.loc[idx],ngals.loc[idx],ngals_stdev.loc[idx])
-            #
-            # wtheta['zbin, Nmocks, Ngals, spread'] = wtheta.apply(lambda row: '{}'.format(row['zbin']))
-
+            str = '{z:^9s} {nm:^10s} {ang:^22s}'.format(z='zbin', nm='Nmocks', ang='Ngals')
+            for z in wtheta.columns.values:
+                str = str+ '\n{z:^9.2f} {nm:^10.0f} {ang:13.1e}$\pm${ngstd:<9.0e}'.format(\
+                        z=z, nm=nmocks.loc[z].mock, ang=ngals.loc[z].Ngals, ngstd=ngals_std.loc[z].Ngals_std)
+            ax.annotate(str, (0.4,0.75), xycoords='axes fraction')
 
             # Title subplots with rkey, ckey
             if i==0: # top row
@@ -98,18 +93,78 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             if j==0: # left column
                 ax.set_ylabel(r'$w(\theta)$')
             else: # right column (assumes 2 columns)
-                ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
+                # ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
+                ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
+                                (-0.05,0.9), xycoords='axes fraction')
+            if ncols==1:
+                ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
+                                (1,0.9), xycoords='axes fraction', rotation=-90)
 
 
-    plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+    # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
     if save is not None:
-        plt.ylim(-0.0015, 0.002)
+        # plt.ylim(-0.0015, 0.002)
         plt.tight_layout()
         plt.savefig(save)
     if show:
         plt.show(block=False)
 
     return None
+
+
+# def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
+#     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
+#         (if multiple mock nums for given zbin, get average.)
+#         Assumes all column names that can be converted to a float are theta bin centers
+#         spcols = list ['row_name','col_name']. Does 'groupby' on wdf to plot unique row_name and col_name values in subplots.
+#         Plots wtheta(theta_bcens), one line for each zbin
+#     """
+#
+#     bincols, ocols = cw.get_tbins(wdf) # get list of theta bin and other column names
+#
+#     # Set up subplots
+#     if 'NR/NG' in spcols: # create this column in wdf
+#         wdf['NR/NG'] = (wdf['Nrands']/wdf['Ngals']).astype(int)
+#     rcol, ccol = spcols[0], spcols[1]
+#     nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
+#     fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
+#     plt.xlim(-0.002,0.006)
+#
+#     # 2 groupby's to get df for individual subplots
+#     wdf_rowgroup = wdf.groupby(rcol)
+#     for i, (rkey, rdf) in enumerate(wdf_rowgroup):
+#         wdf_rowcolgroup = rdf.groupby(ccol)
+#         for j, (ckey, df) in enumerate(wdf_rowcolgroup):
+#
+#             # Create new df of mean wtheta values for each zbin using pivot_table.
+#                 # Transpose to use df.plot()
+#             wtheta = (pd.pivot_table(df[bincols+['zbin']], index='zbin')).T # cols = zbin, rows = thetabin
+#             wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
+#
+#             # Draw the subplot
+#             ax = axs[i,j]
+#             wtheta.sort_index().plot(ax=ax) # figure out how to include avg # galaxies in plot legend with zbin
+#             ax.axhline(0, c='0.5')
+#
+#             # Title subplots with rkey, ckey
+#             if i==0: # top row
+#                 ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
+#             elif i==len(wdf_rowgroup.groups)-1: # bottom row
+#                 ax.set_xlabel(r'$\theta$ [deg]')
+#             if j==0: # left column
+#                 ax.set_ylabel(r'$w(\theta)$')
+#             else: # right column (assumes 2 columns)
+#                 ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), rotation=0)
+#
+#
+#     plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+#     if save is not None:
+#         plt.ylim(-0.0015, 0.002)
+#         plt.tight_layout()
+#         plt.savefig(save)
+#     if show:
+#         plt.show(block=False)
+
 
 
 def plot_wtheta_old(wdf, save=None, show=True):
