@@ -12,22 +12,27 @@ import myplots as mp
 #
 
 
-# tbin_edges = np.logspace(np.log10(0.1), np.log10(15.0), 75)
-tbin_edges = np.linspace(0.1, 6.0, 51)
+tbin_edges = np.logspace(np.log10(0.1), np.log10(11.0), 76)
+# tbin_edges = np.linspace(0.1, 6.0, 51)
 zw = 0.4 # [0.3, 0.4, 0.5] # zbin width
-
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack_lst = [0, 2]
-for Nstack in Nstack_lst:
-    print('\n\n*** Starting Nstack = {}\n\n'.format(Nstack))
-    nrfact = 3
-    Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
+nrfact_lst = [1,3,10]
 
-    imax=10
-    for i in range(imax):
-        print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
-        mb = MB(Nstack=Nstack, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, galplots=False)
-        mb.getmock_calcwtheta(nthreads=24)#fow='all')
+for Nstack in Nstack_lst:
+    print('\n-------------------------------------------------------------------')
+    print('\n*** Starting Nstack = {}\n\n'.format(Nstack))
+
+    for nrfact in nrfact_lst:
+        print('\n____________________________________________________________________')
+        print('\n*** Starting nrfact = {}\n\n'.format(nrfact))
+
+        Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
+        imax=10
+        for i in range(imax):
+            print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
+            mb = MB(Nstack=Nstack, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, galplots=False)
+            mb.getmock_calcwtheta(nthreads=24)
 
 
 # get and plot wtheta from file
