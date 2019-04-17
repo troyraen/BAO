@@ -143,22 +143,8 @@ class MockBox:
             mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
 
         # Stack boxes and push box face to appropriate redshift.
-        self.transform_mock(box='PhaseSpace') # Sets self.PhaseSpace
+        self.transform_mock(box='PhaseSpace') # Sets self.PhaseSpace and self.RDZ
 
-        # Transform coordinates
-        print('\nConverting to RA, DEC, Redshift. ...')
-        if self.rtfout is not None:
-            self.report_times['get_ra_dec_z'] = hf.time_code('start') #.TS. get code start time
-        self.RDZ = hf.get_ra_dec_z(self.PhaseSpace, usevel=True)
-        if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times['get_ra_dec_z'] = hf.time_code(self.report_times['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
-
-        # Bin redshifts, add column to self.RDZ
-        self.bin_redshifs(box='RDZ', validate=False)
-        if self.galplots:
-            # plot colored by zbins
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), title="Final Galaxies box colored by zbin")
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="2D: Final Galaxies box colored by zbin")
         # Get box of random points and groupby redshift bins
         self.get_randoms()
         rgroups = self.Randoms.groupby('zbin', axis=0)
@@ -320,7 +306,7 @@ class MockBox:
             if not (tbool and xbool): # columns don't match
                 # Move the current file so we can start a new one.
                 mv_fout = hf.file_ow(self.wtfout)
-                print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(fout))
+                print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(self.wtfout))
                 print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
             # else: # columns match
             #     print('Input data compatible (bcens rtol={0}) with existing file {1}.'.format(rtol, fout))
@@ -419,7 +405,7 @@ class MockBox:
     def transform_mock(self, box='PhaseSpace'):
         """ Stack boxes around origin.
             Push face to z.
-            Set self.PhaseSpace.
+            Set self.PhaseSpace and self.RDZ
 
             All self.mock_* should be set prior to calling this.
                 e.g. self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
@@ -434,6 +420,23 @@ class MockBox:
         self.push_box2catz(box=box)
         if self.galplots:
             mp.plot_galaxies(self.PhaseSpace, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(self.zbox))
+
+        # Transform coordinates to RA, DEC, Redshift
+        print('\nConverting to RA, DEC, Redshift. ...')
+        if self.rtfout is not None:
+            self.report_times['get_ra_dec_z'] = hf.time_code('start')
+        self.RDZ = hf.get_ra_dec_z(self.PhaseSpace, usevel=True)
+        if self.rtfout is not None:
+            self.report_times['get_ra_dec_z'] = hf.time_code(self.report_times['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
+
+        # Bin redshifts, add column to self.RDZ
+        self.bin_redshifs(box='RDZ', validate=False)
+
+        # Plot galaxy distribution
+        if self.galplots:
+            # plot colored by zbins
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), title="Final Galaxies box colored by zbin")
+            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="2D: Final Galaxies box colored by zbin")
 
         return None
 
