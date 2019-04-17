@@ -12,8 +12,9 @@ import myplots as mp
 #
 
 
-tbin_edges = np.logspace(np.log10(0.1), np.log10(11.0), 76)
+# tbin_edges = np.logspace(np.log10(0.1), np.log10(11.0), 76)
 # tbin_edges = np.linspace(0.1, 6.0, 51)
+tbin_edges = np.logspace(np.log10(0.5), np.log10(15.0), 76)
 z4push = 0.0
 zw = 1.0 # 0.4 # [0.3, 0.4, 0.5] # zbin width
 cat_gals = 5e5 # approx num gals in cat mock
