@@ -22,7 +22,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, wtfout='data/wtheta.dat', rtfout='data/runtimes.dat', Nrands=None, galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, wtfout='data/wtheta.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
@@ -37,6 +37,8 @@ class MockBox:
         # Mock Box (stacked, coordinate transformed using original catalog mock)
         self.Lbox = None # scalar. Length of box side (assumed square). Mpc/h
         self.zbox = None # scalar. Redshift at face of box.
+        self.z4push = z4push # = float. Redshift to push the faces of the boxes to (RDZ and Randoms).
+                             # = 'cat' sets this to self.cat_zbox.
         self.zbins = None # array. Redshift at center of each redshift bin.
         self.zbin_edges = None # array. Redshift bin edges.
         self.zbin_width = zbin_width # desired spacing between bin centers (result will not be exact)
@@ -75,7 +77,7 @@ class MockBox:
 
 
 
-    def getmock_calcwtheta(self, tbin_edges=None, wtfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, galplots=None):
+    def getmock_calcwtheta(self, tbin_edges=None, wtfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
@@ -90,7 +92,7 @@ class MockBox:
 
         Notes:
 
-        Expect BAO at ~6.6 degrees for z~0.5
+        Expect BAO at ~4.5 degrees for z~0.5 (see plots/zthetaBAO.png)
         Halotools assumes all lengths are in Mpc/h
         self.zbin_width: max redshift error in SDSS DR10 Photoz table is 0.365106,
             see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
@@ -111,24 +113,29 @@ class MockBox:
         else:
             print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
 
-        if Nstack is not None: # this is set on __init__, but can be changed here
+        #### The following are set on __init__, but can be changed here:
+        if Nstack is not None:
             self.Nstack = Nstack
 
-        if Nrands is not None: # this is set on __init__, but can be changed here
+        if Nrands is not None:
             self.Nrands = Nrands
 
-        if zbin_width is not None: # this is set on __init__, but can be changed here
+        if z4push is not None:
+            self.z4push = z4push
+
+        if zbin_width is not None:
             self.zbin_width = zbin_width
 
-        if wtfout is not None: # this is set on __init__, but can be changed here
+        if wtfout is not None:
             self.wtfout = wtfout
 
-        if tbin_edges is not None: # this is set on __init__, but can be changed here
+        if tbin_edges is not None:
             self.tbin_edges = tbin_edges
         self.report_times['numtbins'] = len(self.tbin_edges)-1
 
-        if galplots is not None: # this is set on __init__, but can be changed here
+        if galplots is not None:
             self.galplots = galplots
+        ####
 
         if su.cosmo is None:
             su.load_cosmo() # loads default global cosmo object plus H0, Om0
@@ -136,6 +143,7 @@ class MockBox:
         if fow is not None: # rename current files and start new ones
             self.ow_files(which=fow)
         ###
+
 
         # Get galaxy DF by populating DM mock using HODmodel
         self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
@@ -611,12 +619,17 @@ class MockBox:
         if su.cosmo is None:
             su.load_cosmo()
 
-        z4push = self.cat_zbox
+        # Get the redshift for the push
+        try:
+            z4push = self.cat_zbox if self.z4push=='cat' else np.float32(self.z4push)
+        except ValueError as ve:
+            print("MockBox.z4push should be either 'cat' or a float.\nReceived unrecognized option z4push = {}".format(self.z4push))
+            raise ve
 
         # Get the right DataFrame
         if box=='PhaseSpace':
             rtname = 'push_box2catz'
-            self.zbox = self.cat_zbox
+            self.zbox = z4push
             df = self.PhaseSpace
         elif box=='Randoms':
             rtname = 'push_box2catz_Rands'
