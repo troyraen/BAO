@@ -16,7 +16,7 @@ tbin_edges = np.logspace(np.log10(0.1), np.log10(8.0), 76)
 # tbin_edges = np.linspace(0.1, 6.0, 51)
 # tbin_edges = np.logspace(np.log10(0.5), np.log10(15.0), 76)
 z4push = 'cat'
-zw = 0.2 # 0.4 # [0.3, 0.4, 0.5] # zbin width
+zw = 0.6 # 0.4 # [0.3, 0.4, 0.5] # zbin width
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack_lst = [0]#, 2]
 nrfact_lst = [1]#,3,10]
@@ -30,7 +30,7 @@ for Nstack in Nstack_lst:
         print('\n*** Starting nrfact = {}\n\n'.format(nrfact))
 
         Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
-        imax=10
+        imax=25
         for i in range(imax):
             print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
             mb = MB(Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, Nrands=Nrands, galplots=False)
