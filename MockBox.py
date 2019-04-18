@@ -375,11 +375,11 @@ class MockBox:
             print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
         except:
             tol = 0.03
-            zmin = int(np.floor((self.RDZ.Redshift.min()-tol)*10))/10 # floor fnc (value-tol) in 1st decimal place
-            zmax = int(np.ceil((self.RDZ.Redshift.max()+tol)*10))/10 # gives float to 1 decimal place
-            # eps = 0.01
-            # self.zbin_edges = np.arange(zmin, zmax+eps, self.zbin_width)
+            zmin = int(np.floor((self.RDZ.Redshift.min()-tol)*10))/10. # floor fnc (value-tol) in 1st decimal place
+            zmin = max(0.0, zmin)
+            zmax = int(np.ceil((self.RDZ.Redshift.max()+tol)*10))/10. # gives float to 1 decimal place
             num_binedges = int(np.ceil((zmax-zmin)/self.zbin_width))
+            num_binedges = max(2, num_binedges)
             self.zbin_edges = np.linspace(zmin,zmax,num_binedges)
             self.zbins = np.round((self.zbin_edges[:-1]+self.zbin_edges[1:])/2, 2) # keep 2 decimal places
             print('\nMB.zbin_edges and MB.zbins have been set.')
