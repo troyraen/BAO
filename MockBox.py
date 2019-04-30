@@ -42,12 +42,13 @@ class MockBox:
         self.zbins = None # array. Redshift at center of each redshift bin.
         self.zbin_edges = None # array. Redshift bin edges.
         self.zbin_width = zbin_width # desired spacing between bin centers (result will not be exact)
-        self.PhaseSpace = None # DataFrame. Columns {x,y,z, vx,vy,vz}, rows = galaxies.
-        self.RDZ = None # DataFrame. Columns {RA, DEC, Redshift}, rows = galaxies. bin_redshifs() adds column zbin
+        self.PhaseSpace = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = galaxies.
+        self.RDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = galaxies. bin_redshifs() adds column zbin
 
         # Mock box of random points
-        self.Randoms = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
         self.Nrands = Nrands # number of random points to generate
+        self.RandomsPS = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
+        self.RandomsRDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
 
         # wtheta
         self.wtfout = wtfout # string. file name to save wtheta
@@ -238,7 +239,7 @@ class MockBox:
 
         # Get box of random points and groupby redshift bins
         self.get_randoms()
-        rgroups = self.Randoms.groupby('zbin', axis=0)
+        rgroups = self.RandomsRDZ.groupby('zbin', axis=0)
 
         # Calculate wtheta for each zbin and write to file
         zgroups = self.RDZ[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin, only need these columns
@@ -280,7 +281,8 @@ class MockBox:
 
 
     def get_randoms(self, Nrands=None):
-        """ Set self.Randoms with columns {RA, DEC, Redshift, zbin}, RA & DEC in degrees"""
+        """ Set self.RandomsPS with columns {x,y,z, vx,vy,vz, zbin}
+            and self.RandomsRDZ with columns {RA, DEC, Redshift, zbin}, RA & DEC in degrees"""
 
         if Nrands is not None: # can be set on __init__ and/or changed here
             self.Nrands = Nrands
@@ -295,24 +297,22 @@ class MockBox:
         # create random points in box with side length self.Lbox, centered around origin
         ran_coords = np.random.random((self.Nrands,3))*self.Lbox - self.Lbox/2
         ran_vels = np.zeros((self.Nrands,3))
-        # Set self.Randoms DF
-        self.Randoms = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
+        # Set self.RandomsRDZ DF
+        self.RandomsPS = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
         self.push_box2catz(box='Randoms') # pushes the x-face to the catalog mock redshift
 
         # transform coords to RA, DEC, Redshift
-        if self.galplots: # save phase space coords for plotting, colored by zbin
-            pstmp = self.Randoms.copy(deep=True)
         if self.rtfout is not None:
-            self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start') #.TS. get code start time
-        self.Randoms = hf.get_ra_dec_z(self.Randoms, usevel=False) # DF of {RA,DEC,Redshift} (overwrites/erases all previous columns)
-        if self.rtfout is not None: # set up dict to track function runtimes
+            self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start')
+        self.RandomsRDZ = hf.get_ra_dec_z(self.RandomsPS, usevel=False) # DF of {RA,DEC,Redshift}
+        if self.rtfout is not None:
             self.report_times['get_ra_dec_z_Rands'] = hf.time_code(self.report_times['get_ra_dec_z_Rands'], unit='min') #.TE. replace start time with runtime in minutes
 
         # Find/set redshift bins
-        self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin'
+        self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin' to RandomsPS and RandomsRDZ
         if self.galplots:
-            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), title="Galaxy Randoms at z_catalog")
-            mp.plot_galaxies(pd.concat([pstmp,self.Randoms['zbin']],axis=1), plotdim=2, title="2D: Galaxy Randoms at z_catalog")
+            mp.plot_galaxies(self.RandomsPS, title="Galaxy Randoms at z_catalog")
+            mp.plot_galaxies(self.RandomsPS, plotdim=2, title="2D: Galaxy Randoms at z_catalog")
 
         if self.rtfout is not None:
             self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
@@ -425,7 +425,7 @@ class MockBox:
 
     # SDSS DR10 max photo zErr = 0.365106
     def bin_redshifs(self, box='RDZ', zbin_width=None, validate=False):
-        """ Adds column 'zbin' to self.RDZ containing center of zbin the galaxy is in
+        """ Adds column 'zbin' to self.RDZ and self.PhaseSpace containing center of zbin the galaxy is in
                 (zbin is one of self.zbins)
             Sets self.zbins and self.zbin_edges
 
@@ -436,9 +436,11 @@ class MockBox:
         if box=='RDZ':
             rtname = 'bin_redshifs'
             df = self.RDZ
+            dfps = self.PhaseSpace
         elif box=='Randoms':
             rtname = 'bin_redshifs_Rands'
-            df = self.Randoms
+            df = self.RandomsRDZ
+            dfps = self.RandomsPS
         else: # raise an error
             assert 0, 'bin_redshifs() received invaid argument: box = {}'.format(box)
 
@@ -473,7 +475,8 @@ class MockBox:
             # add a column to rdz containing the zbin (self.zbins value) the galaxy resides in
         # given z, find which bin it's in and get the value of the bin center
         df['zbin'] = df['Redshift'].apply(hf.find_bin_center, **{"bin_edges":self.zbin_edges, "bin_centers":self.zbins})
-        # rdz.apply(lambda inval: hf.find_bin_center(inval, self.zbin_edges, self.zbins), rdz.Redshift)
+        # set zbin in PhaseSpace df
+        dfps['zbin'] = df['zbin']
 
 
         # make sure the operation worked as expected:
@@ -520,7 +523,7 @@ class MockBox:
         if self.rtfout is not None:
             self.report_times['get_ra_dec_z'] = hf.time_code(self.report_times['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
 
-        # Bin redshifts, add column to self.RDZ
+        # Bin redshifts, add column to self.RDZ and self.PhaseSpace
         self.bin_redshifs(box='RDZ', validate=False)
 
         # Plot galaxy distribution
@@ -697,7 +700,7 @@ class MockBox:
     # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""
     # from help(cosmo): Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]
     def push_box2catz(self, box='PhaseSpace'):
-        """ self.PhaseSpace (or self.Randoms depending on box=) must be set before calling this function.
+        """ self.PhaseSpace (or self.RandomsRDZ depending on box=) must be set before calling this function.
                 ASSUMES the box is currently centered at the origin!
             Moves the box coordinates so the x-FACE is at comoving_distance(self.cat_zbox).
                 (Only 'x' column is changed.)
@@ -721,7 +724,7 @@ class MockBox:
             df = self.PhaseSpace
         elif box=='Randoms':
             rtname = 'push_box2catz_Rands'
-            df = self.Randoms
+            df = self.RandomsPS
         else: # raise an error
             assert 0, 'push_box2catz() received invaid argument: box = {}'.format(box)
         assert df is not None, 'You must instantiate MB.{box} before calling push_box2catz().'.format(box=box)
