@@ -82,8 +82,11 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             ngals_std.rename(columns={'Ngals':'Ngals_std'}, inplace=True)
             str = '{z:^9s} {nm:^10s} {ang:^22s}'.format(z='zbin', nm='Nmocks', ang='Ngals')
             for z in wtheta.columns.values:
+                nm = nmocks.loc[z].mock
+                ang = ngals.loc[z].Ngals
+                ngstd = ngals_std.loc[z].Ngals_std if nm!=1 else 0
                 str = str+ '\n{z:^9.2f} {nm:^10.0f} {ang:13.1e}$\pm${ngstd:<9.0e}'.format(\
-                        z=z, nm=nmocks.loc[z].mock, ang=ngals.loc[z].Ngals, ngstd=ngals_std.loc[z].Ngals_std)
+                        z=z, nm=nm, ang=ang, ngstd=ngstd)
             ax.annotate(str, (0.4,0.75), xycoords='axes fraction')
 
             # Title subplots with rkey, ckey
