@@ -312,7 +312,7 @@ class MockBox:
         self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin' to RandomsPS and RandomsRDZ
         if self.galplots:
             mp.plot_galaxies(self.RandomsPS, title="Galaxy Randoms at z_catalog")
-            mp.plot_galaxies(self.RandomsPS, plotdim=2, title="2D: Galaxy Randoms at z_catalog")
+            # mp.plot_galaxies(self.RandomsPS, plotdim=2, title="2D: Galaxy Randoms at z_catalog")
 
         if self.rtfout is not None:
             self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
@@ -530,7 +530,7 @@ class MockBox:
         if self.galplots:
             # plot colored by zbins
             mp.plot_galaxies(self.PhaseSpace, title="Final Galaxies box colored by zbin")
-            mp.plot_galaxies(self.PhaseSpace, plotdim=2, title="2D: Final Galaxies box colored by zbin")
+            # mp.plot_galaxies(self.PhaseSpace, plotdim=2, title="2D: Final Galaxies box colored by zbin")
 
         return None
 
