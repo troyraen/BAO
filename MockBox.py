@@ -22,7 +22,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, wtfout='data/wtheta.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
@@ -51,7 +51,7 @@ class MockBox:
         self.RandomsRDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
 
         # wtheta
-        self.wtfout = wtfout # string. file name to save wtheta
+        self.statfout = statfout # string. file name to save wtheta and other stats
         self.tbins = None # array. Theta [deg] at center of bin.
         self.tbin_edges = tbin_edges # array. Theta bin edges. if == None, set default below
         self.wtheta = None # DataFrame. Columns {theta bins}, rows wtheta, index zbin
@@ -67,14 +67,6 @@ class MockBox:
         mocknum = float(dtm.strftime("%m%d%y.%H%M"))
         return mocknum
 
-    # push_box2catz = push_box2catz
-    # stack_boxes = stack_boxes
-    # stack_boxes_gen_new_rows = stack_boxes_gen_new_rows
-    # transform_mock = transform_mock
-    # find_bin_center = find_bin_center
-    # bin_redshifs = bin_redshifs
-    # calc_write_wtheta = calc_write_wtheta
-    # getmock_calcwtheta = getmock_calcwtheta # generate new mock then calc wtheta
 
     def getmock(self, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
         """
@@ -160,14 +152,92 @@ class MockBox:
 
 
 
+    def calc_stats(self, stats=['wtheta'], tbin_edges=None, statfout=None, fow=None, nthreads=32):
+        """
+        stats (list of strings): options 'wtheta', 'xi', 'wprp'
 
-    def getmock_calcwtheta(self, tbin_edges=None, wtfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
+        Calculates each stat in the list using tbins, nthreads and writes results to sfout.
+        Calculates runtime of each stat calculation and outputs info to rtfout.
+        rtfout == string writes function runtimes to this file
+               == None to skip timing fncs.
+        fow == one of {None, 'wtheta', 'runtimes', 'all'}
+                    => current file(s) will be renamed, new file(s) started
+
+        Notes:
+
+        Expect BAO at ~4.5 degrees for z~0.5 (see plots/zthetaBAO.png)
+        Halotools assumes all lengths are in Mpc/h
+        self.zbin_width: max redshift error in SDSS DR10 Photoz table is 0.365106,
+            see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
+            http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
+            Note from Jeff: SDSS has unusually large z errors.
+        """
+
+
+        ### Setup:
+        if self.rtfout is not None: # set up dict to track function runtimes
+            self.report_times['calc_stats'] = hf.time_code('start') #.TS. get code start time
+            print('Function runtimes will be written to {}'.format(self.rtfout))
+            print('calc_stats() started at {}'.format(datetime.datetime.now()))
+        else:
+            print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
+
+        #### The following are set on __init__, but can be changed here:
+        if tbin_edges is not None:
+            self.tbin_edges = tbin_edges
+        self.report_times['numtbins'] = len(self.tbin_edges)-1
+
+        if statfout is not None:
+            self.statfout = statfout
+        ####
+
+        if su.cosmo is None:
+            su.load_cosmo() # loads default global cosmo object plus H0, Om0
+
+        if fow is not None: # rename current files and start new ones
+            self.ow_files(which=fow)
+        ###
+
+        # Get df groupbys of redshift bins
+        ps_zgb = self.PhaseSpace.groupby('zbin', axis=0)
+        rdz_zgb = self.RDZ.groupby('zbin', axis=0)
+        rand_ps_zgb = self.RandomsPS.groupby('zbin', axis=0)
+        rand_rdz_zgb = self.RandomsRDZ.groupby('zbin', axis=0)
+
+        # Calculate stats for each zbin and write to file
+        for i, (zzz, rdz_z) in enumerate(rdz_zgb):
+            # Get each df group for this zbin
+            ps_z = ps_zgb.get_group(zzz)
+            rand_ps_z = rand_ps_zgb.get_group(zzz)
+            rand_rdz_z = rand_rdz_zgb.get_group(zzz)
+
+            # Several report_times entries are set in calc_write_wtheta and overwritten for each zzz.
+            # Be sure to write report_times to file before the end of the zbin for loop
+            if 'wtheta' in stats:
+                self.calc_write_wtheta(zzz, rdz_z, rand_rdz_z, nthreads=nthreads)
+
+            if self.rtfout is not None: # Write report_times to file
+                hf.write_report_times(self.report_times, self.rtfout)
+                print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
+                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
+                # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
+                # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+
+        if self.rtfout is not None: # Currently this is not written to file
+            self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
+            print('\n\t{0}\ncalc_stats() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['calc_stats']))
+
+        return None
+
+
+
+    def getmock_calcwtheta(self, tbin_edges=None, statfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
         Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
         Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
-        Calculates wtheta using tbins, nthreads and writes results to wtfout.
+        Calculates wtheta using tbins, nthreads and writes results to statfout.
         Calculates runtime of each wtheta calculation and outputs info to rtfout.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
@@ -210,8 +280,8 @@ class MockBox:
         if zbin_width is not None:
             self.zbin_width = zbin_width
 
-        if wtfout is not None:
-            self.wtfout = wtfout
+        if statfout is not None:
+            self.statfout = statfout
 
         if tbin_edges is not None:
             self.tbin_edges = tbin_edges
@@ -253,7 +323,7 @@ class MockBox:
             if self.rtfout is not None: # Write report_times to file
                 hf.write_report_times(self.report_times, self.rtfout)
                 print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
-                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.wtfout, self.rtfout))
+                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
 
@@ -268,11 +338,11 @@ class MockBox:
         # move current files so not overwritten
 
         if which == 'wtheta':
-            mv_fout = hf.file_ow(self.wtfout)
+            mv_fout = hf.file_ow(self.statfout)
         elif which == 'runtimes':
             mv_fout = hf.file_ow(self.rtfout)
         elif which == 'all':
-            mv_fout = hf.file_ow(self.wtfout)
+            mv_fout = hf.file_ow(self.statfout)
             mv_fout = hf.file_ow(self.rtfout)
         else:
             print('ow_files received invalid argument, which = {}'.format(which))
@@ -322,16 +392,16 @@ class MockBox:
 
 
 
-    def calc_write_wtheta(self, zzz, rdz, randoms, wtfout=None, nthreads=32):
+    def calc_write_wtheta(self, zzz, rdz, randoms, statfout=None, nthreads=32):
         """ zzz = Redshift at center of the mock or the mock slice
             rdz = DataFrame with min cols {RA, DEC} of galaxy positions
             randoms = DataFrame with min cols {RA, DEC} of random positions
                         in the same box or slice as rdz.
-            wtfout = string, path of file to write wtheta to
+            statfout = string, path of file to write wtheta to
         """
 
-        if wtfout is not None: # this is set on __init__, but can be changed here
-            self.wtfout = wtfout
+        if statfout is not None: # this is set on __init__, but can be changed here
+            self.statfout = statfout
 
         if self.rtfout is not None: # Save some info to report_times
             self.report_times['zbin'] = zzz
@@ -357,7 +427,7 @@ class MockBox:
 
         # Write current zbin wtheta info to file
         # Do this now so it is not lost if a future zbin calculation fails
-        # cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.wtfout)
+        # cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.statfout)
         self.write_wtheta_to_file(tbcens, wtheta, zzz, len(rdz), len(randoms))
 
         if self.rtfout is not None:
@@ -372,14 +442,14 @@ class MockBox:
             wtheta = array of wtheta values for each theta bin
             zbin = center of the redshift bin of galaxies used to calc wtheta
             fout = path (as string) of file to write or append to
-                 = None uses self.wtfout
+                 = None uses self.statfout
 
             Writes wtheta info to fout.
             Moves existing file if structure is not compatible.
         """
         # Setup
         if fout is not None: # this is set on __init__, but can be changed here
-            self.wtfout = fout
+            self.statfout = fout
 
         print('You should update this function (MockBox.write_wtheta_to_file) to print the proper PRECISION!')
         numbcens = len(bcens)
@@ -387,17 +457,17 @@ class MockBox:
         extra_cols = np.array(['mock', 'zbin', 'Nstack', 'Ngals', 'Nrands'])
 
         # Check if file exists
-        fpath = Path(self.wtfout)
+        fpath = Path(self.statfout)
         if fpath.is_file():
             rtol=1e-5
             # print('File {} exists. Checking compatibility...'.format(fout))
             # Check that bcens and extra_cols are the same as in current file.
-            __, file_xcols, tbool = cw.get_tbins(self.wtfout, val_array=bcens, rtol=rtol)
+            __, file_xcols, tbool = cw.get_tbins(self.statfout, val_array=bcens, rtol=rtol)
             xbool = np.array_equal(file_xcols,extra_cols)
             if not (tbool and xbool): # columns don't match
                 # Move the current file so we can start a new one.
-                mv_fout = hf.file_ow(self.wtfout)
-                print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(self.wtfout))
+                mv_fout = hf.file_ow(self.statfout)
+                print('*** thetabins' if not tbool else '***', 'extra_cols' if not xbool else '', 'not compatible with current file: {} ***'.format(self.statfout))
                 print('*** Moved existing file to {} so it is not overwritten. ***'.format(mv_fout))
             # else: # columns match
             #     print('Input data compatible (bcens rtol={0}) with existing file {1}.'.format(rtol, fout))
@@ -407,15 +477,15 @@ class MockBox:
             # print('Writing new file {}'.format(fout))
             hdr = 'Columns labeled with floats contain bin centers (theta in degrees), others are extra info.\n'
             new_cols = np.stack([np.concatenate((extra_cols, bcens.astype(str)))])
-            np.savetxt(self.wtfout, new_cols, fmt='%25.7s', header=hdr) # write header
+            np.savetxt(self.statfout, new_cols, fmt='%25.7s', header=hdr) # write header
 
         # Now fout exists, so append the data.
-        print('Appending wtheta to {}'.format(self.wtfout))
+        print('Appending wtheta to {}'.format(self.statfout))
         mlw = 50*(len(extra_cols) + len(bcens))
         dat_xcols = [self.mocknum, zbin, self.Nstack, Ngals, Nrands ]
         str_cols = np.array2string(np.append(dat_xcols, wtheta), \
                 formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
-        print(str_cols, file=open(self.wtfout, 'a'))
+        print(str_cols, file=open(self.statfout, 'a'))
 
         return None
 
