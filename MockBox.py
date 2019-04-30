@@ -68,7 +68,7 @@ class MockBox:
         return mocknum
 
 
-    def getmock(self, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
+    def getmock(self, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, z4push=None, galplots=None):
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
@@ -93,7 +93,7 @@ class MockBox:
         if rtfout is not None: # this is set on __init__, but can be changed here
             self.rtfout = rtfout
         if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times = OD([('mocknum', self.mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
+            self.report_times = OD([('mocknum', self.mocknum)]) # report_times dict for functions to report times
             self.report_times['fcol_width'] = 25 # set report_times file column width
             self.report_times['getmock'] = hf.time_code('start') #.TS. get code start time
             print('Function runtimes will be written to {}'.format(self.rtfout))
@@ -113,13 +113,6 @@ class MockBox:
 
         if zbin_width is not None:
             self.zbin_width = zbin_width
-
-        # if statfout is not None:
-        #     self.statfout = statfout
-        #
-        # if tbin_edges is not None:
-        #     self.tbin_edges = tbin_edges
-        # self.report_times['numtbins'] = len(self.tbin_edges)-1
 
         if galplots is not None:
             self.galplots = galplots
@@ -152,7 +145,7 @@ class MockBox:
 
 
 
-    def calc_stats(self, stats=['wtheta'], tbin_edges=None, statfout=None, fow=None, nthreads=32):
+    def calc_stats(self, stats=['wtheta'], tbin_edges=None, statfout=None, fow=None, nthreads=24):
         """
         stats (list of strings): options 'wtheta', 'xi', 'wprp'
 
@@ -177,6 +170,7 @@ class MockBox:
         ### Setup:
         if self.rtfout is not None: # set up dict to track function runtimes
             self.report_times['calc_stats'] = hf.time_code('start') #.TS. get code start time
+            self.report_times['nthreads'] = nthreads
             print('Function runtimes will be written to {}'.format(self.rtfout))
             print('calc_stats() started at {}'.format(datetime.datetime.now()))
         else:
