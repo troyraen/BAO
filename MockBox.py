@@ -75,6 +75,89 @@ class MockBox:
     # calc_write_wtheta = calc_write_wtheta
     # getmock_calcwtheta = getmock_calcwtheta # generate new mock then calc wtheta
 
+    def getmock(self, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
+        """
+        Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
+            Nstack=0 => just moves origin to center of box in prep for push_box2catz.
+        Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
+        Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
+        rtfout == string writes function runtimes to this file
+               == None to skip timing fncs.
+        fow == one of {None, 'wtheta', 'runtimes', 'all'}
+                    => current file(s) will be renamed, new file(s) started
+
+        Notes:
+
+        Halotools assumes all lengths are in Mpc/h
+        self.zbin_width: max redshift error in SDSS DR10 Photoz table is 0.365106,
+            see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
+            http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
+            Note from Jeff: SDSS has unusually large z errors.
+        """
+
+
+        ### Setup:
+        if rtfout is not None: # this is set on __init__, but can be changed here
+            self.rtfout = rtfout
+        if self.rtfout is not None: # set up dict to track function runtimes
+            self.report_times = OD([('mocknum', self.mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
+            self.report_times['fcol_width'] = 25 # set report_times file column width
+            self.report_times['getmock'] = hf.time_code('start') #.TS. get code start time
+            print('Function runtimes will be written to {}'.format(self.rtfout))
+            print('getmock() started at {}'.format(datetime.datetime.now()))
+        else:
+            print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
+
+        #### The following are set on __init__, but can be changed here:
+        if Nstack is not None:
+            self.Nstack = Nstack
+
+        if Nrands is not None:
+            self.Nrands = Nrands
+
+        if z4push is not None:
+            self.z4push = z4push
+
+        if zbin_width is not None:
+            self.zbin_width = zbin_width
+
+        # if statfout is not None:
+        #     self.statfout = statfout
+        #
+        # if tbin_edges is not None:
+        #     self.tbin_edges = tbin_edges
+        # self.report_times['numtbins'] = len(self.tbin_edges)-1
+
+        if galplots is not None:
+            self.galplots = galplots
+        ####
+
+        if su.cosmo is None:
+            su.load_cosmo() # loads default global cosmo object plus H0, Om0
+
+        if fow is not None: # rename current files and start new ones
+            self.ow_files(which=fow)
+        ###
+
+
+        # Get galaxy DF by populating DM mock using HODmodel
+        self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
+        if self.galplots: # plot a random subsample of galaxies
+            mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
+
+        # Stack boxes and push box face to appropriate redshift.
+        self.transform_mock(box='PhaseSpace') # Sets self.PhaseSpace and self.RDZ
+
+        # Get box of random points
+        self.get_randoms()
+
+        if self.rtfout is not None: # Currently this is not written to file
+            self.report_times['getmock'] = hf.time_code(self.report_times['getmock'], unit='min') #.TE. replace start time with runtime in minutes
+            print('\n\t{0}\ngetmock() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock']))
+
+        return None
+
+
 
 
     def getmock_calcwtheta(self, tbin_edges=None, wtfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
