@@ -529,8 +529,8 @@ class MockBox:
         # Plot galaxy distribution
         if self.galplots:
             # plot colored by zbins
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), title="Final Galaxies box colored by zbin")
-            mp.plot_galaxies(pd.concat([self.PhaseSpace,self.RDZ['zbin']],axis=1), plotdim=2, title="2D: Final Galaxies box colored by zbin")
+            mp.plot_galaxies(self.PhaseSpace, title="Final Galaxies box colored by zbin")
+            mp.plot_galaxies(self.PhaseSpace, plotdim=2, title="2D: Final Galaxies box colored by zbin")
 
         return None
 
