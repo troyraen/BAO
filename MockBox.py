@@ -594,6 +594,7 @@ class MockBox:
         dfcols = list(df.columns.values)
         extra_vals = df[[c for c in dfcols if c not in ['x','y','z']]] # get df of just extra values
 
+        idx_omag = np.floor(np.log10(np.max(df.index.values))) # order of magnitude of max df.index.value
         nblist = [] # list to hold DataFrames for each new box
         nLin = np.linspace(-N2,N2-1,Nstack)*self.cat_Lbox  # array of ints -N2 to N2-1, defines deltas in each direction
         deltax,deltay,deltaz = np.meshgrid(nLin,nLin,nLin) # holds deltas for each new box
@@ -603,6 +604,10 @@ class MockBox:
             boxdf['x'] = df.x + dx
             boxdf['y'] = df.y + dy
             boxdf['z'] = df.z + dz
+
+            idx_offset = np.int32(b*10**(idx_omag+1)) # add this to the indices to ensure unique indices for each galaxy
+            boxdf.index = boxdf.index + idx_offset
+
             nblist.append(boxdf)
 
         newdf = pd.concat(nblist, ignore_index=False)
