@@ -22,7 +22,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rbin_edges=None, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
@@ -50,15 +50,19 @@ class MockBox:
         self.RandomsPS = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
         self.RandomsRDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
 
-        # wtheta
+        # stats
         self.statfout = statfout # string. file name to save wtheta and other stats
         self.tbins = None # array. Theta [deg] at center of bin.
         self.tbin_edges = tbin_edges # array. Theta bin edges. if == None, set default below
+        self.rbin_edges = rbin_edges # array. Bin edges for r. if == None, set default below
         self.wtheta = None # DataFrame. Columns {theta bins}, rows wtheta, index zbin
 
         if tbin_edges is None:
             self.tbin_edges = np.logspace(np.log10(1.0), np.log10(10.0), 25)
             print('tbin_edges instantiated to: {}'.format(self.tbin_edges))
+        if rbin_edges is None:
+            self.rbin_edges = np.logspace(np.log10(100.0), np.log10(160.0), 25)
+            print('rbin_edges instantiated to: {}'.format(self.rbin_edges))
 
 
     # Methods:
@@ -145,7 +149,7 @@ class MockBox:
 
 
 
-    def calc_stats(self, stats=['wtheta'], tbin_edges=None, statfout=None, fow=None, nthreads=24):
+    def calc_stats(self, stats=['wtheta'], tbin_edges=None, rbin_edges=None, statfout=None, fow=None, nthreads=24):
         """
         stats (list of strings): options 'wtheta', 'xi', 'wprp'
 
@@ -180,6 +184,10 @@ class MockBox:
         if tbin_edges is not None:
             self.tbin_edges = tbin_edges
         self.report_times['numtbins'] = len(self.tbin_edges)-1
+
+        if rbin_edges is not None:
+            self.rbin_edges = rbin_edges
+        self.report_times['numrbins'] = len(self.rbin_edges)-1
 
         if statfout is not None:
             self.statfout = statfout
@@ -422,10 +430,57 @@ class MockBox:
         # Write current zbin wtheta info to file
         # Do this now so it is not lost if a future zbin calculation fails
         # cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.statfout)
-        self.write_wtheta_to_file(tbcens, wtheta, zzz, len(rdz), len(randoms))
+        # self.write_wtheta_to_file(tbcens, wtheta, zzz, len(rdz), len(randoms))
+        self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, len(rdz), len(randoms))
 
         if self.rtfout is not None:
             self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
+
+        return None
+
+
+    def write_stat_to_file(self, stat_name, bincens, statdat, zbin, Ngals, Nrands):
+        """ stat_name (string): name of statistic
+            bincens (array): center of each bin for which the stat was calculated.
+            statdat (array): stat calculated in each bin. must be same length as bincens
+            zbin = center of the redshift bin of galaxies used to calc wtheta
+
+            Checks that existing file (if any) has same number of columns
+        """
+
+        numbcens = len(bincens)
+        # if you change this you must update several things in the rest of this function:
+        extra_cols = np.array(['mock', 'zbin', 'stat_name', 'Nstack', 'Ngals', 'Nrands'])
+        lc = len(extra_cols) + 2*numbcens # num cols to write to file
+
+        # Check if file exists and has same number of columns as expected
+        fpath = Path(self.statfout)
+        if fpath.is_file():
+            df = pd.read_csv(fpath, comment='#', nrows=10) # get the structure of the current file
+            lfc = len(df.columns) # num cols in existing file
+            try:
+                lfc==lc
+            except: # if lengths don't match, move existing
+                mv_fout = hf.file_ow(self.statfout)
+                print('*** Format incompatible.\n\tMoved existing file to {} so it is not overwritten. ***'.format(mv_fout))
+
+        # If statfout has been moved (above) or never existed, create new file.
+        if not fpath.is_file():
+            # Set up column names
+            bcols = ['bin_'{}.format(i), for i in range(numbcens)]
+            scols = ['stat_'{}.format(i), for i in range(numbcens)]
+
+            hdr = "'bin_' columns contain bin centers (theta in degrees, r in Mpc/h), 'stat_' contain the stat for each bin, others are extra info.\n"
+            new_cols = np.stack([np.concatenate((extra_cols, bcols, scols))])
+            np.savetxt(self.statfout, new_cols, fmt='%25.7s', header=hdr) # write header
+
+        # Now fout exists, so append the data.
+        print('Appending stat {} to {}'.format(stat_name, self.statfout))
+        mlw = 50*lc
+        dat_xcols = [self.mocknum, zbin, stat_name, self.Nstack, Ngals, Nrands ]
+        str_cols = np.array2string(np.append(dat_xcols, bincens, statdat), \
+                formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
+        print(str_cols, file=open(self.statfout, 'a'))
 
         return None
 
@@ -810,27 +865,30 @@ class MockBox:
 
 
 
-# def NOTES_notrealfnc():
-#
-#     def myfunc(self):
-#         print("Hello my name is " + self.name)
-#
-#     # multi indexing:
-#     https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html
-#
-#     # define method outside class:
-#     # option 1:
-#     def func(self):
-#         print "func"
-#
-#     class MyClass(object):
-#         myMethod = func
-#
-#     # option 2: after declaration
-#     class MyClass(object):
-#         pass
-#
-#     def func(self):
-#         print "func"
-#
-#     MyClass.myMethod = func
+# NOTES
+# fs
+    #
+    # def myfunc(self):
+    #     print("Hello my name is " + self.name)
+    #
+    # # multi indexing:
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html
+    #
+    # # define method outside class:
+    # # option 1:
+    # def func(self):
+    #     print "func"
+    #
+    # class MyClass(object):
+    #     myMethod = func
+    #
+    # # option 2: after declaration
+    # class MyClass(object):
+    #     pass
+    #
+    # def func(self):
+    #     print "func"
+    #
+    # MyClass.myMethod = func
+    #
+# fe # NOTES
