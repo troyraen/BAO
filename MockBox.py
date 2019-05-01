@@ -448,15 +448,16 @@ class MockBox:
             Checks that existing file (if any) has same number of columns
         """
 
+        colwidth = 25
         numbcens = len(bincens)
         # if you change this you must update several things in the rest of this function:
-        extra_cols = np.array(['mock', 'zbin', 'stat_name', 'Nstack', 'Ngals', 'Nrands'])
+        extra_cols = ['mock', 'zbin', 'stat_name', 'Nstack', 'Ngals', 'Nrands']
         lc = len(extra_cols) + 2*numbcens # num cols to write to file
 
         # Check if file exists and has same number of columns as expected
         fpath = Path(self.statfout)
         if fpath.is_file():
-            df = pd.read_csv(fpath, comment='#', nrows=10) # get the structure of the current file
+            df = pd.read_csv(fpath, comment='#', delim_whitespace=True, nrows=10) # get the structure of the current file
             lfc = len(df.columns) # num cols in existing file
             try:
                 lfc==lc
@@ -466,20 +467,22 @@ class MockBox:
 
         # If statfout has been moved (above) or never existed, create new file.
         if not fpath.is_file():
-            # Set up column names
-            bcols = ['bin_'{}.format(i), for i in range(numbcens)]
-            scols = ['stat_'{}.format(i), for i in range(numbcens)]
-
             hdr = "'bin_' columns contain bin centers (theta in degrees, r in Mpc/h), 'stat_' contain the stat for each bin, others are extra info.\n"
-            new_cols = np.stack([np.concatenate((extra_cols, bcols, scols))])
-            np.savetxt(self.statfout, new_cols, fmt='%25.7s', header=hdr) # write header
+            bcols = ['bin_{}'.format(i) for i in range(numbcens)]
+            scols = ['stat_{}'.format(i) for i in range(numbcens)]
+            new_cols = ''.join(i.rjust(colwidth) for i in extra_cols+bcols+scols)
+            print('# {}\n{}'.format(hdr, new_cols), file=open(self.statfout, 'w'))
+            # np.savetxt(self.statfout, new_cols, header=hdr) # write header
 
         # Now fout exists, so append the data.
-        print('Appending stat {} to {}'.format(stat_name, self.statfout))
-        mlw = 50*lc
-        dat_xcols = [self.mocknum, zbin, stat_name, self.Nstack, Ngals, Nrands ]
-        str_cols = np.array2string(np.append(dat_xcols, bincens, statdat), \
-                formatter={'float_kind':lambda x: "%25.15e" % x}, max_line_width=mlw)[1:-1]
+        print("Appending stat '{}' to {}".format(stat_name, self.statfout))
+        # mlw = 50*lc
+        dat_xcols = ['{}'.format(self.mocknum), '{}'.format(zbin), stat_name, '{}'.format(self.Nstack), '{:.5e}'.format(Ngals), '{:.5e}'.format(Nrands) ]
+        dat_bcols = ['{:.15f}'.format(bincens[b]) for b in range(numbcens)]
+        dat_scols = ['{:.15f}'.format(statdat[s]) for s in range(numbcens)]
+        str_cols = ''.join(i.rjust(colwidth) for i in dat_xcols+dat_bcols+dat_scols)
+        # str_cols = np.array2string(np.append(dat_xcols, np.append(bincens, statdat)), \
+        #         formatter={'float_kind':lambda x: "%25.15e" % x, 'str':lambda x: "%25s" % x}, max_line_width=mlw)[1:-1]
         print(str_cols, file=open(self.statfout, 'a'))
 
         return None
