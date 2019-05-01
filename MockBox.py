@@ -457,9 +457,9 @@ class MockBox:
         # Check if file exists and has same number of columns as expected
         fpath = Path(self.statfout)
         if fpath.is_file():
-            df = pd.read_csv(fpath, comment='#', delim_whitespace=True, nrows=10) # get the structure of the current file
-            lfc = len(df.columns) # num cols in existing file
             try:
+                df = pd.read_csv(fpath, comment='#', delim_whitespace=True, nrows=10) # get the structure of the current file
+                lfc = len(df.columns) # num cols in existing file
                 lfc==lc
             except: # if lengths don't match, move existing
                 mv_fout = hf.file_ow(self.statfout)
