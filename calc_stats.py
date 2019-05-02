@@ -9,6 +9,8 @@ from halotools.mock_observables import mock_survey
 # import Corrfunc
 from Corrfunc.mocks.DDtheta_mocks import DDtheta_mocks
 from Corrfunc.utils import convert_3d_counts_to_cf
+from Corrfunc.theory.wp import wp
+from Corrfunc.theory.xi import xi
 
 import setup as su
 import helper_fncs as hf
@@ -16,10 +18,47 @@ import myplots as mp
 
 
 
+def calc_wp(MockBox, nthreads=24):
+
+    boxsize = MockBox.Lbox
+    bins = MockBox.rbin_edges
+    pimax = MockBox.pimax
+    rt = MockBox.report_times
+    print('\nCalculating wp(rp)\n\t{1}\n'.format(datetime.datetime.now()))
+
+    # MockBox has x-face pushed to catalog redshift.
+    # Must transform this to z direction.
+    X, Y, Z = MockBox.PhaseSpace.y, MockBox.PhaseSpace.z, MockBox.PhaseSpace.x
+
+    rt['calc_wp'] = hf.time_code('start')
+    results = wp(boxsize, pimax, nthreads, bins, X, Y, Z)
+    rt['calc_wp'] = hf.time_code(rt['calc_wp'], unit='min')
+
+    bcens = np.around((bins[:-1]+bins[1:])/2, decimals=5)
+    return [bcens, results['wp']]
+
+
+def calc_xi(MockBox, nthreads=24):
+
+    boxsize = MockBox.Lbox
+    bins = MockBox.rbin_edges
+    rt = MockBox.report_times
+    print('\nCalculating xi\n\t{1}\n'.format(datetime.datetime.now()))
+
+    # MockBox has x-face pushed to catalog redshift.
+    # Transform this to z direction for consistency with calc_wp().
+    X, Y, Z = MockBox.PhaseSpace.y, MockBox.PhaseSpace.z, MockBox.PhaseSpace.x
+
+    rt['calc_xi'] = hf.time_code('start')
+    results = xi(boxsize, nthreads, bins, X, Y, Z)
+    rt['calc_xi'] = hf.time_code(rt['calc_xi'], unit='min')
+
+    bcens = np.around((bins[:-1]+bins[1:])/2, decimals=5)
+    return [bcens, results['xi']]
 
 
 
-def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=32):
+def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=24):
     """ Pass a MockBox instance to use the following variables:
             tbins = MockBox.tbin_edges
             report_times = MockBox.report_times
