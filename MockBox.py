@@ -95,14 +95,10 @@ class MockBox:
         ### Setup:
         if rtfout is not None: # this is set on __init__, but can be changed here
             self.rtfout = rtfout
-        if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times = OD([('mocknum', self.mocknum)]) # report_times dict for functions to report times
-            self.report_times['fcol_width'] = 25 # set report_times file column width
-            self.report_times['getmock'] = hf.time_code('start') #.TS. get code start time
-            print('Function runtimes will be written to {}'.format(self.rtfout))
-            print('getmock() started at {}'.format(datetime.datetime.now()))
-        else:
-            print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
+        # Set up dict to track function runtimes
+        self.report_times = OD([('mocknum', self.mocknum),
+                                ('fcol_width', 25), # set report_times file column width
+                                ('getmock', hf.time_code('start')) ])
 
         #### The following are set on __init__, but can be changed here:
         if Nstack is not None:
@@ -140,9 +136,9 @@ class MockBox:
         # Get box of random points
         self.get_randoms()
 
-        if self.rtfout is not None: # Currently this is not written to file
-            self.report_times['getmock'] = hf.time_code(self.report_times['getmock'], unit='min') #.TE. replace start time with runtime in minutes
-            print('\n\t{0}\ngetmock() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock']))
+        # Currently this is not written to file
+        self.report_times['getmock'] = hf.time_code(self.report_times['getmock'], unit='min') #.TE. replace start time with runtime in minutes
+        print('\n\t{0}\ngetmock() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock']))
 
         return None
 
@@ -171,13 +167,9 @@ class MockBox:
 
 
         ### Setup:
-        if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times['calc_stats'] = hf.time_code('start') #.TS. get code start time
-            self.report_times['nthreads'] = nthreads
-            print('Function runtimes will be written to {}'.format(self.rtfout))
-            print('calc_stats() started at {}'.format(datetime.datetime.now()))
-        else:
-            print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
+        self.report_times['nthreads'] = nthreads
+        self.report_times['calc_stats'] = hf.time_code('start')
+        print('calc_stats() started at {}'.format(datetime.datetime.now()))
 
         #### The following are set on __init__, but can be changed here:
         if tbin_edges is not None:
@@ -223,10 +215,11 @@ class MockBox:
                 print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+            else:
+                print('report_times NOT written to file. Set MockBox.rtfout do write to file.')
 
-        if self.rtfout is not None: # Currently this is not written to file
-            self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
-            print('\n\t{0}\ncalc_stats() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['calc_stats']))
+        self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
+        print('\n\t{0}\ncalc_stats() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['calc_stats']))
 
         return None
 
@@ -259,14 +252,12 @@ class MockBox:
         ### Setup:
         if rtfout is not None: # this is set on __init__, but can be changed here
             self.rtfout = rtfout
-        if self.rtfout is not None: # set up dict to track function runtimes
-            self.report_times = OD([('mocknum', self.mocknum), ('nthreads',nthreads)]) # report_times dict for functions to report times
-            self.report_times['fcol_width'] = 25 # set report_times file column width
-            self.report_times['getmock_calcwtheta'] = hf.time_code('start') #.TS. get code start time
-            print('Function runtimes will be written to {}'.format(self.rtfout))
-            print('getmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
-        else:
-            print('*** Function runtimes are NOT being tracked.\n\t Set MockBox.rtfout to track these.')
+        self.report_times = OD([('mocknum', self.mocknum),
+                                ('nthreads',nthreads),
+                                ('fcol_width', 25) # set report_times file column width
+                                ('getmock_calcwtheta', hf.time_code('start'))
+                                ])
+        print('getmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
 
         #### The following are set on __init__, but can be changed here:
         if Nstack is not None:
@@ -327,10 +318,12 @@ class MockBox:
                 print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+            else:
+                print('report_times NOT written to file. Set MockBox.rtfout do write to file.')
 
-        if self.rtfout is not None: # Currently this is not written to file
-            self.report_times['getmock_calcwtheta'] = hf.time_code(self.report_times['getmock_calcwtheta'], unit='min') #.TE. replace start time with runtime in minutes
-            print('\n\t{0}\ndo_mock_wtheta.py ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock_calcwtheta']))
+        # Currently this is not written to file
+        self.report_times['getmock_calcwtheta'] = hf.time_code(self.report_times['getmock_calcwtheta'], unit='min') #.TE. replace start time with runtime in minutes
+        print('\n\t{0}\ndo_mock_wtheta.py ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock_calcwtheta']))
 
         return None
 
@@ -361,9 +354,8 @@ class MockBox:
             self.Nrands = len(self.RDZ)
             print('MB.Nrands was not instantiated. Using Nrands = len(RDZ) = {}'.format(self.Nrands))
 
-        if self.rtfout is not None:
-            self.report_times['get_randoms'] = hf.time_code('start') #.TS. get code start time
-            self.report_times['numrands'] = self.Nrands
+        self.report_times['get_randoms'] = hf.time_code('start')
+        self.report_times['numrands'] = self.Nrands
 
         # create random points in box with side length self.Lbox, centered around origin
         ran_coords = np.random.random((self.Nrands,3))*self.Lbox - self.Lbox/2
@@ -373,11 +365,9 @@ class MockBox:
         self.push_box2catz(box='Randoms') # pushes the x-face to the catalog mock redshift
 
         # transform coords to RA, DEC, Redshift
-        if self.rtfout is not None:
-            self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start')
+        self.report_times['get_ra_dec_z_Rands'] = hf.time_code('start')
         self.RandomsRDZ = hf.get_ra_dec_z(self.RandomsPS, usevel=False) # DF of {RA,DEC,Redshift}
-        if self.rtfout is not None:
-            self.report_times['get_ra_dec_z_Rands'] = hf.time_code(self.report_times['get_ra_dec_z_Rands'], unit='min') #.TE. replace start time with runtime in minutes
+        self.report_times['get_ra_dec_z_Rands'] = hf.time_code(self.report_times['get_ra_dec_z_Rands'], unit='min') #.TE. replace start time with runtime in minutes
 
         # Find/set redshift bins
         self.bin_redshifs(box='Randoms', validate=False) # adds column 'zbin' to RandomsPS and RandomsRDZ
@@ -385,9 +375,8 @@ class MockBox:
             mp.plot_galaxies(self.RandomsPS, title="Galaxy Randoms at z_catalog")
             # mp.plot_galaxies(self.RandomsPS, plotdim=2, title="2D: Galaxy Randoms at z_catalog")
 
-        if self.rtfout is not None:
-            self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
-            print('\tget_randoms() took {0:.1f} minutes'.format(self.report_times['get_randoms']))
+        self.report_times['get_randoms'] = hf.time_code(self.report_times['get_randoms']) # get function runtime [min]
+        print('\tget_randoms() took {0:.1f} minutes'.format(self.report_times['get_randoms']))
 
         return None
 
@@ -404,19 +393,17 @@ class MockBox:
         if statfout is not None: # this is set on __init__, but can be changed here
             self.statfout = statfout
 
-        if self.rtfout is not None: # Save some info to report_times
-            self.report_times['zbin'] = zzz
-            self.report_times['numgals'] = len(rdz.index)
-            print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
-            self.report_times['calc_wtheta'] = hf.time_code('start') #.TS. get code start time
+        self.report_times['zbin'] = zzz
+        self.report_times['numgals'] = len(rdz.index)
+        print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
+        self.report_times['calc_wtheta'] = hf.time_code('start')
 
         randoms_kwargs = { 'randbox':randoms }
         tbcens, wtheta, self.report_times = cs.calc_wtheta(rdz, MockBox=self, randoms_kwargs=randoms_kwargs, nthreads=nthreads)
 
         self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, len(rdz), len(randoms))
 
-        if self.rtfout is not None:
-            self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
+        self.report_times['calc_wtheta'] = hf.time_code(self.report_times['calc_wtheta'], unit='min') #.TE. replace start time with runtime in minutes
 
         return None
 
@@ -548,8 +535,7 @@ class MockBox:
         else: # raise an error
             assert 0, 'bin_redshifs() received invaid argument: box = {}'.format(box)
 
-        if self.rtfout is not None: # track function runtimes
-                self.report_times[rtname] = hf.time_code('start') #.TS. get code start time
+        self.report_times[rtname] = hf.time_code('start') #.TS. get code start time
 
         if zbin_width is not None: # this is set on __init__, but can be changed here
             self.zbin_width = zbin_width
@@ -591,8 +577,7 @@ class MockBox:
                 assert(rdzbin==truezbin)
 
 
-        if self.rtfout is not None: # track function runtimes
-                self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minutes
+        self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minutes
 
         return None
 
@@ -621,11 +606,9 @@ class MockBox:
 
         # Transform coordinates to RA, DEC, Redshift
         print('\nConverting to RA, DEC, Redshift. ...')
-        if self.rtfout is not None:
-            self.report_times['get_ra_dec_z'] = hf.time_code('start')
+        self.report_times['get_ra_dec_z'] = hf.time_code('start')
         self.RDZ = hf.get_ra_dec_z(self.PhaseSpace, usevel=True)
-        if self.rtfout is not None:
-            self.report_times['get_ra_dec_z'] = hf.time_code(self.report_times['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
+        self.report_times['get_ra_dec_z'] = hf.time_code(self.report_times['get_ra_dec_z'], unit='min') #.TE. replace start time with runtime in minutes
 
         # Bin redshifts, add column to self.RDZ and self.PhaseSpace
         self.bin_redshifs(box='RDZ', validate=False)
@@ -653,8 +636,7 @@ class MockBox:
         print('\nStacking {}^3 boxes. ...'.format(self.Nstack))
 
         # Setup
-        if self.rtfout is not None: # track function runtimes
-            self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
+        self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
 
         self.Lbox = self.cat_Lbox*self.Nstack
 
@@ -679,9 +661,8 @@ class MockBox:
 
         self.PhaseSpace = newgals
 
-        if self.rtfout is not None: # track function runtimes
-            self.report_times['stack_boxes'] = hf.time_code(self.report_times['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
-            print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['stack_boxes']))
+        self.report_times['stack_boxes'] = hf.time_code(self.report_times['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
+        print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['stack_boxes']))
 
         return None
 
@@ -768,8 +749,7 @@ class MockBox:
                 columns {x,y,z} generated periodically, {vx,vy,vz, all others} same as original galaxies.
         """
         # Setup
-        if self.rtfout is not None: # track function runtimes
-            self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
+        self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
 
         self.Lbox = self.cat_Lbox*self.Nstack
         print('\nStacking {}^3 boxes. ...'.format(self.Nstack))
@@ -793,9 +773,8 @@ class MockBox:
 
         self.PhaseSpace = newgals
 
-        if self.rtfout is not None: # track function runtimes
-            self.report_times['stack_boxes'] = hf.time_code(self.report_times['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
-            print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['stack_boxes']))
+        self.report_times['stack_boxes'] = hf.time_code(self.report_times['stack_boxes'], unit='min') #.TE. replace start time with runtime in minutes
+        print('\n\t{0}\nstack_boxes() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['stack_boxes']))
 
         return None
 
@@ -834,16 +813,14 @@ class MockBox:
         assert df is not None, 'You must instantiate MB.{box} before calling push_box2catz().'.format(box=box)
 
         print('\nPushing the {b} box out to box x-face redshift = {z:1.2f} ...'.format(b=box, z=z4push))
-        if self.rtfout is not None: # track function runtimes
-            self.report_times[rtname] = hf.time_code('start') #.TS. get code start time
+        self.report_times[rtname] = hf.time_code('start') #.TS. get code start time
 
         # Shift x so coordinates are strictly positive (i.e. move face to x=0)
         # Then push the face to comoving_distance(self.cat_zbox)
         deltax = self.Lbox/2. + (su.cosmo.comoving_distance(z4push).value)*su.cosmo.h # Mpc/h
         df.x = df.x + deltax
 
-        if self.rtfout is not None: # track function runtimes
-            self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minute
+        self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minute
 
         return None
 
