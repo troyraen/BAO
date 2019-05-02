@@ -68,6 +68,10 @@ def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=24):
     Returns [theta bin centers, wtheta in each bin, report_times]
     """
 
+    rt = MockBox.report_times
+    print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
+    rt['calc_wtheta'] = hf.time_code('start')
+
     RA, DEC = np.asarray(galaxy_df.RA), np.asarray(galaxy_df.DEC)
     N = len(RA)
     rand_RA, rand_DEC = np.asarray(randoms_df.RA), np.asarray(randoms_df.DEC)
@@ -78,7 +82,6 @@ def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=24):
         tbins = np.logspace(np.log10(1.0), np.log10(10.0), 25)
         print('*** No theta bin edges provided to calc_wtheta.\n\t Using default tbins = {}'.format(tbins))
 
-    rt = MockBox.report_times
     try: # make sure nthreads was passed through correctly
         assert nthreads == rt['nthreads']
     except:
@@ -94,32 +97,34 @@ def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=24):
     # gal gal
     autocorr=1
     print('Calculating DD_counts...')
-    rt['wt_galgal_counts'] = hf.time_code('start') #.TS. get code start time
-    DD_counts = DDtheta_mocks(autocorr, nthreads, tbins, RA, DEC) #.TC.
-    rt['wt_galgal_counts'] = hf.time_code(rt['wt_galgal_counts'], unit='min') #.TE. replace start time with runtime in minutes
+    rt['wt_galgal_counts'] = hf.time_code('start')
+    DD_counts = DDtheta_mocks(autocorr, nthreads, tbins, RA, DEC)
+    rt['wt_galgal_counts'] = hf.time_code(rt['wt_galgal_counts'], unit='min')
 
 
     # random random
     autocorr=1
     print('Calculating RR_counts...')
-    rt['wt_randrand_counts'] = hf.time_code('start') #.TS. get code start time
-    RR_counts = DDtheta_mocks(autocorr, nthreads, tbins, rand_RA, rand_DEC) #.TC.
-    rt['wt_randrand_counts'] = hf.time_code(rt['wt_randrand_counts'], unit='min') #.TE. replace start time with runtime in minutes
+    rt['wt_randrand_counts'] = hf.time_code('start')
+    RR_counts = DDtheta_mocks(autocorr, nthreads, tbins, rand_RA, rand_DEC)
+    rt['wt_randrand_counts'] = hf.time_code(rt['wt_randrand_counts'], unit='min')
 
 
     # gal random
     autocorr=0
     print('Calculating DR_counts...')
-    rt['wt_galrand_counts'] = hf.time_code('start') #.TS. get code start time
-    DR_counts = DDtheta_mocks(autocorr, nthreads, tbins, RA, DEC, RA2=rand_RA, DEC2=rand_DEC) #.TC.
-    rt['wt_galrand_counts'] = hf.time_code(rt['wt_galrand_counts'], unit='min') #.TE. replace start time with runtime in minutes
+    rt['wt_galrand_counts'] = hf.time_code('start')
+    DR_counts = DDtheta_mocks(autocorr, nthreads, tbins, RA, DEC, RA2=rand_RA, DEC2=rand_DEC)
+    rt['wt_galrand_counts'] = hf.time_code(rt['wt_galrand_counts'], unit='min')
     #---
 
     # calc w(theta)
     print('Converting counts to correlation...')
-    rt['wt_counts_to_cf'] = hf.time_code('start') #.TS. get code start time
-    wtheta = convert_3d_counts_to_cf(N, N, rand_N, rand_N, DD_counts, DR_counts, DR_counts, RR_counts) #.TC.
-    rt['wt_counts_to_cf'] = hf.time_code(rt['wt_counts_to_cf'], unit='min') #.TE. replace start time with runtime in minutes
+    rt['wt_counts_to_cf'] = hf.time_code('start')
+    wtheta = convert_3d_counts_to_cf(N, N, rand_N, rand_N, DD_counts, DR_counts, DR_counts, RR_counts)
+    rt['wt_counts_to_cf'] = hf.time_code(rt['wt_counts_to_cf'], unit='min')
+
+    rt['calc_wtheta'] = hf.time_code(rt['calc_wtheta'], unit='min')
 
     bcens = np.around((tbins[:-1]+tbins[1:])/2, decimals=5)
-    return [bcens, wtheta, rt]
+    return [bcens, wtheta]
