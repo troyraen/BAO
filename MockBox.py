@@ -26,7 +26,7 @@ class MockBox:
     def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rbin_edges=None, pimax=500, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
-        self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
+        self.rtfout = rtfout # = string writes function runtimes to this file.
         self.galplots = galplots # bool. Whether to plot galaxy positions at each transformation (use to check whether transformations are correct.)
 
         # Data from original (halos + HOD galaxies) catalog mock
@@ -44,6 +44,7 @@ class MockBox:
         self.zbin_edges = None # array. Redshift bin edges.
         self.zbin_width = zbin_width # desired spacing between bin centers (result will not be exact)
         self.PhaseSpace = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = galaxies.
+        self.PhaseSpace_theory = None # DataFrame. Same as PhaseSpace but origin is at box corner.
         self.RDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = galaxies. bin_redshifs() adds column zbin
 
         # Mock box of random points
@@ -145,14 +146,12 @@ class MockBox:
 
 
 
-    def calc_stats(self, stats=['wtheta'], tbin_edges=None, rbin_edges=None, pimax=None, =None, fow=None, nthreads=24):
+    def calc_stats(self, stats=['wtheta'], tbin_edges=None, rbin_edges=None, pimax=None, statfout=None, fow=None, nthreads=24):
         """
         stats (list of strings): options 'wtheta', 'xi', 'wp'
 
-        Calculates each stat in the list using tbins, rbins, nthreads and writes results to sfout.
+        Calculates each stat in the list and writes results to sfout.
         Calculates runtime of each stat calculation and outputs info to rtfout.
-        rtfout == string writes function runtimes to this file
-               == None to skip timing fncs.
         fow == one of {None, 'wtheta', 'runtimes', 'all'}
                     => current file(s) will be renamed, new file(s) started
 
@@ -216,6 +215,7 @@ class MockBox:
             self.report_times['numrands'] = len(rand_rdz_z.index)
 
             ## Calculate statistics
+            print('Calculating stats for zbin = {}'.format(zzz))
             if 'wtheta' in stats:
                 tbcens, wtheta = cs.calc_wtheta(rdz_z, rand_rdz_z, \
                                                 MockBox=self, nthreads=nthreads)
@@ -223,13 +223,13 @@ class MockBox:
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
             if 'xi' in stats:
-                rbcens, xi = calc_xi(self, nthreads=nthreads)
+                rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
                 self.write_stat_to_file('xi', rbcens, xi, zzz, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
 
             if 'wp' in stats:
-                rbcens, wp = calc_wp(self, nthreads=nthreads)
+                rbcens, wp = cs.calc_wp(self, nthreads=nthreads)
                 self.write_stat_to_file('wp', rbcens, wp, zzz, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
@@ -240,7 +240,7 @@ class MockBox:
                 # print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
                 print('\n{}'.format(datetime.datetime.now()))
                 print('Stat results written to {}.'.format(self.statfout))
-                print('Calculation report_times written to {1}.\n'.format(self.rtfout))
+                print('Calculation report_times written to {}.\n'.format(self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
             else:
@@ -452,10 +452,10 @@ class MockBox:
             try:
                 df = pd.read_csv(fpath, comment='#', delim_whitespace=True, nrows=10) # get the structure of the current file
                 lfc = len(df.columns) # num cols in existing file
-                lfc==lc
-            except: # if lengths don't match, move existing
+                assert lfc==lc
+            except: # if df can't be read or lengths don't match, move existing
                 mv_fout = hf.file_ow(self.statfout)
-                print('*** Format incompatible.\n\tMoved existing file to {} so it is not overwritten. ***'.format(mv_fout))
+                print('*** Stat file format incompatible.\n\tMoved existing file to {} so it is not overwritten. ***'.format(mv_fout))
 
         # If statfout has been moved (above) or never existed, create new file.
         if not fpath.is_file():
@@ -622,7 +622,14 @@ class MockBox:
         if self.galplots:
             mp.plot_galaxies(self.PhaseSpace, gal_frac=5e-4, coords='xyz', title='Boxes Stacked Around Origin')
 
-        # Push box face to redshift = self.cat_zbox
+        # Keep a box for xi and wp calculations
+        self.PhaseSpace_theory = self.PhaseSpace.copy(deep=True)
+        for ax in ['x','y','z']: # shift origin to box corner
+            self.PhaseSpace_theory[ax] = self.PhaseSpace_theory[ax] + self.Lbox/2.
+        if self.galplots:
+            mp.plot_galaxies(self.PhaseSpace_theory, gal_frac=5e-4, coords='xyz', title='PhaseSpace_theory Box')
+
+        # Push box face to redshift = self.z4push
         self.push_box2catz(box=box)
         if self.galplots:
             mp.plot_galaxies(self.PhaseSpace, gal_frac=5e-4, coords='xyz', title='Boxes Stacked and Pushed to Redshift = {}'.format(self.zbox))
@@ -659,9 +666,9 @@ class MockBox:
         print('\nStacking {}^3 boxes. ...'.format(self.Nstack))
 
         # Setup
-        self.report_times['stack_boxes'] = hf.time_code('start') #.TS. get code start time
+        self.report_times['stack_boxes'] = hf.time_code('start')
 
-        self.Lbox = self.cat_Lbox*self.Nstack
+        self.Lbox = self.cat_Lbox*self.Nstack # Nstack=0 case dealt with below
 
         # check quadrant
         galdf = self.cat_galtbl

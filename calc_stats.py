@@ -24,11 +24,11 @@ def calc_wp(MockBox, nthreads=24):
     bins = MockBox.rbin_edges
     pimax = MockBox.pimax
     rt = MockBox.report_times
-    print('\nCalculating wp(rp)\n\t{1}\n'.format(datetime.datetime.now()))
+    print('\nCalculating wp(rp)\n\t{}\n'.format(datetime.datetime.now()))
 
     # MockBox has x-face pushed to catalog redshift.
     # Must transform this to z direction.
-    X, Y, Z = MockBox.PhaseSpace.y, MockBox.PhaseSpace.z, MockBox.PhaseSpace.x
+    X,Y,Z = MockBox.PhaseSpace_theory.y, MockBox.PhaseSpace_theory.z, MockBox.PhaseSpace_theory.x
 
     rt['calc_wp'] = hf.time_code('start')
     results = wp(boxsize, pimax, nthreads, bins, X, Y, Z)
@@ -43,11 +43,11 @@ def calc_xi(MockBox, nthreads=24):
     boxsize = MockBox.Lbox
     bins = MockBox.rbin_edges
     rt = MockBox.report_times
-    print('\nCalculating xi\n\t{1}\n'.format(datetime.datetime.now()))
+    print('\nCalculating xi\n\t{}\n'.format(datetime.datetime.now()))
 
     # MockBox has x-face pushed to catalog redshift.
     # Transform this to z direction for consistency with calc_wp().
-    X, Y, Z = MockBox.PhaseSpace.y, MockBox.PhaseSpace.z, MockBox.PhaseSpace.x
+    X,Y,Z = MockBox.PhaseSpace_theory.y, MockBox.PhaseSpace_theory.z, MockBox.PhaseSpace_theory.x
 
     rt['calc_xi'] = hf.time_code('start')
     results = xi(boxsize, nthreads, bins, X, Y, Z)
@@ -69,7 +69,7 @@ def calc_wtheta(galaxy_df, randoms_df, MockBox=None, nthreads=24):
     """
 
     rt = MockBox.report_times
-    print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
+    print('\nCalculating wtheta\n\t{}\n'.format(datetime.datetime.now()))
     rt['calc_wtheta'] = hf.time_code('start')
 
     RA, DEC = np.asarray(galaxy_df.RA), np.asarray(galaxy_df.DEC)
