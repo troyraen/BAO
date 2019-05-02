@@ -12,27 +12,79 @@ import myplots as mp
 #
 
 # DEFAULTS:
+statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
 nbins = 50
 tbin_edges = np.logspace(np.log10(0.1), np.log10(12.0), nbins+1)
 rbin_edges = np.logspace(np.log10(100.0), np.log10(160.0), nbins+1)
-pimax = 500
+pimax = 300
+galplots=False
 z4push = 'cat'
-zw = 2.
+zw = 10.
 cat_gals = 5e5 # approx num gals in cat mock
-Nstack = 0 # number of mock boxes to stack, per dimension
+Nstack = 2 # number of mock boxes to stack, per dimension
 nrfact = 3 # used in Nrands
 Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
-imax = 1 # number of times to run each param combo
+imax = 5 # number of times to run each param combo
 
 
+## Do runs
+
+statfout='data/stats_Nstack0_z4push0.dat'
+print('----------------------------------------------------------------')
+print('Starting statfout = {}'.format(statfout))
+print('----------------------------------------------------------------')
 for i in range(imax):
     print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
-    mb = MBox(Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, \
-                rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=False)
+    mb = MBox( Nstack=0, z4push=0., zbin_width=zw, tbin_edges=tbin_edges, \
+                rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=galplots, \
+                statfout=statfout
+            )
     mb.getmock()
     mb.calc_stats(stats=stats, nthreads=24)
 
+
+statfout='data/stats_Nstack0.dat'
+print('----------------------------------------------------------------')
+print('Starting statfout = {}'.format(statfout))
+print('----------------------------------------------------------------')
+for i in range(imax):
+    print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
+    mb = MBox( Nstack=0, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, \
+                rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=galplots, \
+                statfout=statfout
+            )
+    mb.getmock()
+    mb.calc_stats(stats=stats, nthreads=24)
+
+
+statfout='data/stats_defaults.dat'
+print('----------------------------------------------------------------')
+print('Starting statfout = {}'.format(statfout))
+print('----------------------------------------------------------------')
+for i in range(imax):
+    print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
+    mb = MBox( Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, \
+                rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=galplots, \
+                statfout=statfout
+            )
+    mb.getmock()
+    mb.calc_stats(stats=stats, nthreads=24)
+
+
+# statfout='data/stats_z4push0.dat'
+# print('----------------------------------------------------------------')
+# print('Starting statfout = {}'.format(statfout))
+# print('----------------------------------------------------------------')
+# for i in range(imax):
+#     print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
+#     mb = MBox( Nstack=Nstack, z4push=0., zbin_width=zw, tbin_edges=tbin_edges, \
+#                 rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=galplots, \
+#                 statfout=statfout
+#             )
+#     mb.getmock()
+#     mb.calc_stats(stats=stats, nthreads=24)
+#
 
 
 
@@ -50,7 +102,8 @@ for i in range(imax):
 #         Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
 #         for i in range(imax):
 #             print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
-#             mb = MBox(Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, rbin_edges=rbin_edges, Nrands=Nrands, galplots=False)
+#             mb = MBox(Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, \
+                    # rbin_edges=rbin_edges, Nrands=Nrands, galplots=False)
 #             # mb.getmock_calcwtheta(nthreads=24)
 #             mb.getmock()
 #             mb.calc_stats(stats=stats)
