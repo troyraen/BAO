@@ -23,7 +23,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rbin_edges=None, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rbin_edges=None, pimax=500, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file. = None skips timing fncs.
@@ -55,6 +55,7 @@ class MockBox:
         self.statfout = statfout # string. file name to save wtheta and other stats
         self.tbin_edges = tbin_edges # array. Theta [deg] bin edges. if == None, set default below
         self.rbin_edges = rbin_edges # array. Bin edges for r [Mpc/h]. if == None, set default below
+        self.pimax = pimax # scalar. Used to calculate wp(rp)
 
         if tbin_edges is None:
             self.tbin_edges = np.logspace(np.log10(1.0), np.log10(10.0), 25)
@@ -144,9 +145,9 @@ class MockBox:
 
 
 
-    def calc_stats(self, stats=['wtheta'], tbin_edges=None, rbin_edges=None, statfout=None, fow=None, nthreads=24):
+    def calc_stats(self, stats=['wtheta'], tbin_edges=None, rbin_edges=None, pimax=None, =None, fow=None, nthreads=24):
         """
-        stats (list of strings): options 'wtheta', 'xi', 'wprp'
+        stats (list of strings): options 'wtheta', 'xi', 'wp'
 
         Calculates each stat in the list using tbins, rbins, nthreads and writes results to sfout.
         Calculates runtime of each stat calculation and outputs info to rtfout.
@@ -180,6 +181,10 @@ class MockBox:
             self.rbin_edges = rbin_edges
         self.report_times['numrbins'] = len(self.rbin_edges)-1
 
+        if pimax is not None:
+            self.pimax = pimax
+        self.report_times['pimax'] = self.pimax
+
         if statfout is not None:
             self.statfout = statfout
         ####
@@ -204,19 +209,42 @@ class MockBox:
             rand_ps_z = rand_ps_zgb.get_group(zzz)
             rand_rdz_z = rand_rdz_zgb.get_group(zzz)
 
-            # Several report_times entries are set in calc_write_wtheta and overwritten for each zzz.
+            # Set several report_times entries (more may be set in calc_ functions)
             # Be sure to write report_times to file before the end of the zbin for loop
+            self.report_times['zbin'] = zzz
+            self.report_times['numgals'] = len(rdz_z.index)
+            self.report_times['numrands'] = len(rand_rdz_z.index)
+
+            ## Calculate statistics
             if 'wtheta' in stats:
-                self.calc_write_wtheta(zzz, rdz_z, rand_rdz_z, nthreads=nthreads)
+                tbcens, wtheta = cs.calc_wtheta(rdz_z, rand_rdz_z, \
+                                                MockBox=self, nthreads=nthreads)
+                self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, \
+                                        self.report_times['numgals'], \
+                                        self.report_times['numrands'] )
+            if 'xi' in stats:
+                rbcens, xi = calc_xi(self, nthreads=nthreads)
+                self.write_stat_to_file('xi', rbcens, xi, zzz, \
+                                        self.report_times['numgals'], \
+                                        self.report_times['numrands'] )
+
+            if 'wp' in stats:
+                rbcens, wp = calc_wp(self, nthreads=nthreads)
+                self.write_stat_to_file('wp', rbcens, wp, zzz, \
+                                        self.report_times['numgals'], \
+                                        self.report_times['numrands'] )
+            ##
 
             if self.rtfout is not None: # Write report_times to file
                 hf.write_report_times(self.report_times, self.rtfout)
-                print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
-                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
+                # print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
+                print('\n{}'.format(datetime.datetime.now()))
+                print('Stat results written to {}.'.format(self.statfout))
+                print('Calculation report_times written to {1}.\n'.format(self.rtfout))
                 # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
             else:
-                print('report_times NOT written to file. Set MockBox.rtfout do write to file.')
+                print('report_times NOT written to file. Set MockBox.rtfout to write to file.')
 
         self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
         print('\n\t{0}\ncalc_stats() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['calc_stats']))
@@ -382,7 +410,7 @@ class MockBox:
 
 
 
-    def calc_write_wtheta(self, zzz, rdz, randoms, statfout=None, nthreads=32):
+    def calc_write_wtheta(self, zzz, rdz, randoms, nthreads=32):
         """ zzz = Redshift at center of the mock or the mock slice
             rdz = DataFrame with min cols {RA, DEC} of galaxy positions
             randoms = DataFrame with min cols {RA, DEC} of random positions
@@ -390,11 +418,6 @@ class MockBox:
             statfout = string, path of file to write wtheta to
         """
 
-        if statfout is not None: # this is set on __init__, but can be changed here
-            self.statfout = statfout
-
-        self.report_times['zbin'] = zzz
-        self.report_times['numgals'] = len(rdz.index)
         print('\nCalculating wtheta for zbin = {0:1.2f}\n\t{1}\n'.format(zzz, datetime.datetime.now()))
         self.report_times['calc_wtheta'] = hf.time_code('start')
 
