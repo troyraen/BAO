@@ -14,11 +14,11 @@ import myplots as mp
 # DEFAULTS:
 statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
-nbins = 51
-tbin_edges = np.logspace(np.log10(0.1), np.log10(12.0), nbins+1)
-rbin_edges = np.logspace(np.log10(75.0), np.log10(150.0), nbins+1)
+nbins = 75
+tbin_edges = np.logspace(np.log10(0.05), np.log10(12.0), nbins+1)
+rbin_edges = np.logspace(np.log10(25.0), np.log10(150.0), nbins+1)
 pimax = 300
-galplots=False
+galplots = False
 z4push = 'cat'
 zw = 10.
 cat_gals = 5e5 # approx num gals in cat mock

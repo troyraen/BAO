@@ -33,10 +33,9 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
 
 
 def plot_stats(fdat, save=None, show=True):
-    """ Plots stats in file fdat.
+    """ Plots stats (1 per column) in file fdat.
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
-        # rowscols (list of strings): fdat column names to separate rows and columns of subplots
     """
 
     df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
@@ -53,7 +52,8 @@ def plot_stats(fdat, save=None, show=True):
         ax = axs[i]
 
         x,y,ylabel = get_bins_stats(row, stat)
-        ax.semilogx(x,y)
+        lbl = 'zbin {}, Nstack {}'.format(row.zbin, row.Nstack)
+        ax.semilogx(x,y, label=lbl)
 
         ax.axhline(0, c='0.5')
         ax.set_title(stat)
@@ -150,7 +150,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
                 ax = axs[i]
             else:
                 ax = axs[i,j]
-            wtheta.sort_index().plot(ax=ax) # figure out how to include avg # galaxies in plot legend with zbin
+            wtheta.sort_index().plot(ax=ax)
             ax.axhline(0, c='0.5')
 
             # Annotate with extra info
