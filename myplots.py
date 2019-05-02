@@ -32,11 +32,89 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
 
 
 
+def plot_stats(fdat, save=None, show=True):
+    """ Plots stats in file fdat.
+        Args:
+        fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
+        # rowscols (list of strings): fdat column names to separate rows and columns of subplots
+    """
+
+    df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+
+    sdf = df.groupby('stat_name').mean() # df
+    validat_statmeans_xbins(df) # make sure we haven't averaged different xbins
+    # lendf = df.groupby('stat_name').size() # series with # of mocks aggragated in each df above
+
+    nrows, ncols = 1, len(lendf)
+    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False)
+
+    # Plot for each stat
+    for i, (stat, row) in enumerate(sdf.iterrows()):
+        ax = axs[i]
+
+        x,y,ylabel = get_bins_stats(row, stat)
+        ax.semilogx(x,y)
+
+        ax.axhline(0, c='0.5')
+        ax.set_title(stat)
+        ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^1$ [Mpc]')
+        ax.set_ylabel(ylabel)
+
+        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
+        ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+
+    plt.tight_layout()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show(block=False)
+
+    return None
+
+
+def get_bins_stats(row, stat):
+    """ Returns 2 series:
+        x = columns starting with 'bin_'
+        y = columns starting with 'stat_'
+        scales y values according to stat
+    """
+    x = row.filter(like='bin_').reset_index(drop=True)
+    y = row.filter(like='stat_').reset_index(drop=True)
+
+    if stat == 'wtheta':
+        y = x*y
+        ylabel = r'$\theta w(\theta)$'
+    elif stat == 'wp':
+        y = x*y
+        ylabel = r'$r w_p(r_p)$'
+    elif stat == 'xi':
+        y = x*x*y
+        ylabel = r'$r^2 \xi(r)$'
+    else:
+        print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
+
+    return (x, y, ylabel)
+
+
+def validat_statmeans_xbins(df):
+    """ Checks that xbins of collapsed stat_name have std_dev == 0
+            and therefore are all the same.
+    """
+
+    stddf = df.groupby('stat_name').std()
+    errmsg = "Operation groupby 'stat_name' has averaged values in different theta or r bins."
+    assert stddf.filter(like='bin_').eq(0).all().all(), err_msg
+
+    return None
+
+
+
 def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
-        spcols = list ['row_name','col_name']. Does 'groupby' on wdf to plot unique row_name and col_name values in subplots.
+        spcols = list ['row_name','col_name']. Does 'groupby' on wdf to plot unique row_name
+                    and col_name values in subplots.
         Plots wtheta(theta_bcens), one line for each zbin
     """
 
@@ -149,7 +227,8 @@ def plot_wtheta_old(wdf, save=None, show=True):
     desc_df = pd.pivot_table(wdf[ocols], index='zbin')
     ddfg = desc_df.groupby('zbin')
     for i, (zzz, ddf) in enumerate(ddfg):
-        str = str+ '\n{:4.2f} {:11.2e} {:11.2f}'.format(zzz, np.average(ddf.Ngals.values), np.average(ddf.Nrands.values/ddf.Ngals.values))
+        str = str+ '\n{:4.2f} {:11.2e} {:11.2f}'.format(zzz, \
+                np.average(ddf.Ngals.values), np.average(ddf.Nrands.values/ddf.Ngals.values))
     plt.annotate(str, (0.4,0.75), xycoords='axes fraction')
 
     plt.xlabel(r'$\theta$ [deg]')
