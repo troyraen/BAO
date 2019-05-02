@@ -14,18 +14,18 @@ import myplots as mp
 # DEFAULTS:
 statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
-nbins = 50
+nbins = 51
 tbin_edges = np.logspace(np.log10(0.1), np.log10(12.0), nbins+1)
-rbin_edges = np.logspace(np.log10(100.0), np.log10(160.0), nbins+1)
+rbin_edges = np.logspace(np.log10(75.0), np.log10(150.0), nbins+1)
 pimax = 300
 galplots=False
 z4push = 'cat'
 zw = 10.
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack = 2 # number of mock boxes to stack, per dimension
-nrfact = 3 # used in Nrands
+nrfact = 1 # used in Nrands
 Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
-imax = 5 # number of times to run each param combo
+imax = 10 # number of times to run each param combo
 
 
 ## Do runs
