@@ -53,10 +53,8 @@ class MockBox:
 
         # stats
         self.statfout = statfout # string. file name to save wtheta and other stats
-        self.tbins = None # array. Theta [deg] at center of bin.
-        self.tbin_edges = tbin_edges # array. Theta bin edges. if == None, set default below
-        self.rbin_edges = rbin_edges # array. Bin edges for r. if == None, set default below
-        self.wtheta = None # DataFrame. Columns {theta bins}, rows wtheta, index zbin
+        self.tbin_edges = tbin_edges # array. Theta [deg] bin edges. if == None, set default below
+        self.rbin_edges = rbin_edges # array. Bin edges for r [Mpc/h]. if == None, set default below
 
         if tbin_edges is None:
             self.tbin_edges = np.logspace(np.log10(1.0), np.log10(10.0), 25)
@@ -154,7 +152,7 @@ class MockBox:
         """
         stats (list of strings): options 'wtheta', 'xi', 'wprp'
 
-        Calculates each stat in the list using tbins, nthreads and writes results to sfout.
+        Calculates each stat in the list using tbins, rbins, nthreads and writes results to sfout.
         Calculates runtime of each stat calculation and outputs info to rtfout.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
@@ -415,23 +413,6 @@ class MockBox:
         randoms_kwargs = { 'randbox':randoms }
         tbcens, wtheta, self.report_times = cs.calc_wtheta(rdz, MockBox=self, randoms_kwargs=randoms_kwargs, nthreads=nthreads)
 
-        # Set self.tbins or check that it equals tbcens
-        if self.tbins is None:
-            self.tbins = tbcens
-        else:
-            errmsg = 'Theta bin centers from cs.calc_wtheta() do not match those previously set in MockBox.tbins.'
-            np.testing.assert_allclose(tbcens, self.tbins, rtol=1e-5, err_msg=errmsg)
-            # stops execution with error if theta bin centers to not match
-
-        # Set or append to self.wtheta
-        tmpdf = pd.DataFrame(data=wtheta, columns=[zzz], index=tbcens)
-        tmpdf = tmpdf.T # so that theta bins are columns
-        self.wtheta = tmpdf if self.wtheta is None else self.wtheta.append(tmpdf, ignore_index=False, sort=True)
-
-        # Write current zbin wtheta info to file
-        # Do this now so it is not lost if a future zbin calculation fails
-        # cw.write_to_file(tbcens, wtheta, zzz, self.mocknum, self.statfout)
-        # self.write_wtheta_to_file(tbcens, wtheta, zzz, len(rdz), len(randoms))
         self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, len(rdz), len(randoms))
 
         if self.rtfout is not None:
