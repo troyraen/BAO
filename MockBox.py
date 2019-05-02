@@ -16,6 +16,7 @@ from pathlib import Path
 
 import setup as su
 import calc_wtheta as cw
+import calc_stats as cs
 import myplots as mp
 import helper_fncs as hf
 
@@ -412,13 +413,13 @@ class MockBox:
             self.report_times['calc_wtheta'] = hf.time_code('start') #.TS. get code start time
 
         randoms_kwargs = { 'randbox':randoms }
-        tbcens, wtheta, self.report_times = cw.calc_wtheta(rdz, MockBox=self, randoms_kwargs=randoms_kwargs, nthreads=nthreads)
+        tbcens, wtheta, self.report_times = cs.calc_wtheta(rdz, MockBox=self, randoms_kwargs=randoms_kwargs, nthreads=nthreads)
 
         # Set self.tbins or check that it equals tbcens
         if self.tbins is None:
             self.tbins = tbcens
         else:
-            errmsg = 'Theta bin centers from cw.calc_wtheta() do not match those previously set in MockBox.tbins.'
+            errmsg = 'Theta bin centers from cs.calc_wtheta() do not match those previously set in MockBox.tbins.'
             np.testing.assert_allclose(tbcens, self.tbins, rtol=1e-5, err_msg=errmsg)
             # stops execution with error if theta bin centers to not match
 
