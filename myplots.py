@@ -63,7 +63,7 @@ def plot_stats(fdat, save=None, show=True):
         ax.axhline(0, c='0.5')
         ax.set_title(stat)
         ax.legend(title='zbin, Nstack, Nmocks')
-        ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^1$ [Mpc]')
+        ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^{-1}$ [Mpc]')
         ax.set_ylabel(ylabel)
 
         if stat != 'wtheta':
@@ -91,13 +91,13 @@ def get_bins_stats(row, stat):
 
     if stat == 'wtheta':
         y = x*y
-        ylabel = r'$\theta w(\theta)$'
+        ylabel = r'$\theta\ w(\theta)$'
     elif stat == 'wp':
         y = x*y
-        ylabel = r'$r w_p(r_p)$'
+        ylabel = r'$r\ w_p(r_p)$'
     elif stat == 'xi':
         y = x*x*y
-        ylabel = r'$r^2 \xi(r)$'
+        ylabel = r'$r^2\ \xi(r)$'
     else:
         print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
 
