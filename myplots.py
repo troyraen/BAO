@@ -54,7 +54,10 @@ def plot_stats(fdat, save=None, show=True):
         ax = axs[i]
 
         x,y,ylabel = get_bins_stats(row, stat)
-        lbl = r'{:.2f}$\pm${:.2f}, {}, {}'.format(row.zbin, row.zwidth, row.Nstack, lendf.loc[stat])
+        try:
+            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}'.format(row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat])
+        except: # use for old format files with no zwidth
+            lbl = r'{:.2f}, {:.0f}, {}'.format(row.zbin, row.Nstack, lendf.loc[stat])
         ax.semilogx(x,y, label=lbl)
 
         ax.axhline(0, c='0.5')
