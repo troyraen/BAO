@@ -40,7 +40,7 @@ class MockBox:
         self.zbox = None # scalar. Redshift at face of box.
         self.z4push = z4push # = float. Redshift to push the faces of the boxes to (RDZ and Randoms).
                              # = 'cat' sets this to self.cat_zbox.
-        self.zbins = None # array. Redshift at center of each redshift bin.
+        self.zbins = None # DataFrame. columns {'zbin' (Redshift at center of each redshift bin), 'zbin_width'}, index=zbin.
         self.zbin_edges = None # array. Redshift bin edges.
         self.zbin_width = zbin_width # desired spacing between bin centers (result will not be exact)
         self.PhaseSpace = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = galaxies.
@@ -49,8 +49,8 @@ class MockBox:
 
         # Mock box of random points
         self.Nrands = Nrands # number of random points to generate
-        self.RandomsPS = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
-        self.RandomsRDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins
+        self.RandomsPS = None # DataFrame. Columns {x,y,z, vx,vy,vz, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins.zbin
+        self.RandomsRDZ = None # DataFrame. Columns {RA, DEC, Redshift, zbin}, rows = random points within a box defined by self.Lbox and self.zbox. zbin should be one of self.zbins.zbin
 
         # stats
         self.statfout = statfout # string. file name to save wtheta and other stats
@@ -203,6 +203,7 @@ class MockBox:
 
         # Calculate stats for each zbin and write to file
         for i, (zzz, rdz_z) in enumerate(rdz_zgb):
+            zwidth = self.zbins.loc[zzz].zbin_width
             # Get each df group for this zbin
             ps_z = ps_zgb.get_group(zzz)
             rand_ps_z = rand_ps_zgb.get_group(zzz)
@@ -219,18 +220,18 @@ class MockBox:
             if 'wtheta' in stats:
                 tbcens, wtheta = cs.calc_wtheta(rdz_z, rand_rdz_z, \
                                                 MockBox=self, nthreads=nthreads)
-                self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, \
+                self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, zwidth, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
             if 'xi' in stats:
                 rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
-                self.write_stat_to_file('xi', rbcens, xi, zzz, \
+                self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
 
             if 'wp' in stats:
                 rbcens, wp = cs.calc_wp(self, nthreads=nthreads)
-                self.write_stat_to_file('wp', rbcens, wp, zzz, \
+                self.write_stat_to_file('wp', rbcens, wp, zzz, zwidth, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
             ##
@@ -431,7 +432,7 @@ class MockBox:
         return None
 
 
-    def write_stat_to_file(self, stat_name, bincens, statdat, zbin, Ngals, Nrands):
+    def write_stat_to_file(self, stat_name, bincens, statdat, zbin, zwidth, Ngals, Nrands):
         """ stat_name (string): name of statistic
             bincens (array): center of each bin for which the stat was calculated.
             statdat (array): stat calculated in each bin. must be same length as bincens
@@ -443,7 +444,7 @@ class MockBox:
         colwidth = 25
         numbcens = len(bincens)
         # if you change this you must update several things in the rest of this function:
-        extra_cols = ['mock', 'zbin', 'stat_name', 'Nstack', 'Ngals', 'Nrands']
+        extra_cols = ['mock', 'zbin', 'zwidth', 'Nstack', 'Ngals', 'Nrands', 'stat_name']
         lc = len(extra_cols) + 2*numbcens # num cols to write to file
 
         # Check if file exists and has same number of columns as expected
@@ -469,7 +470,7 @@ class MockBox:
         # Now fout exists, so append the data.
         print("Appending stat '{}' to {}".format(stat_name, self.statfout))
         # mlw = 50*lc
-        dat_xcols = ['{}'.format(self.mocknum), '{}'.format(zbin), stat_name, '{}'.format(self.Nstack), '{:.5e}'.format(Ngals), '{:.5e}'.format(Nrands) ]
+        dat_xcols = ['{}'.format(self.mocknum), '{}'.format(zbin), '{}'.format(zwidth), '{}'.format(self.Nstack), '{:.5e}'.format(Ngals), '{:.5e}'.format(Nrands), stat_name ]
         dat_bcols = ['{:.15f}'.format(bincens[b]) for b in range(numbcens)]
         dat_scols = ['{:.15f}'.format(statdat[s]) for s in range(numbcens)]
         str_cols = ''.join(i.rjust(colwidth) for i in dat_xcols+dat_bcols+dat_scols)
@@ -540,8 +541,8 @@ class MockBox:
     # SDSS DR10 max photo zErr = 0.365106
     def bin_redshifs(self, box='RDZ', zbin_width=None, validate=False):
         """ Adds column 'zbin' to self.RDZ and self.PhaseSpace containing center of zbin the galaxy is in
-                (zbin is one of self.zbins)
-            Sets self.zbins and self.zbin_edges
+                (zbin is one of self.zbins.zbin)
+            Sets self.zbins and self.zbin_edges if needed.
 
             zbin_width = desired spacing between bins (result will not be exact)
         """
@@ -558,37 +559,27 @@ class MockBox:
         else: # raise an error
             assert 0, 'bin_redshifs() received invaid argument: box = {}'.format(box)
 
-        self.report_times[rtname] = hf.time_code('start') #.TS. get code start time
+        self.report_times[rtname] = hf.time_code('start')
 
         if zbin_width is not None: # this is set on __init__, but can be changed here
             self.zbin_width = zbin_width
 
-        print('\n*** You should fix redshift bins so you get consistent binning with different mocks. ***')
+        # print('\n*** You should fix redshift bins so you get consistent
+                 # binning with different mocks. ***')
 
         try:
-            self.zbin_edges
-            self.zbins
-            print('\nCheck this mock and make sure zBINS is a larger interval than zVALUES:')
-            print('zBINS min, max = [{binmin},{binmax}]'.format(binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
-            print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
+            assert ((self.zbin_edges is not None) & (self.zbins is not None))
+            # print('\nCheck this mock and make sure zBINS is a larger interval than zVALUES:')
+            # print('zBINS min, max = [{binmin},{binmax}]'.format(\
+                    # binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
+            # print('zVALUES min, max = [{zmin},{zmax}]'.format(\
+                    # zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
         except:
-            tol = 0.03
-            zmin = int(np.floor((self.RDZ.Redshift.min()-tol)*10))/10. # floor fnc (value-tol) in 1st decimal place
-            zmin = max(0.0, zmin)
-            zmax = int(np.ceil((self.RDZ.Redshift.max()+tol)*10))/10. # gives float to 1 decimal place
-            num_binedges = int(np.ceil((zmax-zmin)/self.zbin_width))
-            num_binedges = max(2, num_binedges)
-            self.zbin_edges = np.linspace(zmin,zmax,num_binedges)
-            self.zbins = np.round((self.zbin_edges[:-1]+self.zbin_edges[1:])/2, 2) # keep 2 decimal places
-            print('\nMB.zbin_edges and MB.zbins have been set.')
-            print('zBINS min, max = [{binmin},{binmax}]'.format(binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
-            print('zVALUES min, max = [{zmin},{zmax}]'.format(zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
+            set_zbins()
 
-        # create zbin masks for rdz dataframe
-            # add a column to rdz containing the zbin (self.zbins value) the galaxy resides in
-        # given z, find which bin it's in and get the value of the bin center
-        df['zbin'] = df['Redshift'].apply(hf.find_bin_center, **{"bin_edges":self.zbin_edges, "bin_centers":self.zbins})
-        # set zbin in PhaseSpace df
+        # Add column containing the zbin that the galaxy resides in.
+        df['zbin'] = df['Redshift'].apply(hf.find_bin_center, \
+                    **{"bin_edges":self.zbin_edges, "bin_centers":np.asarray(self.zbins.zbin)})
         dfps['zbin'] = df['zbin']
 
 
@@ -596,14 +587,43 @@ class MockBox:
         if validate:
             for index, row in self.RDZ.iterrows():
                 rdzbin = row.zbin
-                truezbin = find_bin_center(row.Redshift, bin_edges=self.zbin_edges, bin_centers=self.zbins)
+                truezbin = find_bin_center(row.Redshift, bin_edges=self.zbin_edges, \
+                                    bin_centers=np.asarray(self.zbins.zbin))
                 assert(rdzbin==truezbin)
 
 
-        self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minutes
+        self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min')
 
         return None
 
+
+    def set_zbins():
+        """ Sets self.zbin_edges and self.zbins
+        """
+        tol = 0.03
+        zmin = int(np.floor((self.RDZ.Redshift.min()-tol)*10))/10.
+            # floor fnc (value-tol) in 1st decimal place
+        zmin = max(0.0, zmin)
+        zmax = int(np.ceil((self.RDZ.Redshift.max()+tol)*10))/10.
+            # gives float to 1 decimal place
+
+        num_binedges = int(np.ceil((zmax-zmin)/self.zbin_width))
+        num_binedges = max(2, num_binedges)
+        self.zbin_edges = np.linspace(zmin,zmax,num_binedges)
+
+        zbin_cens = np.round((self.zbin_edges[:-1]+self.zbin_edges[1:])/2, 2)
+        zbin_widths = np.round(np.asarray([hf.find_bin_width(z,bin_edges=self.zbin_edges) \
+                                for z in zbin_cens]), 2)
+        self.zbins = pd.DataFrame(data={'zbin':zbin_cens,'zbin_width':zbin_widths})
+        self.zbins = self.zbins.sort_values('zbin').set_index('zbin', drop=False)
+
+        print('\nMB.zbin_edges and MB.zbins have been set.')
+        print('zBINS min, max = [{binmin},{binmax}]'.format(\
+                binmin=self.zbin_edges[0], binmax=self.zbin_edges[-1]))
+        print('zVALUES min, max = [{zmin},{zmax}]'.format(\
+                zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
+
+        return None
 
 
 
