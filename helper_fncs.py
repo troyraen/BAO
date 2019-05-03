@@ -121,6 +121,18 @@ def find_bin_center(inval, bin_edges=None, bin_centers=None):
     return None
 
 
+def find_bin_width(bin_center, bin_edges=None):
+    """ Returns the bin width corresponding to the
+        bin (defined by bin_edges) that bin_center (scalar) falls in to.
+    """
+
+    for i in range(len(bin_edges-1)):
+        if (bin_edges[i] <= bin_center) and (bin_center < bin_edges[i+1]):
+            return bin_edges[i+1] - bin_edges[i]
+    # if you get here, inval is not in any of the bins
+    print('{} did not fall within any bins.'.format(bin_center))
+    return None
+
 
 
 def get_ra_dec_z(galdf, usevel=True):
