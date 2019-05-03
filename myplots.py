@@ -37,12 +37,14 @@ def plot_stats(fdat, save=None, show=True):
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
     """
+    holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
+    mpl.rcParams['figure.figsize'] = [14.0, 4.0]
 
     df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
 
     sdf = df.groupby('stat_name').mean() # df
     validat_statmeans_xbins(df) # make sure we haven't averaged different xbins
-    # lendf = df.groupby('stat_name').size() # series with # of mocks aggragated in each df above
+    lendf = df.groupby('stat_name').size() # series with # of mocks aggragated in each df above
 
     nrows, ncols = 1, len(lendf)
     fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False)
@@ -52,16 +54,18 @@ def plot_stats(fdat, save=None, show=True):
         ax = axs[i]
 
         x,y,ylabel = get_bins_stats(row, stat)
-        lbl = 'zbin {}, Nstack {}'.format(row.zbin, row.Nstack)
+        lbl = '{:.2f}, {}, {}'.format(row.zbin, row.Nstack, lendf.loc[stat])
         ax.semilogx(x,y, label=lbl)
 
         ax.axhline(0, c='0.5')
         ax.set_title(stat)
+        ax.legend(title='zbin, Nstack, Nmocks')
         ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^1$ [Mpc]')
         ax.set_ylabel(ylabel)
 
-        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
         ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+        if stat is not 'wtheta':
+            ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
     plt.tight_layout()
     if save is not None:
@@ -69,6 +73,7 @@ def plot_stats(fdat, save=None, show=True):
     if show:
         plt.show(block=False)
 
+    mpl.rcParams['figure.figsize'] = holdfsz
     return None
 
 
