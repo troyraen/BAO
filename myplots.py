@@ -54,7 +54,7 @@ def plot_stats(fdat, save=None, show=True):
         ax = axs[i]
 
         x,y,ylabel = get_bins_stats(row, stat)
-        lbl = '{:.2f}, {}, {}'.format(row.zbin, row.Nstack, lendf.loc[stat])
+        lbl = r'{:.2f}$\pm${:.2f}, {}, {}'.format(row.zbin, row.zwidth, row.Nstack, lendf.loc[stat])
         ax.semilogx(x,y, label=lbl)
 
         ax.axhline(0, c='0.5')
@@ -63,8 +63,8 @@ def plot_stats(fdat, save=None, show=True):
         ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^1$ [Mpc]')
         ax.set_ylabel(ylabel)
 
-        ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
-        if stat is not 'wtheta':
+        if stat != 'wtheta':
+            ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
             ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
     plt.tight_layout()

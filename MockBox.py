@@ -575,7 +575,7 @@ class MockBox:
             # print('zVALUES min, max = [{zmin},{zmax}]'.format(\
                     # zmin=self.RDZ.Redshift.min(), zmax=self.RDZ.Redshift.max()))
         except:
-            set_zbins()
+            self.set_zbins()
 
         # Add column containing the zbin that the galaxy resides in.
         df['zbin'] = df['Redshift'].apply(hf.find_bin_center, \
@@ -597,7 +597,7 @@ class MockBox:
         return None
 
 
-    def set_zbins():
+    def set_zbins(self):
         """ Sets self.zbin_edges and self.zbins
         """
         tol = 0.03
