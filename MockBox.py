@@ -223,17 +223,6 @@ class MockBox:
                 self.write_stat_to_file('wtheta', tbcens, wtheta, zzz, zwidth, \
                                         self.report_times['numgals'], \
                                         self.report_times['numrands'] )
-            if 'xi' in stats:
-                rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
-                self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
-                                        self.report_times['numgals'], \
-                                        self.report_times['numrands'] )
-
-            if 'wp' in stats:
-                rbcens, wp = cs.calc_wp(self, nthreads=nthreads)
-                self.write_stat_to_file('wp', rbcens, wp, zzz, zwidth, \
-                                        self.report_times['numgals'], \
-                                        self.report_times['numrands'] )
             ##
 
             if self.rtfout is not None: # Write report_times to file
@@ -246,6 +235,23 @@ class MockBox:
                 # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
             else:
                 print('report_times NOT written to file. Set MockBox.rtfout to write to file.')
+
+
+        ## Calculate theory stats
+        zzz = self.zbox
+        zwidth = self.RDZ.zbin.max() - self.RDZ.zbin.min()
+        if 'xi' in stats:
+            rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
+            self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
+                                    self.report_times['numgals'], \
+                                    self.report_times['numrands'] )
+
+        if 'wp' in stats:
+            rbcens, wp = cs.calc_wp(self, nthreads=nthreads)
+            self.write_stat_to_file('wp', rbcens, wp, zzz, zwidth, \
+                                    self.report_times['numgals'], \
+                                    self.report_times['numrands'] )
+        ##
 
         self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
         print('\n\t{0}\ncalc_stats() ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['calc_stats']))
