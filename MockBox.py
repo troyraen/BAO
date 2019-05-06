@@ -239,7 +239,7 @@ class MockBox:
 
         ## Calculate theory stats
         zzz = self.zbox
-        zwidth = self.RDZ.zbin.max() - self.RDZ.zbin.min()
+        zwidth = np.round(self.RDZ.zbin.max() - self.RDZ.zbin.min(),2)
         if 'xi' in stats:
             rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
             self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
