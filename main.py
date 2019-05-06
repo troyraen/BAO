@@ -25,7 +25,7 @@ nrfact_list = [0.01, 0.1] # used in Nrands
 imax = 20 # number of times to run each param combo
 
 for zw in zw_list:
-    statfout='data/stats_NRNGsmall_zw{}.dat'.format(Nstack, nrfact, zw)
+    statfout='data/stats_NRNGsmall_zw{}.dat'.format(zw)
     for Nstack in Nstack_list:
         for nrfact in nrfact_list:
 
