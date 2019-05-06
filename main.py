@@ -12,7 +12,7 @@ import myplots as mp
 statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
 nbins = 75
-tbin_edges = np.logspace(np.log10(0.05), np.log10(12.0), nbins+1)
+tbin_edges = np.logspace(np.log10(0.05), np.log10(9.0), nbins+1)
 rbin_edges = np.logspace(np.log10(25.0), np.log10(150.0), nbins+1)
 pimax = 300
 galplots = False
@@ -25,13 +25,13 @@ nrfact_list = [0.01, 0.1] # used in Nrands
 imax = 20 # number of times to run each param combo
 
 for zw in zw_list:
+    statfout='data/stats_NRNGsmall_zw{}.dat'.format(Nstack, nrfact, zw)
     for Nstack in Nstack_list:
         for nrfact in nrfact_list:
 
             Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
-            statfout='data/stats_Nstack{}_nrfact{}_zw{}.dat'.format(Nstack, nrfact, zw)
             print('----------------------------------------------------------------')
-            print('Starting statfout = {}'.format(statfout))
+            print('Starting statfout = {}, Nstack = {}, nrfact = {}'.format(statfout, Nstack, nrfact))
             print('----------------------------------------------------------------')
 
             for i in range(imax):
