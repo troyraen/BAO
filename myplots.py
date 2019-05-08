@@ -8,6 +8,7 @@ from matplotlib.ticker import FormatStrFormatter
 
 from astropy import cosmology
 import calc_wtheta as cw
+import helper_fncs as hf
 
 # set plot defaults
 mpl.rcParams['figure.figsize'] = [14.0, 8.0]
@@ -376,6 +377,44 @@ def plot_galaxies_old(galaxy_table, gal_frac=0.05, coords='xyz', title='Galaxies
     plt.title(title)
     plt.tight_layout()
     plt.show(block=False)
+
+
+def plot_dtheta_rp(zlist=None, tratio_binedges=None, save=None):
+    """ Plots delta theta [deg] vs projected distance [h^-1 Mpc]
+        for different redshifts.
+
+        Calculates tbin_edges using tratio_binedges for each z in zlist.
+        Then calculates rp (projected distance) for each theta.
+    """
+
+    if zlist is None:
+        zlist = [0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+
+    if tratio_binedges is None:
+        tratio_binedges = np.logspace(np.log10(0.5), np.log10(2.), 11)
+
+    plt.figure()
+    cmap = plt.get_cmap('inferno_r')
+    colors = [cmap(c) for c in np.linspace(0.25,0.75,len(zlist)+1)]
+    for i, z in enumerate(zlist):
+        t_binedges, rp_binedges = hf.get_theta_rp_from_tratio_bins(z, tratio_binedges)
+        lbl = '{}'.format(z)
+        plt.loglog(t_binedges, rp_binedges, '+-', ms=6, c=colors[i], label=lbl)
+        if np.mod(i,3) == 2:
+            plt.plot(t_binedges[-1], rp_binedges[-1], 'k+')
+            plt.annotate(lbl, (t_binedges[-1], rp_binedges[-1]+10))
+
+    plt.axhline(105, c='k')
+    plt.legend(title='Redshift')
+    plt.xlabel(r'$\Delta \theta$ [deg]')
+    plt.ylabel(r'projected distance $h^{-1}$[Mpc]')
+    plt.grid()
+    if save is not None:
+        plt.savefig(save)
+    plt.show(block=False)
+
+    return None
+
 
 
 
