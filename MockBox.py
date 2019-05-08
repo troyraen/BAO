@@ -23,7 +23,7 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, rbin_edges=None, pimax=500, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, tratio_binedges=None, rbin_edges=None, pimax=500, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file.
@@ -54,11 +54,12 @@ class MockBox:
 
         # stats
         self.statfout = statfout # string. file name to save wtheta and other stats
-        self.tbin_edges = tbin_edges # array. Theta [deg] bin edges. if == None, set default below
+        self.tbin_edges = tbin_edges # array. Theta [deg] bin edges. if == None and tratio_binedges==None, set default below
+        self.tratio_binedges = tratio_binedges # array. theta/theta_BAO bin edges. if != None, these will be used to set tbin_edges for each zbin in mock. Existing tbin_edges will be ignored.
         self.rbin_edges = rbin_edges # array. Bin edges for r [Mpc/h]. if == None, set default below
         self.pimax = pimax # scalar. Used to calculate wp(rp)
 
-        if tbin_edges is None:
+        if ((self.tbin_edges is None) & (self.tratio_binedges is None)):
             self.tbin_edges = np.logspace(np.log10(1.0), np.log10(10.0), 25)
             print('tbin_edges instantiated to: {}'.format(self.tbin_edges))
         if rbin_edges is None:
@@ -204,6 +205,11 @@ class MockBox:
         # Calculate stats for each zbin and write to file
         for i, (zzz, rdz_z) in enumerate(rdz_zgb):
             zwidth = self.zbins.loc[zzz].zbin_width
+
+            # Get theta bins for this zbin
+            if self.tratio_binedges is not None:
+                self.set_tbins4zbin(zzz)
+
             # Get each df group for this zbin
             ps_z = ps_zgb.get_group(zzz)
             rand_ps_z = rand_ps_zgb.get_group(zzz)
@@ -239,7 +245,7 @@ class MockBox:
 
         ## Calculate theory stats
         zzz = self.zbox
-        zwidth = np.round(self.RDZ.zbin.max() - self.RDZ.zbin.min(),2)
+        zwidth = np.round(self.RDZ.Redshift.max() - self.RDZ.Redshift.min(), 2)
         if 'xi' in stats:
             rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
             self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
@@ -258,6 +264,37 @@ class MockBox:
 
         return None
 
+
+    def set_tbins4zbin(redshift):
+        """ Converts theta bins from units of theta_BAO(zbin) to degrees
+            at given redshift using law of cosines.
+
+            Sets (overwrites) self.tbin_edges.
+        """
+
+        d_BAO = 105 # h^-1 Mpc
+        rz = (su.cosmo.comoving_distance(redshift).value)*su.cosmo.h # Mpc/h
+        theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
+
+        self.tbin_edges = theta_BAO* self.tratio_binedges # degrees
+
+        print('Setting tbins4zbin\n\tzbin = {}\n\tr(zbin) = {} [Mpc/h], theta_bins = {}'.format(\
+                redshift, rz, self.tbin_edges))
+        return None
+
+    # def set_tbins4zbin(redshift):
+    #     """ Converts projected distance bin edges [Mpc/h] to theta bin edges [deg]
+    #         at given redshift using law of cosines.
+    #
+    #         Sets (overwrites) self.tbin_edges.
+    #     """
+    #     rz = (su.cosmo.comoving_distance(redshift).value)*su.cosmo.h # Mpc/h
+    #     print('Setting tbins4zbin\n\tzbin = {}\n\tr(zbin) = {} [Mpc/h]'.format(redshift, rz))
+    #
+    #     dfact = self.dbin_edges**2/2/rz**2
+    #     tbins = np.arccos(1-dfact)
+    #
+    #     return None
 
 
     def getmock_calcwtheta(self, tbin_edges=None, statfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):

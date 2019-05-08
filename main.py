@@ -12,32 +12,35 @@ import myplots as mp
 statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
 nbins = 75
-tbin_edges = np.logspace(np.log10(0.05), np.log10(9.0), nbins+1)
+# tbin_edges = np.logspace(np.log10(0.05), np.log10(9.0), nbins+1)
+tratio_binedges = np.logspace(np.log10(0.5), np.log10(1.5), nbins+1)
 rbin_edges = np.logspace(np.log10(25.0), np.log10(150.0), nbins+1)
 pimax = 300
 galplots = False
 z4push = 'cat'
-zw_list = [10, 0.3]
+zw_list = [0.1, 0.05, 0.15]
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack_list = [0, 2] # number of mock boxes to stack, per dimension
-nrfact_list = [0.01, 0.1] # used in Nrands
+nrfact_list = [1, 3] # used in Nrands
 # Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
-imax = 20 # number of times to run each param combo
+imax = 5 # number of times to run each param combo
 
 for zw in zw_list:
-    statfout='data/stats_NRNGsmall_zw{}.dat'.format(zw)
+    statfout='data/stats_tratiobins_zw{}.dat'.format(zw)
     for Nstack in Nstack_list:
         for nrfact in nrfact_list:
 
             Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
             print('----------------------------------------------------------------')
-            print('Starting statfout = {}, Nstack = {}, nrfact = {}'.format(statfout, Nstack, nrfact))
+            print('Starting statfout = {}, Nstack = {}, nrfact = {}'.format(\
+                            statfout, Nstack, nrfact))
             print('----------------------------------------------------------------')
 
             for i in range(imax):
                 print('\n\n*** Starting interation {} out of {}\n\n'.format(i+1,imax))
-                mb = MBox( Nstack=Nstack, z4push=z4push, zbin_width=zw, tbin_edges=tbin_edges, \
-                            rbin_edges=rbin_edges, pimax=pimax, Nrands=Nrands, galplots=galplots, \
+                mb = MBox( Nstack=Nstack, z4push=z4push, zbin_width=zw, \
+                            tratio_binedges=tratio_binedges, rbin_edges=rbin_edges, \
+                            pimax=pimax, Nrands=Nrands, galplots=galplots, \
                             statfout=statfout
                         )
                 mb.getmock()
