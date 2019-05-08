@@ -175,7 +175,10 @@ class MockBox:
         #### The following are set on __init__, but can be changed here:
         if tbin_edges is not None:
             self.tbin_edges = tbin_edges
-        self.report_times['numtbins'] = len(self.tbin_edges)-1
+        try:
+            self.report_times['numtbins'] = len(self.tbin_edges)-1
+        except TypeError: # tbin_edges is None
+            self.report_times['numtbins'] = len(self.tratio_binedges)-1
 
         if rbin_edges is not None:
             self.rbin_edges = rbin_edges
@@ -208,7 +211,8 @@ class MockBox:
 
             # Get theta bins for this zbin
             if self.tratio_binedges is not None:
-                self.set_tbins4zbin(zzz)
+                self.tbin_edges, __ = hf.get_theta_rp_from_tratio_bins(\
+                                        zzz, self.tratio_binedges) # degrees
 
             # Get each df group for this zbin
             ps_z = ps_zgb.get_group(zzz)
@@ -264,23 +268,6 @@ class MockBox:
 
         return None
 
-
-    def set_tbins4zbin(redshift):
-        """ Converts theta bins from units of theta_BAO(zbin) to degrees
-            at given redshift using law of cosines.
-
-            Sets (overwrites) self.tbin_edges.
-        """
-
-        d_BAO = 105 # h^-1 Mpc
-        rz = (su.cosmo.comoving_distance(redshift).value)*su.cosmo.h # Mpc/h
-        theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
-
-        self.tbin_edges = theta_BAO* self.tratio_binedges # degrees
-
-        print('Setting tbins4zbin\n\tzbin = {}\n\tr(zbin) = {} [Mpc/h], theta_bins = {}'.format(\
-                redshift, rz, self.tbin_edges))
-        return None
 
     # def set_tbins4zbin(redshift):
     #     """ Converts projected distance bin edges [Mpc/h] to theta bin edges [deg]
