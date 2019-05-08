@@ -192,7 +192,7 @@ def get_theta_rp_from_tratio_bins(redshift, tratio_binedges):
     theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
 
     t_binedges = theta_BAO* tratio_binedges # degrees
-    rp_binedges = rz* np.sqrt(2*(1-np.cos(t_binedges)))
+    rp_binedges = rz* np.sqrt(2*(1-np.cos(np.radians(t_binedges)))) # projected, comoving distance
 
     return t_binedges, rp_binedges
 
