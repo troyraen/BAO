@@ -253,14 +253,14 @@ class MockBox:
         if 'xi' in stats:
             rbcens, xi = cs.calc_xi(self, nthreads=nthreads)
             self.write_stat_to_file('xi', rbcens, xi, zzz, zwidth, \
-                                    self.report_times['numgals'], \
-                                    self.report_times['numrands'] )
+                                    len(self.RDZ.index), \
+                                    len(self.RandomsRDZ.index) )
 
         if 'wp' in stats:
             rbcens, wp = cs.calc_wp(self, nthreads=nthreads)
             self.write_stat_to_file('wp', rbcens, wp, zzz, zwidth, \
-                                    self.report_times['numgals'], \
-                                    self.report_times['numrands'] )
+                                    len(self.RDZ.index), \
+                                    len(self.RandomsRDZ.index) )
         ##
 
         self.report_times['calc_stats'] = hf.time_code(self.report_times['calc_stats'], unit='min')
