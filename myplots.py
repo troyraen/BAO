@@ -218,15 +218,30 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
 
 
 
-def load_statsdat(fdat, stat=None):
+def load_statsdat(fdat, stat=None, clean=False):
     """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
         Returns DataFrame of file data.
 
-        stat (string): value in column stat_name in fdat
+        fdat (string or list of strings):   stats output file path(s)
+        stat (string):  value in column stat_name in fdat
+        clean (bool):   == True will drop rows with Nrands>1000
     """
-    df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+
+    if type(fdat)==str:
+        df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+    elif type(fdat)==list:
+        dflst = []
+        for f in fdat:
+            dflst.append(pd.read_csv(f, delim_whitespace=True, comment='#'))
+        df = pd.concat(dflst)
+    else:
+        print('mp.load_statsdat() received invalid argument.')
+        print('fdat should be path(s) to stats files as string or list of strings')
+        return None
     if stat is not None:
         df = df.query("stat_name=='{}'".format(stat))
+    if clean:
+        df = df.query("Nrands>1000")
     return df
 
 
