@@ -134,7 +134,7 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
                                         (for use with MB.tratio_binedges)
     """
 
-    wdf = load_statsdat(fdat).query("stat_name=='wtheta'")
+    wdf = load_statsdat(fdat, stat='wtheta')
     validate_statmeans_xbins(wdf, avg_zbins=avg_zbins)
         # make sure we don't averaged different theta bins
 
@@ -166,21 +166,23 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
             if not avg_zbins:
                 rcdfg = rcdf.groupby('zbin').mean() # DF, index = zbin
                 lendf = rcdf.groupby('zbin').size() # series with # of mocks aggragated in each df above
+                zpm = row.zwidth/2
             else: # get the same structures as above but don't groupby zbin
                 rcdfg = rcdf.mean().to_frame().T.set_index('zbin')
                 zzz = rcdfg.index.values[0]
                 lendf = pd.Series(data={zzz:len(rcdf)})
+                zpm = (rcdf.zbin.max()-rcdf.zbin.min()+rcdfg.loc[zzz].zwidth)/2
             for zzz, row in rcdfg.iterrows():
                 x,y,ylabel = get_bins_stats(row, 'wtheta')
-                lbl = r'{:7.2f}$\pm${:.2f}, {:5.0f}, {:5}, {:5.2f}'.format(\
-                                zzz, row.zwidth/2, row.Nstack, lendf.loc[zzz], row['NR/NG'])
+                lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
+                                zzz, zpm, row.Nstack, lendf.loc[zzz], row['NR/NG'])
                 ax.semilogx(x,y, label=lbl)
 
             ax.axhline(0, c='0.5')
             ax.grid(which='both')
             # ax.set_title('wtheta')
-            zlbl = 'zbin' if not avg_zbins else 'zavg'
-            ax.legend(title='{:10}{:5}{:5}{:5}'.format(zlbl, 'Nstk', '#Mocks', 'R/G'))
+            zlbl = '                  zbin' if not avg_zbins else '                  zavg'
+            ax.legend(title='{:25s}{:6s}{:6s}{:4s}'.format(zlbl, 'Nstk', '#Moks', 'R/G'))
             ax.set_xlabel(r'$\theta$ [deg]')
             ax.set_ylabel(ylabel)
 
@@ -216,11 +218,16 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
 
 
 
-def load_statsdat(fdat):
+def load_statsdat(fdat, stat=None):
     """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
         Returns DataFrame of file data.
+
+        stat (string): value in column stat_name in fdat
     """
-    return pd.read_csv(fdat, delim_whitespace=True, comment='#')
+    df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+    if stat is not None:
+        df = df.query("stat_name=='{}'".format(stat))
+    return df
 
 
 
