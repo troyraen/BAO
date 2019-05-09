@@ -3,25 +3,44 @@
 ```python
 import numpy as np
 import myplots as mp
-tag = 'stats_tratiobins_zw0.1'
-wdf = mp.load_statsdat('data/'+tag+'.dat', stat='wtheta')
-wdf['RG'] = np.round((wdf['Nrands']/wdf['Ngals']),0) # NR/NG
-df = wdf.query("Nrands>1000")
-wdflow = wdf.query("Nrands<1000")
-# nacols = df.isnull().any(axis=0)
-# narows = df.isnull().any(axis=1)
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+fsog = mpl.rcParams['figure.figsize']
+mpl.rcParams['figure.figsize'] = [14.0, 3.0]
+# mpl.rcParams['figure.figsize'] = fsog
+
+taglst = ['stats_tratiobins_zw0.05', 'stats_tratiobins_zw0.1', 'stats_tratiobins_zw0.15']
+flist = ['data/'+tag+'.dat' for tag in taglst]
+df = mp.load_statsdat(flist, stat='wtheta', clean=True)
+df['RG'] = np.round(df['Nrands']/df['Ngals']) # NR/NG
+# Plot total number of NaNs per column
 nuls = df.isnull().sum(axis=0)
 nuls[nuls>0].plot()
-plt.ylabel('# NaN values'); plt.show(block=False)
+plt.ylabel('# NaN values');
+plt.title('stats_tratiobins_zw[0.05, 0.1, 0.15]; {} total rows'.format(len(df)));
+plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
+# cleaup for groupbys
+df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
+df.loc[df.zwidth>0.15,'zwidth'] = 0.15
+df.loc[df.RG==4, 'RG'] = 3; df.loc[df.RG>10, 'RG'] = 10
+# Plot total number of NaNs per {zwidth, Nstack, RG}
+sz = df.groupby([df.Nstack, df.zwidth, df.RG]).size()
+nas = df.isnull().sum(axis=1).groupby([df.Nstack, df.zwidth, df.RG]).sum()/sz
+nas.plot(marker='o');
+plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
+plt.ylabel('# NaN values per zbin'); plt.tight_layout(); plt.show(block=False)
+# nacols = df.isnull().any(axis=0)
+# narows = df.isnull().any(axis=1)
 ['Nstack','RG']
 ```
-- [x] drop rows of wdf where Nrands < 1000
-    - check zbin of these rows
-    * they are all the last (max) zbin as expected
-- [ ] histograms:
-    - # NaN values per stat_# column
-    - groupby NR/NG, Nstack
-    -
+- [x] Drop rows of wdf where Nrands < 1000
+    - check zbin of these rows. Done: they are all the last (max) zbin as expected
+- [ ] Histograms:
+    - \# NaN values per 'stat_#' (theta bin) column
+        - these do not include any row (mock zbin slice) where `Nrands<1000`
+        <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
+    - Total \# NaNs in any 'stat_#' column
+        - groupby NR/NG, Nstack, zwidth
 
 
 <!-- fe # Deal with NaNs in wtheta stats output -->
@@ -56,13 +75,16 @@ for tag in tags:
  -->
 <!-- fe run main.py with: -->
 
-- [x] zbin width = 0.05. tag: stats_tratiobins_zw0.05
+- [x] zbin width = 0.05.
+    - tag: stats_tratiobins_zw0.05
     <img src="plots/stats_tratiobins_zw0.05.png" alt="stats_tratiobins_zw0.05" width="800"/>
 
-- [x] zbin width = 0.1. tag: stats_tratiobins_zw0.1
+- [x] zbin width = 0.1.
+    - tag: stats_tratiobins_zw0.1
     <img src="plots/stats_tratiobins_zw0.1.png" alt="stats_tratiobins_zw0.1" width="800"/>
 
-- [x] zbin width = 0.15. tag: stats_tratiobins_zw0.15
+- [x] zbin width = 0.15.
+    - tag: stats_tratiobins_zw0.15
     <img src="plots/stats_tratiobins_zw0.15.png" alt="stats_tratiobins_zw0.15" width="800"/>
 
 
