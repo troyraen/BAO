@@ -1,10 +1,38 @@
+# Deal with NaNs in wtheta stats output
+<!-- fs -->
+```python
+import numpy as np
+import myplots as mp
+tag = 'stats_tratiobins_zw0.1'
+wdf = mp.load_statsdat('data/'+tag+'.dat', stat='wtheta')
+wdf['RG'] = np.round((wdf['Nrands']/wdf['Ngals']),0) # NR/NG
+df = wdf.query("Nrands>1000")
+wdflow = wdf.query("Nrands<1000")
+# nacols = df.isnull().any(axis=0)
+# narows = df.isnull().any(axis=1)
+nuls = df.isnull().sum(axis=0)
+nuls[nuls>0].plot()
+plt.ylabel('# NaN values'); plt.show(block=False)
+['Nstack','RG']
+```
+- [x] drop rows of wdf where Nrands < 1000
+    - check zbin of these rows
+    * they are all the last (max) zbin as expected
+- [ ] histograms:
+    - # NaN values per stat_# column
+    - groupby NR/NG, Nstack
+    -
+
+
+<!-- fe # Deal with NaNs in wtheta stats output -->
+
+
 # Test tratio_binedges
 <!-- fs -->
 `python -u main.py >> maintratiobins.out`
 <!-- fs run main.py with:
 
 # DEFAULTS:
-statfout='data/stats.dat'
 stats=['wtheta', 'xi', 'wp']
 nbins = 75
 # tbin_edges = np.logspace(np.log10(0.05), np.log10(9.0), nbins+1)
@@ -16,26 +44,23 @@ z4push = 'cat'
 zw_list = [0.1, 0.05, 0.15]
 cat_gals = 5e5 # approx num gals in cat mock
 Nstack_list = [0, 2] # number of mock boxes to stack, per dimension
-nrfact_list = [1, 3] # used in Nrands
+nrfact_list = [1, 3, 10] # used in Nrands
 # Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
 imax = 5 # number of times to run each param combo
  -->
 <!-- Plots:
 import myplots as mp
-tag = 'stats_tratiobins_zw0.1'
-mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
-tag = 'stats_tratiobins_zw0.05'
-mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
-tag = 'stats_tratiobins_zw0.15'
-mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
+tags = ['stats_tratiobins_zw0.1', 'stats_tratiobins_zw0.05', 'stats_tratiobins_zw0.15']
+for tag in tags:
+    mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
  -->
 <!-- fe run main.py with: -->
 
-- [x] zbin width = 0.1. tag: stats_tratiobins_zw0.1
-    <img src="plots/stats_tratiobins_zw0.1.png" alt="stats_tratiobins_zw0.1" width="800"/>
-
 - [x] zbin width = 0.05. tag: stats_tratiobins_zw0.05
     <img src="plots/stats_tratiobins_zw0.05.png" alt="stats_tratiobins_zw0.05" width="800"/>
+
+- [x] zbin width = 0.1. tag: stats_tratiobins_zw0.1
+    <img src="plots/stats_tratiobins_zw0.1.png" alt="stats_tratiobins_zw0.1" width="800"/>
 
 - [x] zbin width = 0.15. tag: stats_tratiobins_zw0.15
     <img src="plots/stats_tratiobins_zw0.15.png" alt="stats_tratiobins_zw0.15" width="800"/>
