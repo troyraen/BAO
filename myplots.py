@@ -32,7 +32,6 @@ def getplot_zruntimes(zrunfout='data/zruntime.dat'):
     return zrf
 
 
-
 def plot_stats(fdat, save=None, show=True):
     """ Plots stats (1 per column) in file fdat.
         Args:
@@ -41,10 +40,11 @@ def plot_stats(fdat, save=None, show=True):
     holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
     mpl.rcParams['figure.figsize'] = [14.0, 4.0]
 
-    df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+    df = load_statsdat(fdat)
 
     sdf = df.groupby('stat_name').mean() # df
-    validat_statmeans_xbins(df) # make sure we haven't averaged different xbins
+    sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
+    validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
     lendf = df.groupby('stat_name').size() # series with # of mocks aggragated in each df above
 
     nrows, ncols = 1, len(lendf)
@@ -56,20 +56,23 @@ def plot_stats(fdat, save=None, show=True):
 
         x,y,ylabel = get_bins_stats(row, stat)
         try:
-            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}'.format(row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat])
+            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat], row['NR/NG'])
         except: # use for old format files with no zwidth
-            lbl = r'{:.2f}, {:.0f}, {}'.format(row.zbin, row.Nstack, lendf.loc[stat])
+            lbl = r'{:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.Nstack, lendf.loc[stat], row['NR/NG'])
         ax.semilogx(x,y, label=lbl)
 
         ax.axhline(0, c='0.5')
+        ax.grid(which='both')
         ax.set_title(stat)
-        ax.legend(title='zbin, Nstack, Nmocks')
+        ax.legend(title='zbin, Nstk, Nm, NR')
         ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^{-1}$ [Mpc]')
         ax.set_ylabel(ylabel)
 
-        if stat != 'wtheta':
-            ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
-            ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+        # if stat != 'wtheta':
+        #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+        #     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
     plt.tight_layout()
     if save is not None:
@@ -82,7 +85,7 @@ def plot_stats(fdat, save=None, show=True):
 
 
 def get_bins_stats(row, stat):
-    """ Returns 2 series:
+    """ Returns 2 series plus a y-axis label:
         x = columns starting with 'bin_'
         y = columns starting with 'stat_'
         scales y values according to stat
@@ -105,20 +108,124 @@ def get_bins_stats(row, stat):
     return (x, y, ylabel)
 
 
-def validat_statmeans_xbins(df):
+def validate_statmeans_xbins(df, avg_zbins=False):
     """ Checks that xbins of collapsed stat_name have std_dev == 0
             and therefore are all the same.
+        avg_zbins == True allows for each zbin to have unique theta bins
     """
 
-    stddf = df.groupby('stat_name').std()
     errmsg = "Operation groupby 'stat_name' has averaged values in different theta or r bins."
-    assert stddf.filter(like='bin_').eq(0).all().all(), err_msg
+    if avg_zbins:
+        stddf = df.groupby(['zbin', 'stat_name']).std()
+    else:
+        stddf = df.groupby('stat_name').std()
+
+    assert stddf.filter(like='bin_').eq(0).all().all(), errmsg
+    return None
+
+
+def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, show=True):
+    """ Plots wtheta(theta_bcens)
+        fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
+        spcols (list): ['row_name','col_name']. Does 'groupby' on wdf to plot unique row_name
+                    and col_name values in subplots.
+        avg_zbins (bool): ==    False plots one line for each zbin
+                                True plots one line with wtheta averaged over z
+                                        (for use with MB.tratio_binedges)
+    """
+
+    wdf = load_statsdat(fdat).query("stat_name=='wtheta'")
+    validate_statmeans_xbins(wdf, avg_zbins=avg_zbins)
+        # make sure we don't averaged different theta bins
+
+    # Set up subplots
+    if 'NR/NG' in spcols: # create this column in wdf
+        wdf['NR/NG'] = np.round((wdf['Nrands']/wdf['Ngals']),2)
+    rcol, ccol = spcols[0], spcols[1]
+    nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
+    fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
+
+    # 2 groupby's to get df for individual subplots
+    wdf_rowgroup = wdf.groupby(rcol)
+    for i, (rkey, rdf) in enumerate(wdf_rowgroup):
+        # wdf_rowcolgroup = rdf.groupby(ccol).mean() # df
+        # lendf = rdf.groupby(ccol).size() # series with # of mocks aggragated in each df above
+        # for j, (ckey, row) in enumerate(wdf_rowcolgroup.iterrows()):
+        wdf_rowcolgroup = rdf.groupby(ccol)
+        for j, (ckey, rcdf) in enumerate(wdf_rowcolgroup):
+            if (nrows == 1) & (ncols == 1):
+                ax = axs
+            elif nrows == 1:
+                ax = axs[j]
+            elif ncols == 1:
+                ax = axs[i]
+            else:
+                ax = axs[i,j]
+
+            # Do groupbys and get the data to plot
+            if not avg_zbins:
+                rcdfg = rcdf.groupby('zbin').mean() # DF, index = zbin
+                lendf = rcdf.groupby('zbin').size() # series with # of mocks aggragated in each df above
+            else: # get the same structures as above but don't groupby zbin
+                rcdfg = rcdf.mean().to_frame().T.set_index('zbin')
+                zzz = rcdfg.index.values[0]
+                lendf = pd.Series(data={zzz:len(rcdf)})
+            for zzz, row in rcdfg.iterrows():
+                x,y,ylabel = get_bins_stats(row, 'wtheta')
+                lbl = r'{:7.2f}$\pm${:.2f}, {:5.0f}, {:5}, {:5.2f}'.format(\
+                                zzz, row.zwidth/2, row.Nstack, lendf.loc[zzz], row['NR/NG'])
+                ax.semilogx(x,y, label=lbl)
+
+            ax.axhline(0, c='0.5')
+            ax.grid(which='both')
+            # ax.set_title('wtheta')
+            zlbl = 'zbin' if not avg_zbins else 'zavg'
+            ax.legend(title='{:10}{:5}{:5}{:5}'.format(zlbl, 'Nstk', '#Mocks', 'R/G'))
+            ax.set_xlabel(r'$\theta$ [deg]')
+            ax.set_ylabel(ylabel)
+
+            # if stat != 'wtheta':
+            #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+            #     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
+
+            # Title subplots with rkey, ckey
+            if i==0: # top row
+                ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
+            elif i==len(wdf_rowgroup.groups)-1: # bottom row
+                ax.set_xlabel(r'$\theta$ [deg]')
+            if j==0: # left column
+                ax.set_ylabel(ylabel)
+            else: # right column (assumes 2 columns)
+                # ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
+                ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
+                                (-0.05,0.9), xycoords='axes fraction')
+            if ncols==1:
+                ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
+                                (1,0.9), xycoords='axes fraction', rotation=-90)
+
+
+    # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
+    plt.tight_layout()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show(block=False)
 
     return None
 
 
 
-def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
+def load_statsdat(fdat):
+    """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
+        Returns DataFrame of file data.
+    """
+    return pd.read_csv(fdat, delim_whitespace=True, comment='#')
+
+
+
+
+def plot_wtheta_old(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
@@ -147,8 +254,10 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             # print('j=',j)
             # Create new df of mean wtheta values for each zbin using pivot_table.
                 # Transpose to use df.plot()
-            wtheta = (pd.pivot_table(df[bincols+['zbin']], index='zbin')).T # cols = zbin, rows = thetabin
-            wtheta.rename(index=lambda c: np.double(c), inplace=True) # change index dtype to double
+            wtheta = (pd.pivot_table(df[bincols+['zbin']], index='zbin')).T
+                    # cols = zbin, rows = thetabin
+            wtheta.rename(index=lambda c: np.double(c), inplace=True)
+                    # change index dtype to double
 
             # Draw the subplot
             if (nrows == 1) & (ncols == 1):
@@ -163,7 +272,8 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
             ax.axhline(0, c='0.5')
 
             # Annotate with extra info
-            nmocks = pd.pivot_table(df[['zbin','mock']], index='zbin', aggfunc=len) # count number of mocks in the average
+            nmocks = pd.pivot_table(df[['zbin','mock']], index='zbin', aggfunc=len)
+                # count number of mocks in the average
             ngals = pd.pivot_table(df[['zbin','Ngals']], index='zbin')
             ngals_std = pd.pivot_table(df[['zbin','Ngals']], index='zbin', aggfunc=np.std)
             ngals_std.rename(columns={'Ngals':'Ngals_std'}, inplace=True)
@@ -206,9 +316,7 @@ def plot_wtheta(wdf, spcols = ['Nstack','NR/NG'], save=None, show=True):
 
     return None
 
-
-
-def plot_wtheta_old(wdf, save=None, show=True):
+def plot_wtheta_old_old(wdf, save=None, show=True):
     """wdf = DataFrame with columns wtheta(theta_bcens), 'zbin', 'mock'
         (if multiple mock nums for given zbin, get average.)
         Assumes all column names that can be converted to a float are theta bin centers
@@ -250,8 +358,7 @@ def plot_wtheta_old(wdf, save=None, show=True):
     if show:
         plt.show(block=False)
 
-
-def plot_wtheta_old_old(bcens, wtheta):
+def plot_wtheta_old_old_old(bcens, wtheta):
     plt.figure()
     plt.scatter(bcens, wtheta)
     plt.plot(bcens, wtheta)
@@ -391,16 +498,16 @@ def plot_dtheta_rp(zlist=None, tratio_binedges=None, save=None):
         zlist = [0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 
     if tratio_binedges is None:
-        tratio_binedges = np.logspace(np.log10(0.5), np.log10(2.), 11)
+        tratio_binedges = np.logspace(np.log10(0.1), np.log10(2.), 11)
 
     plt.figure()
     cmap = plt.get_cmap('inferno_r')
-    colors = [cmap(c) for c in np.linspace(0.25,0.75,len(zlist)+1)]
+    colors = [cmap(c) for c in np.linspace(0.1,0.9,len(zlist)+1)]
     for i, z in enumerate(zlist):
         t_binedges, rp_binedges = hf.get_theta_rp_from_tratio_bins(z, tratio_binedges)
         lbl = '{}'.format(z)
         plt.loglog(t_binedges, rp_binedges, '+-', ms=6, c=colors[i], label=lbl)
-        if np.mod(i,3) == 2:
+        if np.mod(i,2) == 0:
             plt.plot(t_binedges[-1], rp_binedges[-1], 'k+')
             plt.annotate(lbl, (t_binedges[-1], rp_binedges[-1]+10))
 
@@ -408,7 +515,7 @@ def plot_dtheta_rp(zlist=None, tratio_binedges=None, save=None):
     plt.legend(title='Redshift')
     plt.xlabel(r'$\Delta \theta$ [deg]')
     plt.ylabel(r'projected distance $h^{-1}$[Mpc]')
-    plt.grid()
+    plt.grid(axis='x', which='both')
     if save is not None:
         plt.savefig(save)
     plt.show(block=False)
@@ -455,7 +562,8 @@ def plot_redshift_thetaBAO(cosmo=None, save=None):
 
 # plot comoving distance vs redshift
 # call with:
-    # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel, returns populated HODmodel.mock
+    # halocat, HODmodel = sm.setup_halosHOD() # fetch halo catalog and HODmodel,
+        # returns populated HODmodel.mock
     # zred = halocat.redshift
     # plot_codist_redshift(log=False, fout=False, zred=zred)
 def plot_codist_redshift(zspace=None, log=False, fout=None, zred=None, cosmo=None):
