@@ -31,13 +31,13 @@ plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.inde
 plt.ylabel('# NaN values per zbin'); plt.tight_layout(); plt.show(block=False)
 # nacols = df.isnull().any(axis=0)
 # narows = df.isnull().any(axis=1)
-['Nstack','RG']
 ```
 - [x] Drop rows of wdf where Nrands < 1000
     - check zbin of these rows. Done: they are all the last (max) zbin as expected
 - [ ] Histograms:
     - \# NaN values per 'stat_#' (theta bin) column
         - these do not include any row (mock zbin slice) where `Nrands<1000`
+        - there are 75 theta bins, all those not shown have 0 NaNs
         <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
     - Total \# NaNs in any 'stat_#' column
         - groupby NR/NG, Nstack, zwidth
@@ -74,6 +74,8 @@ for tag in tags:
     mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
  -->
 <!-- fe run main.py with: -->
+**Need to rerun these combining theta*wtheta before taking the average.**
+Also should label x-axis as theta_avg or in units of theta_BAO.
 
 - [x] zbin width = 0.05.
     - tag: stats_tratiobins_zw0.05
