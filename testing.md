@@ -36,11 +36,15 @@ nas.plot(marker='o');
 plt.ylabel('avg # NaNs'); plt.tight_layout();
 plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
 # Plot average number of NaNs per RG
-sz = df.groupby('RG').size()
-nas = df.isnull().sum(axis=1).groupby(df.RG).sum()/sz
-nas.plot(marker='o');
-plt.ylabel('avg # NaNs'); plt.xlabel('# randoms per galaxy in sample') plt.tight_layout();
-plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png'); plt.show(block=False)
+dg = df.groupby('Nstack')
+plt.figure()
+for nst, d in dg:
+    sz = d.groupby('RG').size()
+    nas = d.isnull().sum(axis=1).groupby(d.RG).sum()/sz
+    plt.scatter(nas.index.values, nas, label='Nstack = {}'.format(nst))
+plt.legend(); plt.ylabel('avg # NaNs'); plt.xlabel('# randoms per galaxy in sample');
+plt.tight_layout(); plt.show(block=False)
+plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png');
 # nacols = df.isnull().any(axis=0)
 # narows = df.isnull().any(axis=1)
 ```
@@ -52,9 +56,13 @@ plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png'); plt.show(block=False)
     <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
 
 - [x] Average \# NaN values in each redshift bin
-    - Since theta bins correspond to constand projected distance, independent of redshift, this doesn't make sense (unless I'm running into machine precision?)
-    - Should try
+    - Theta bins correspond to constant projected distance, independent of redshift
+    - As redshift increases, each zbin width corresponds to a smaller comoving distance(width)
     <img src="plots/test/stat_avgNaNs_per_zbin.png" alt="stat_avgNaNs_per_zbin" width="800"/>
+
+- [x] Average \# NaN values as fnc of \# randoms per galaxy in sample
+    - \# NaNs should decrease as NR/NG increases
+    <img src="plots/test/stat_avgNaNs_per_NRNG.png" alt="stat_avgNaNs_per_NRNG" width="800"/>
 
 
 <!-- fe # Deal with NaNs in wtheta stats output -->
