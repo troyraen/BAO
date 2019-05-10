@@ -108,13 +108,13 @@ def get_bins_stats(row, stat, avg_zbins=False):
             print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
 
     else:
-        assert stat=='wtheta' 'mp.get_bins_stats() received avg_zbins=True but stat!=wtheta'
+        assert stat=='wtheta', 'mp.get_bins_stats() received avg_zbins=True but stat!=wtheta'
         # Get theta*wtheta, then take average
         x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1]) # df
         y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1]) # df
         y = x*y # df
-        x = x.mean() # series
-        y = y.mean() # series
+        x = x.mean(axis=0) # series
+        y = y.mean(axis=0) # series
 
     return (x, y, lbldict[stat])
 
@@ -187,7 +187,7 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
                 x,y,ylabel = get_bins_stats(rcdf, 'wtheta', avg_zbins=avg_zbins)
                 zzz = rcdf.zbin.mean()
                 lendf = len(rcdf)
-                zpm = (rcdf.zbin.max()-rcdf.zbin.min()+rcdfg.loc[zzz].zwidth)/2
+                zpm = (rcdf.zbin.max()-rcdf.zbin.min()+rcdf.zwidth.mean())/2
                 lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
                                 zzz, zpm, rcdf.Nstack.mean(), lendf, rcdf['NR/NG'].mean())
                 ax.semilogx(x,y, label=lbl)
@@ -196,9 +196,9 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
             ax.grid(which='both')
             # ax.set_title('wtheta')
             zlbl = '                  zbin' if not avg_zbins else '                  zavg'
-            ax.legend(title='{:25s}{:6s}{:6s}{:4s}'.format(zlbl, 'Nstk', '#Moks', 'R/G'))
-            ax.set_xlabel(r'$\theta$ [deg]')
-            ax.set_ylabel(ylabel)
+            ax.legend(title='{:25s}{:6s}{:6s}{:4s}'.format(zlbl, 'Nstk', '#Moks', 'R/G'), loc=3)
+            # ax.set_xlabel(r'$\theta$ [deg]' if not avg_zbins else r'$\theta_{avg}$ [deg]')
+            # ax.set_ylabel(ylabel)
 
             # if stat != 'wtheta':
             #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
@@ -209,13 +209,14 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
             if i==0: # top row
                 ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
             elif i==nrows-1: # bottom row
-                ax.set_xlabel(r'$\theta$ [deg]')
+                ax.set_xlabel(r'$\theta$ [deg]' if not avg_zbins else r'$\theta_{avg}$ [deg]')
             if j==0: # left column
                 ax.set_ylabel(ylabel)
-            elif j==ncols-1: # right column
+            if j==ncols-1: # right column
                 ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
-                                (1.05,0.9), xycoords='axes fraction', rotation=-90)
+                                (1.05,0.5), xycoords='axes fraction', rotation=-90)
 
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
     if save is not None:
         plt.savefig(save)

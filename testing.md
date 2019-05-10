@@ -1,5 +1,7 @@
 # Deal with NaNs in wtheta stats output
 <!-- fs -->
+Corrfunc returns NaN from wtheta calculation for "bins where the RR count is 0" (documentation page 85).
+
 ```python
 import numpy as np
 import myplots as mp
@@ -53,6 +55,7 @@ plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png');
 
 - [x] Total \# NaN values in each theta bin ('stat_#' column)
     - there are 75 theta bins, all those not shown have 0 NaNs
+    - all NaNs are in the 15 smallest theta bins => should try starting bins at larger theta and making each bin larger.
     <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
 
 - [x] Average \# NaN values in each redshift bin
@@ -96,8 +99,6 @@ for tag in tags:
     mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
  -->
 <!-- fe run main.py with: -->
-
--
 
 - [x] zbin width = 0.05.
     - tag: stats_tratiobins_zw0.05

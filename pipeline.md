@@ -65,9 +65,11 @@ import pandas as pd
 import myplots as mp
 import calc_wtheta as cw
 fin = 'data/wtheta.dat'
+# fin = 'data/wtheta_ow_041819_0822.dat'
+fout = 'plots/wtheta_zw6.png'
+# fin = 'data/stats.dat'
 wdf = cw.load_from_file(fin)
-fout = 'plots/wtheta.png'
-mp.plot_wtheta(wdf)#, save=fout)
+mp.plot_wtheta(wdf, save=fout)
 
 # the rest is not working:
 wdfp = pd.pivot_table(wdf, index='zbin')
