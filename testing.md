@@ -19,28 +19,35 @@ nuls[nuls>0].plot()
 plt.ylabel('# NaN values');
 plt.title('stats_tratiobins_zw[0.05, 0.1, 0.15]; {} total rows'.format(len(df)));
 plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
-# cleaup for groupbys
-df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
-df.loc[df.zwidth>0.15,'zwidth'] = 0.15
-df.loc[df.RG==4, 'RG'] = 3; df.loc[df.RG>10, 'RG'] = 10
-# Plot total number of NaNs per {zwidth, Nstack, RG}
-sz = df.groupby([df.Nstack, df.zwidth, df.RG]).size()
-nas = df.isnull().sum(axis=1).groupby([df.Nstack, df.zwidth, df.RG]).sum()/sz
+# # cleaup for groupbys
+# df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
+# df.loc[df.zwidth>0.15,'zwidth'] = 0.15
+# df.loc[df.RG==4, 'RG'] = 3; df.loc[df.RG>10, 'RG'] = 10
+# # Plot total number of NaNs per {zwidth, Nstack, RG}
+# sz = df.groupby([df.Nstack, df.zwidth, df.RG]).size()
+# nas = df.isnull().sum(axis=1).groupby([df.Nstack, df.zwidth, df.RG]).sum()/sz
+# nas.plot(marker='o');
+# plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
+# plt.ylabel('# NaN values'); plt.tight_layout(); plt.show(block=False)
+# Plot total number of NaNs per zbin
+sz = df.groupby('zbin').size()
+nas = df.isnull().sum(axis=1).groupby(df.zbin).sum()/sz
 nas.plot(marker='o');
-plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
-plt.ylabel('# NaN values per zbin'); plt.tight_layout(); plt.show(block=False)
+plt.ylabel('avg # NaNs'); plt.tight_layout();
+plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
 # nacols = df.isnull().any(axis=0)
 # narows = df.isnull().any(axis=1)
 ```
 - [x] Drop rows of wdf where Nrands < 1000
     - check zbin of these rows. Done: they are all the last (max) zbin as expected
-- [ ] Histograms:
-    - \# NaN values per 'stat_#' (theta bin) column
-        - these do not include any row (mock zbin slice) where `Nrands<1000`
-        - there are 75 theta bins, all those not shown have 0 NaNs
-        <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
-    - Total \# NaNs in any 'stat_#' column
-        - groupby NR/NG, Nstack, zwidth
+
+- [x] Total \# NaN values in each theta bin ('stat_#' column)
+    - there are 75 theta bins, all those not shown have 0 NaNs
+    <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
+
+- [x] Average \# NaN values in each redshift bin
+    -
+    <img src="plots/test/stat_avgNaNs_per_zbin.png" alt="stat_avgNaNs_per_zbin" width="800"/>
 
 
 <!-- fe # Deal with NaNs in wtheta stats output -->
@@ -74,8 +81,8 @@ for tag in tags:
     mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
  -->
 <!-- fe run main.py with: -->
-**Need to rerun these combining theta*wtheta before taking the average.**
-Also should label x-axis as theta_avg or in units of theta_BAO.
+
+-
 
 - [x] zbin width = 0.05.
     - tag: stats_tratiobins_zw0.05
