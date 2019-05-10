@@ -12,7 +12,7 @@ mpl.rcParams['figure.figsize'] = [14.0, 3.0]
 taglst = ['stats_tratiobins_zw0.05', 'stats_tratiobins_zw0.1', 'stats_tratiobins_zw0.15']
 flist = ['data/'+tag+'.dat' for tag in taglst]
 df = mp.load_statsdat(flist, stat='wtheta', clean=True)
-df['RG'] = np.round(df['Nrands']/df['Ngals']) # NR/NG
+df['RG'] = np.round(df['Nrands']/df['Ngals'], 2) # NR/NG
 # Plot total number of NaNs per column
 nuls = df.isnull().sum(axis=0)
 nuls[nuls>0].plot()
@@ -29,12 +29,18 @@ plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
 # nas.plot(marker='o');
 # plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
 # plt.ylabel('# NaN values'); plt.tight_layout(); plt.show(block=False)
-# Plot total number of NaNs per zbin
+# Plot average number of NaNs per zbin
 sz = df.groupby('zbin').size()
 nas = df.isnull().sum(axis=1).groupby(df.zbin).sum()/sz
 nas.plot(marker='o');
 plt.ylabel('avg # NaNs'); plt.tight_layout();
 plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
+# Plot average number of NaNs per RG
+sz = df.groupby('RG').size()
+nas = df.isnull().sum(axis=1).groupby(df.RG).sum()/sz
+nas.plot(marker='o');
+plt.ylabel('avg # NaNs'); plt.xlabel('# randoms per galaxy in sample') plt.tight_layout();
+plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png'); plt.show(block=False)
 # nacols = df.isnull().any(axis=0)
 # narows = df.isnull().any(axis=1)
 ```
@@ -46,7 +52,8 @@ plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
     <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
 
 - [x] Average \# NaN values in each redshift bin
-    -
+    - Since theta bins correspond to constand projected distance, independent of redshift, this doesn't make sense (unless I'm running into machine precision?)
+    - Should try
     <img src="plots/test/stat_avgNaNs_per_zbin.png" alt="stat_avgNaNs_per_zbin" width="800"/>
 
 
