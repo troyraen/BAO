@@ -84,28 +84,39 @@ def plot_stats(fdat, save=None, show=True):
     return None
 
 
-def get_bins_stats(row, stat):
+def get_bins_stats(row, stat, avg_zbins=False):
     """ Returns 2 series plus a y-axis label:
         x = columns starting with 'bin_'
         y = columns starting with 'stat_'
-        scales y values according to stat
+        Scales y values according to stat.
+
+        if avg_zbins==True, row should be a DataFrame
     """
-    x = row.filter(like='bin_').reset_index(drop=True)
-    y = row.filter(like='stat_').reset_index(drop=True)
 
-    if stat == 'wtheta':
-        y = x*y
-        ylabel = r'$\theta\ w(\theta)$'
-    elif stat == 'wp':
-        y = x*y
-        ylabel = r'$r\ w_p(r_p)$'
-    elif stat == 'xi':
-        y = x*x*y
-        ylabel = r'$r^2\ \xi(r)$'
+    lbldict = { 'wtheta': r'$\theta\ w(\theta)$', \
+                'wp': r'$r\ w_p(r_p)$', \
+                'xi': r'$r^2\ \xi(r)$'}
+
+    if not avg_zbins:
+        x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
+        y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
+        if stat in ['wtheta', 'wp']:
+            y = x*y
+        elif stat in ['xi']:
+            y = x*x*y
+        else:
+            print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
+
     else:
-        print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
+        assert stat=='wtheta' 'mp.get_bins_stats() received avg_zbins=True but stat!=wtheta'
+        # Get theta*wtheta, then take average
+        x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1]) # df
+        y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1]) # df
+        y = x*y # df
+        x = x.mean() # series
+        y = y.mean() # series
 
-    return (x, y, ylabel)
+    return (x, y, lbldict[stat])
 
 
 def validate_statmeans_xbins(df, avg_zbins=False):
@@ -167,15 +178,18 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
                 rcdfg = rcdf.groupby('zbin').mean() # DF, index = zbin
                 lendf = rcdf.groupby('zbin').size() # series with # of mocks aggragated in each df above
                 zpm = row.zwidth/2
-            else: # get the same structures as above but don't groupby zbin
-                rcdfg = rcdf.mean().to_frame().T.set_index('zbin')
-                zzz = rcdfg.index.values[0]
-                lendf = pd.Series(data={zzz:len(rcdf)})
+                for zzz, row in rcdfg.iterrows():
+                    x,y,ylabel = get_bins_stats(row, 'wtheta')
+                    lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
+                                    zzz, zpm, row.Nstack, lendf.loc[zzz], row['NR/NG'])
+                    ax.semilogx(x,y, label=lbl)
+            else: # do same as above but don't groupby zbin
+                x,y,ylabel = get_bins_stats(rcdf, 'wtheta', avg_zbins=avg_zbins)
+                zzz = rcdf.zbin.mean()
+                lendf = len(rcdf)
                 zpm = (rcdf.zbin.max()-rcdf.zbin.min()+rcdfg.loc[zzz].zwidth)/2
-            for zzz, row in rcdfg.iterrows():
-                x,y,ylabel = get_bins_stats(row, 'wtheta')
                 lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
-                                zzz, zpm, row.Nstack, lendf.loc[zzz], row['NR/NG'])
+                                zzz, zpm, rcdf.Nstack.mean(), lendf, rcdf['NR/NG'].mean())
                 ax.semilogx(x,y, label=lbl)
 
             ax.axhline(0, c='0.5')
@@ -194,20 +208,14 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
             # Title subplots with rkey, ckey
             if i==0: # top row
                 ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
-            elif i==len(wdf_rowgroup.groups)-1: # bottom row
+            elif i==nrows-1: # bottom row
                 ax.set_xlabel(r'$\theta$ [deg]')
             if j==0: # left column
                 ax.set_ylabel(ylabel)
-            else: # right column (assumes 2 columns)
-                # ax.set_ylabel('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey))
+            elif j==ncols-1: # right column
                 ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
-                                (-0.05,0.9), xycoords='axes fraction')
-            if ncols==1:
-                ax.annotate('{rowname} = {rowkey}'.format(rowname=rcol, rowkey=rkey), \
-                                (1,0.9), xycoords='axes fraction', rotation=-90)
+                                (1.05,0.9), xycoords='axes fraction', rotation=-90)
 
-
-    # plt.title('Average of {:.1f} mocks'.format(len(wdf)/len(wdf.zbin.unique())))
     plt.tight_layout()
     if save is not None:
         plt.savefig(save)
@@ -218,13 +226,13 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
 
 
 
-def load_statsdat(fdat, stat=None, clean=False):
+def load_statsdat(fdat, stat=None, clean=True):
     """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
         Returns DataFrame of file data.
 
         fdat (string or list of strings):   stats output file path(s)
         stat (string):  value in column stat_name in fdat
-        clean (bool):   == True will drop rows with Nrands>1000
+        clean (bool):   == True will drop rows with Nrands<=1000
     """
 
     if type(fdat)==str:
@@ -238,6 +246,7 @@ def load_statsdat(fdat, stat=None, clean=False):
         print('mp.load_statsdat() received invalid argument.')
         print('fdat should be path(s) to stats files as string or list of strings')
         return None
+        
     if stat is not None:
         df = df.query("stat_name=='{}'".format(stat))
     if clean:
