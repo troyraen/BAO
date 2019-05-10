@@ -42,10 +42,10 @@ def plot_stats(fdat, save=None, show=True):
 
     df = load_statsdat(fdat)
 
-    sdf = df.groupby('stat_name').mean() # df
+    sdf = df.groupby('statname').mean() # df
     sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
     validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
-    lendf = df.groupby('stat_name').size() # series with # of mocks aggragated in each df above
+    lendf = df.groupby('statname').size() # series with # of mocks aggragated in each df above
 
     nrows, ncols = 1, len(lendf)
     fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False)
@@ -120,16 +120,16 @@ def get_bins_stats(row, stat, avg_zbins=False):
 
 
 def validate_statmeans_xbins(df, avg_zbins=False):
-    """ Checks that xbins of collapsed stat_name have std_dev == 0
+    """ Checks that xbins of collapsed statname have std_dev == 0
             and therefore are all the same.
         avg_zbins == True allows for each zbin to have unique theta bins
     """
 
-    errmsg = "Operation groupby 'stat_name' has averaged values in different theta or r bins."
+    errmsg = "Operation groupby 'statname' has averaged values in different theta or r bins."
     if avg_zbins:
-        stddf = df.groupby(['zbin', 'stat_name']).std()
+        stddf = df.groupby(['zbin', 'statname']).std()
     else:
-        stddf = df.groupby('stat_name').std()
+        stddf = df.groupby('statname').std()
 
     assert stddf.filter(like='bin_').eq(0).all().all(), errmsg
     return None
@@ -231,7 +231,7 @@ def load_statsdat(fdat, stat=None, clean=True):
         Returns DataFrame of file data.
 
         fdat (string or list of strings):   stats output file path(s)
-        stat (string):  value in column stat_name in fdat
+        stat (string):  value in column statname in fdat
         clean (bool):   == True will drop rows with Nrands<=1000
     """
 
@@ -246,9 +246,9 @@ def load_statsdat(fdat, stat=None, clean=True):
         print('mp.load_statsdat() received invalid argument.')
         print('fdat should be path(s) to stats files as string or list of strings')
         return None
-        
+
     if stat is not None:
-        df = df.query("stat_name=='{}'".format(stat))
+        df = df.query("statname=='{}'".format(stat))
     if clean:
         df = df.query("Nrands>1000")
     return df
