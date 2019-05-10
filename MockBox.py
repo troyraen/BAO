@@ -462,8 +462,8 @@ class MockBox:
         return None
 
 
-    def write_stat_to_file(self, stat_name, bincens, statdat, zbin, zwidth, Ngals, Nrands):
-        """ stat_name (string): name of statistic
+    def write_stat_to_file(self, statname, bincens, statdat, zbin, zwidth, Ngals, Nrands):
+        """ statname (string): name of statistic
             bincens (array): center of each bin for which the stat was calculated.
             statdat (array): stat calculated in each bin. must be same length as bincens
             zbin = center of the redshift bin of galaxies used to calc wtheta
@@ -474,7 +474,7 @@ class MockBox:
         colwidth = 25
         numbcens = len(bincens)
         # if you change this you must update several things in the rest of this function:
-        extra_cols = ['mock', 'zbin', 'zwidth', 'Nstack', 'Ngals', 'Nrands', 'stat_name']
+        extra_cols = ['mock', 'zbin', 'zwidth', 'Nstack', 'Ngals', 'Nrands', 'statname']
         lc = len(extra_cols) + 2*numbcens # num cols to write to file
 
         # Check if file exists and has same number of columns as expected
@@ -490,7 +490,7 @@ class MockBox:
 
         # If statfout has been moved (above) or never existed, create new file.
         if not fpath.is_file():
-            hdr = "'bin_' columns contain bin centers (theta in degrees, r in Mpc/h), 'stat_' contain the stat for each bin, others are extra info.\n"
+            hdr = "'bin_[#]' columns contain bin centers (theta in degrees, r in Mpc/h), 'stat_[#]' contain the stat for each bin, others are extra info.\n"
             bcols = ['bin_{}'.format(i) for i in range(numbcens)]
             scols = ['stat_{}'.format(i) for i in range(numbcens)]
             new_cols = ''.join(i.rjust(colwidth) for i in extra_cols+bcols+scols)
@@ -498,9 +498,9 @@ class MockBox:
             # np.savetxt(self.statfout, new_cols, header=hdr) # write header
 
         # Now fout exists, so append the data.
-        print("Appending stat '{}' to {}".format(stat_name, self.statfout))
+        print("Appending stat '{}' to {}".format(statname, self.statfout))
         # mlw = 50*lc
-        dat_xcols = ['{}'.format(self.mocknum), '{}'.format(zbin), '{}'.format(zwidth), '{}'.format(self.Nstack), '{:.5e}'.format(Ngals), '{:.5e}'.format(Nrands), stat_name ]
+        dat_xcols = ['{}'.format(self.mocknum), '{}'.format(zbin), '{}'.format(zwidth), '{}'.format(self.Nstack), '{:.5e}'.format(Ngals), '{:.5e}'.format(Nrands), statname ]
         dat_bcols = ['{:.15f}'.format(bincens[b]) for b in range(numbcens)]
         dat_scols = ['{:.15f}'.format(statdat[s]) for s in range(numbcens)]
         str_cols = ''.join(i.rjust(colwidth) for i in dat_xcols+dat_bcols+dat_scols)
