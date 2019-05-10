@@ -56,16 +56,16 @@ plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png');
 - [x] Total \# NaN values in each theta bin ('stat_#' column)
     - there are 75 theta bins, all those not shown have 0 NaNs
     - all NaNs are in the 15 smallest theta bins => should try starting bins at larger theta and making each bin larger.
-    <img src="plots/test/stat_Nans_per_thetabin.png" alt="stat_Nans_per_thetabin" width="800"/>
+    <img src="plots/test/stat1_Nans_per_thetabin.png" alt="stat1_Nans_per_thetabin" width="800"/>
 
 - [x] Average \# NaN values in each redshift bin
     - Theta bins correspond to constant projected distance, independent of redshift
     - As redshift increases, each zbin width corresponds to a smaller comoving distance(width)
-    <img src="plots/test/stat_avgNaNs_per_zbin.png" alt="stat_avgNaNs_per_zbin" width="800"/>
+    <img src="plots/test/stat1_avgNaNs_per_zbin.png" alt="stat1_avgNaNs_per_zbin" width="800"/>
 
 - [x] Average \# NaN values as fnc of \# randoms per galaxy in sample
     - \# NaNs should decrease as NR/NG increases
-    <img src="plots/test/stat_avgNaNs_per_NRNG.png" alt="stat_avgNaNs_per_NRNG" width="800"/>
+    <img src="plots/test/stat1_avgNaNs_per_NRNG.png" alt="stat1_avgNaNs_per_NRNG" width="800"/>
 
 
 <!-- fe # Deal with NaNs in wtheta stats output -->
@@ -102,21 +102,21 @@ for tag in tags:
 
 - [x] zbin width = 0.05.
     - tag: stats_tratiobins_zw0.05
-    <img src="plots/stats_tratiobins_zw0.05.png" alt="stats_tratiobins_zw0.05" width="800"/>
+    <img src="plots/stats_tratiobins1_zw0.05.png" alt="stats_tratiobins1_zw0.05" width="800"/>
 
 - [x] zbin width = 0.1.
     - tag: stats_tratiobins_zw0.1
-    <img src="plots/stats_tratiobins_zw0.1.png" alt="stats_tratiobins_zw0.1" width="800"/>
+    <img src="plots/stats_tratiobins1_zw0.1.png" alt="stats_tratiobins1_zw0.1" width="800"/>
 
 - [x] zbin width = 0.15.
     - tag: stats_tratiobins_zw0.15
-    <img src="plots/stats_tratiobins_zw0.15.png" alt="stats_tratiobins_zw0.15" width="800"/>
+    <img src="plots/stats_tratiobins1_zw0.15.png" alt="stats_tratiobins1_zw0.15" width="800"/>
 
 
 <!-- fe # Test tratio_binedges -->
 
 
-# Test NR/NG = 0.1, 0.01
+# [x] Test NR/NG = 0.1, 0.01
 <!-- fs -->
 `python -u main.py >> mainNRNGsmall.out`
 <!-- fs run main.py with:
@@ -156,7 +156,7 @@ mp.plot_wtheta(statfout, save='plots/stats_NRNGsmall_zw0.3.png')
 
 
 
-# Test Corrfunc.theory xi, wp
+# [x] Test Corrfunc.theory xi, wp
 <!-- fs -->
 <!-- fs Run main.py with:
 python -c "import helper_fncs as hf; hf.file_ow('main.out')"
