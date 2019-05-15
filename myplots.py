@@ -113,7 +113,7 @@ def get_bins_stats(row, stat, avg_zbins=False):
         x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1]) # df
         y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1]) # df
         y = x*y # df
-        x = x.mean(axis=0) # series
+        x = hf.get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True) # series
         y = y.mean(axis=0) # series
 
     return (x, y, lbldict[stat])
@@ -151,7 +151,7 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
 
     # Set up subplots
     if 'NR/NG' in spcols: # create this column in wdf
-        wdf['NR/NG'] = np.round((wdf['Nrands']/wdf['Ngals']),2)
+        wdf['NR/NG'] = np.round(wdf['Nrands']/wdf['Ngals'])
     rcol, ccol = spcols[0], spcols[1]
     nrows, ncols = len(wdf[rcol].unique()), len(wdf[ccol].unique())
     fig, axs = plt.subplots(nrows, ncols, sharex=True, sharey=True)
@@ -182,7 +182,7 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
                     x,y,ylabel = get_bins_stats(row, 'wtheta')
                     lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
                                     zzz, zpm, row.Nstack, lendf.loc[zzz], row['NR/NG'])
-                    ax.semilogx(x,y, label=lbl)
+                    ax.semilogx(x,y, '-o', label=lbl)
             else: # do same as above but don't groupby zbin
                 x,y,ylabel = get_bins_stats(rcdf, 'wtheta', avg_zbins=avg_zbins)
                 zzz = rcdf.zbin.mean()
@@ -190,12 +190,12 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
                 zpm = (rcdf.zbin.max()-rcdf.zbin.min()+rcdf.zwidth.mean())/2
                 lbl = r'{:7.2f}$\pm${:.2f} {:5.0f} {:5.0f} {:5.0f}'.format(\
                                 zzz, zpm, rcdf.Nstack.mean(), lendf, rcdf['NR/NG'].mean())
-                ax.semilogx(x,y, label=lbl)
+                ax.semilogx(x,y, '-o', label=lbl)
 
             ax.axhline(0, c='0.5')
             ax.grid(which='both')
             # ax.set_title('wtheta')
-            zlbl = '                  zbin' if not avg_zbins else '                  zavg'
+            zlbl = '                  zbin' if not avg_zbins else '                  $z_{avg}$\ \ '
             ax.legend(title='{:25s}{:6s}{:6s}{:4s}'.format(zlbl, 'Nstk', '#Moks', 'R/G'), loc=3)
             # ax.set_xlabel(r'$\theta$ [deg]' if not avg_zbins else r'$\theta_{avg}$ [deg]')
             # ax.set_ylabel(ylabel)
@@ -209,7 +209,8 @@ def plot_wtheta(fdat, spcols = ['Nstack','NR/NG'], avg_zbins=False, save=None, s
             if i==0: # top row
                 ax.set_title('{colname} = {colkey}'.format(colname=ccol, colkey=ckey))
             elif i==nrows-1: # bottom row
-                ax.set_xlabel(r'$\theta$ [deg]' if not avg_zbins else r'$\theta_{avg}$ [deg]')
+                ax.set_xlabel(r'$\theta$ [deg]' if not avg_zbins \
+                                else r'$\theta/\theta(z_{avg},d_{BAO}=105h^{-1}Mpc)$')
             if j==0: # left column
                 ax.set_ylabel(ylabel)
             if j==ncols-1: # right column

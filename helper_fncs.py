@@ -182,19 +182,28 @@ def get_ra_dec_z(galdf, usevel=True):
     return rdz
 
 
-def get_theta_rp_from_tratio_bins(redshift, tratio_binedges):
+def get_theta_rp_from_tratio_bins(redshift, tratio_binedges, invert=False):
     """ Converts tratio_binedges from units of theta_BAO(zbin) to degrees
         at given redshift using law of cosines.
+
+        invert == True: 2nd arg (tratio_binedges) should be t_binedges
+                        Returns tratio_binedges
     """
 
     d_BAO = 105 # h^-1 Mpc
     rz = (su.cosmo.comoving_distance(redshift).value)*su.cosmo.h # Mpc/h
     theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
 
-    t_binedges = theta_BAO* tratio_binedges # degrees
-    rp_binedges = rz* np.sqrt(2*(1-np.cos(np.radians(t_binedges)))) # projected, comoving distance
+    if not invert:
+        t_binedges = theta_BAO* tratio_binedges # degrees
+        rp_binedges = rz* np.sqrt(2*(1-np.cos(np.radians(t_binedges)))) # projected, comoving distance
+        return t_binedges, rp_binedges
+    else:
+        trat_binedges = tratio_binedges/theta_BAO
+        return trat_binedges
 
-    return t_binedges, rp_binedges
+    return None
+
 
 
 # NO LONGER IN USE
