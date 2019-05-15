@@ -1,3 +1,49 @@
+# Test 2: tratio_binedges
+<!-- fs -->
+Using wider theta bins avoids NaNs (see sections [here](#deal-with-nans-in-wtheta-stats-output) and [here](#test-1-tratio_binedges))
+`python -u main.py >> maintratiobins2.out`
+<!-- fs run main.py with:
+# DEFAULTS:
+statfout='data/stats.dat'
+stats=['wtheta', 'xi', 'wp']
+nbins = 50
+# tbin_edges = np.logspace(np.log10(0.05), np.log10(9.0), nbins+1)
+tratio_binedges = np.logspace(np.log10(0.05), np.log10(2.), nbins+1)
+rbin_edges = np.logspace(np.log10(25.0), np.log10(150.0), nbins+1)
+pimax = 300
+galplots = False
+z4push = 'cat'
+zw_list = [0.1, 0.05, 0.15]
+cat_gals = 5e5 # approx num gals in cat mock
+Nstack_list = [0, 2] # number of mock boxes to stack, per dimension
+nrfact_list = [1, 3, 10] # used in Nrands
+# Nrands = int(nrfact*cat_gals* max(Nstack,1)**3)
+imax = 5 # number of times to run each param combo
+ -->
+<!-- Plots:
+import myplots as mp
+tags = ['stats_tratiobins_zw0.1', 'stats_tratiobins_zw0.05', 'stats_tratiobins_zw0.15']
+for tag in tags:
+    mp.plot_wtheta('data/'+tag+'.dat', avg_zbins=True, save='plots/'+tag+'.png')
+ -->
+<!-- fe run main.py with: -->
+
+- [x] zbin width = 0.05.
+    - tag: stats_tratiobins_zw0.05
+    <img src="plots/stats_tratiobins_zw0.05.png" alt="stats_tratiobins_zw0.05" width="800"/>
+
+- [x] zbin width = 0.1.
+    - tag: stats_tratiobins_zw0.1
+    <img src="plots/stats_tratiobins_zw0.1.png" alt="stats_tratiobins_zw0.1" width="800"/>
+
+- [x] zbin width = 0.15.
+    - tag: stats_tratiobins_zw0.15
+    <img src="plots/stats_tratiobins_zw0.15.png" alt="stats_tratiobins_zw0.15" width="800"/>
+
+
+<!-- fe # Test tratio_binedges -->
+
+
 # Deal with NaNs in wtheta stats output
 <!-- fs -->
 Corrfunc returns NaN from wtheta calculation for "bins where the RR count is 0" (documentation page 85).
@@ -32,10 +78,14 @@ plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
 # plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
 # plt.ylabel('# NaN values'); plt.tight_layout(); plt.show(block=False)
 # Plot average number of NaNs per zbin
-sz = df.groupby('zbin').size()
-nas = df.isnull().sum(axis=1).groupby(df.zbin).sum()/sz
-nas.plot(marker='o');
-plt.ylabel('avg # NaNs'); plt.tight_layout();
+df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
+dg = df.groupby('zwidth')
+plt.figure()
+for zw, d in dg:
+    sz = d.groupby('zbin').size()
+    nas = d.isnull().sum(axis=1).groupby(d.zbin).sum()/sz
+    nas.plot(marker='o', label='zwidth = {}'.format(zw));
+plt.legend(); plt.ylabel('avg # NaNs'); plt.tight_layout();
 plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
 # Plot average number of NaNs per RG
 dg = df.groupby('Nstack')
@@ -71,7 +121,7 @@ plt.savefig('plots/test/stat_avgNaNs_per_NRNG.png');
 <!-- fe # Deal with NaNs in wtheta stats output -->
 
 
-# Test tratio_binedges
+# Test 1: tratio_binedges
 <!-- fs -->
 `python -u main.py >> maintratiobins.out`
 <!-- fs run main.py with:
@@ -100,15 +150,15 @@ for tag in tags:
  -->
 <!-- fe run main.py with: -->
 
-- [x] zbin width = 0.05.
+- [x] zbin width = 0.05. (ow_051019_1557)
     - tag: stats_tratiobins_zw0.05
     <img src="plots/stats_tratiobins1_zw0.05.png" alt="stats_tratiobins1_zw0.05" width="800"/>
 
 - [x] zbin width = 0.1.
-    - tag: stats_tratiobins_zw0.1
+    - tag: stats_tratiobins_zw0.1 (ow_051019_1341)
     <img src="plots/stats_tratiobins1_zw0.1.png" alt="stats_tratiobins1_zw0.1" width="800"/>
 
-- [x] zbin width = 0.15.
+- [x] zbin width = 0.15. (ow_051019_1742)
     - tag: stats_tratiobins_zw0.15
     <img src="plots/stats_tratiobins1_zw0.15.png" alt="stats_tratiobins1_zw0.15" width="800"/>
 
