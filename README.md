@@ -1,1 +1,3 @@
-# BAO
+# Project Overview
+
+The expansion history of the universe can be measured using the Baryon Acoustic Oscillation (BAO) signal. Precise measurements will probably require spectroscopic data from large volumes of the sky. However, spectroscopy is time-intensive and therefore large-scale surveys (like the upcoming LSST) rely on photometry which contains less information. This project (currently in the beginning stages) explores the use of photometric data and machine learning techniques to predict where on the sky spectroscopy is likely to measure the BAO with high signal-to-noise. In turn, this can be used to inform spectroscopic survey strategies so that time and resources are not wasted on regions unlikely to produce useful data.
