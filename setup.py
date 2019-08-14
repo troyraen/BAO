@@ -103,6 +103,8 @@ def load_cosmo(H0in=70.0, Om0in=0.3):
         cosmo = newcosmo
         print('\t New cosmo = {}'.format(cosmo))
 
+    return None
+
 
 
 # cosmo.comoving_distance(zred) returns "Comoving distance in Mpc to each input redshift.""

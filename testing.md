@@ -1,6 +1,41 @@
+# Use Outer Rim Fof halos
+get metadata: Lbox [Mpc/h], particle_mass [Msun/h], redshift, simname='outerrim'
+get halo data (arrays): halo_id, halo_x, halo_y, halo_z, halo_mass
+halo_catalog = UserSuppliedHaloCatalog(redshift = redshift, Lbox = Lbox, particle_mass = particle_mass, halo_x = halo_x, halo_y = halo_y, halo_z = halo_z, halo_id = halo_id, halo_mass = halo_mass)
+
+
+
+
+# Fit correlation functions
+<!-- fs -->
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import myplots as mp
+from scipy.optimize import curve_fit
+def corr_fitfnc(x, A, gamma, x0):
+    return A* (x/x0)**(-gamma)
+fdat = 'data/stats_tratiobins_zw0.15.dat'
+df = mp.load_statsdat(fdat)
+xdf = df.query("statname=='{}'".format('xi')).mean()
+# x,y,lbl = mp.get_bins_stats(xdf, 'xi')
+x = xdf.filter(like='bin_')
+x.index = np.arange(len(x))
+y = xdf.filter(like='stat_')
+y.index = np.arange(len(y))
+plt.figure()
+plt.scatter(x,x*x*y)
+plt.plot(x, x*x*corr_fitfnc(x, 1., 1.8, 5.0))
+plt.show(block=False)
+```
+<!-- fe # Fit correlation functions -->
+
+
 # Test 2: tratio_binedges
 <!-- fs -->
 Using wider theta bins avoids NaNs (see sections [here](#deal-with-nans-in-wtheta-stats-output) and [here](#test-1-tratio_binedges))
+
 `python -u main.py >> maintratiobins2.out`
 <!-- fs run main.py with:
 # DEFAULTS:
@@ -61,12 +96,14 @@ taglst = ['stats_tratiobins_zw0.05', 'stats_tratiobins_zw0.1', 'stats_tratiobins
 flist = ['data/'+tag+'.dat' for tag in taglst]
 df = mp.load_statsdat(flist, stat='wtheta', clean=True)
 df['RG'] = np.round(df['Nrands']/df['Ngals'], 2) # NR/NG
+
 # Plot total number of NaNs per column
 nuls = df.isnull().sum(axis=0)
 nuls[nuls>0].plot()
 plt.ylabel('# NaN values');
 plt.title('stats_tratiobins_zw[0.05, 0.1, 0.15]; {} total rows'.format(len(df)));
 plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
+
 # # cleaup for groupbys
 # df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
 # df.loc[df.zwidth>0.15,'zwidth'] = 0.15
@@ -77,6 +114,7 @@ plt.savefig('plots/test/stat_Nans_per_thetabin.png'); plt.show(block=False)
 # nas.plot(marker='o');
 # plt.xticks(np.arange(len(nas)), rotation=60); plt.gca().set_xticklabels(nas.index.values);
 # plt.ylabel('# NaN values'); plt.tight_layout(); plt.show(block=False)
+
 # Plot average number of NaNs per zbin
 df['zwidth'] = 0.05*np.round(df.zwidth/0.05)
 dg = df.groupby('zwidth')
@@ -87,6 +125,7 @@ for zw, d in dg:
     nas.plot(marker='o', label='zwidth = {}'.format(zw));
 plt.legend(); plt.ylabel('avg # NaNs'); plt.tight_layout();
 plt.savefig('plots/test/stat_avgNaNs_per_zbin.png'); plt.show(block=False)
+
 # Plot average number of NaNs per RG
 dg = df.groupby('Nstack')
 plt.figure()

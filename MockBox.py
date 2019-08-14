@@ -23,7 +23,9 @@ import helper_fncs as hf
 
 
 class MockBox:
-    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, tratio_binedges=None, rbin_edges=None, pimax=500, statfout='data/stats.dat', rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
+    def __init__(self, Nstack=0, zbin_width=0.365, tbin_edges=None, tratio_binedges=None,
+                rbin_edges=None, pimax=500, statfout='data/stats.dat',
+                rtfout='data/runtimes.dat', Nrands=None, z4push='cat', galplots=False):
         self.mocknum = self.get_mock_num() # float. Date, time formatted as "%m%d%y.%H%M"
         self.report_times = OD([]) # ordered dict for fncs to report runtimes. Generally, key = fnc name, val = (start time while fnc running, overwrite with:) fnc runtime
         self.rtfout = rtfout # = string writes function runtimes to this file.
@@ -78,7 +80,7 @@ class MockBox:
         """
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
-        Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
+        Pushes the box so the face is at comoving_distance(redshift = self.z4push)
         Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
         rtfout == string writes function runtimes to this file
                == None to skip timing fncs.
@@ -282,109 +284,6 @@ class MockBox:
     #     tbins = np.arccos(1-dfact)
     #
     #     return None
-
-
-    def getmock_calcwtheta(self, tbin_edges=None, statfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
-        """
-        Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
-            Nstack=0 => just moves origin to center of box in prep for push_box2catz.
-        Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
-        Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
-        Calculates wtheta using tbins, nthreads and writes results to statfout.
-        Calculates runtime of each wtheta calculation and outputs info to rtfout.
-        rtfout == string writes function runtimes to this file
-               == None to skip timing fncs.
-        fow == one of {None, 'wtheta', 'runtimes', 'all'}
-                    => current file(s) will be renamed, new file(s) started
-
-        Notes:
-
-        Expect BAO at ~4.5 degrees for z~0.5 (see plots/zthetaBAO.png)
-        Halotools assumes all lengths are in Mpc/h
-        self.zbin_width: max redshift error in SDSS DR10 Photoz table is 0.365106,
-            see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
-            http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
-            Note from Jeff: SDSS has unusually large z errors.
-        """
-
-
-        ### Setup:
-        if rtfout is not None: # this is set on __init__, but can be changed here
-            self.rtfout = rtfout
-        self.report_times = OD([('mocknum', self.mocknum),
-                                ('nthreads',nthreads),
-                                ('fcol_width', 25) # set report_times file column width
-                                ('getmock_calcwtheta', hf.time_code('start'))
-                                ])
-        print('getmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
-
-        #### The following are set on __init__, but can be changed here:
-        if Nstack is not None:
-            self.Nstack = Nstack
-
-        if Nrands is not None:
-            self.Nrands = Nrands
-
-        if z4push is not None:
-            self.z4push = z4push
-
-        if zbin_width is not None:
-            self.zbin_width = zbin_width
-
-        if statfout is not None:
-            self.statfout = statfout
-
-        if tbin_edges is not None:
-            self.tbin_edges = tbin_edges
-        self.report_times['numtbins'] = len(self.tbin_edges)-1
-
-        if galplots is not None:
-            self.galplots = galplots
-        ####
-
-        if su.cosmo is None:
-            su.load_cosmo() # loads default global cosmo object plus H0, Om0
-
-        if fow is not None: # rename current files and start new ones
-            self.ow_files(which=fow)
-        ###
-
-
-        # Get galaxy DF by populating DM mock using HODmodel
-        self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
-        if self.galplots: # plot a random subsample of galaxies
-            mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
-
-        # Stack boxes and push box face to appropriate redshift.
-        self.transform_mock(box='PhaseSpace') # Sets self.PhaseSpace and self.RDZ
-
-        # Get box of random points and groupby redshift bins
-        self.get_randoms()
-        rgroups = self.RandomsRDZ.groupby('zbin', axis=0)
-
-        # Calculate wtheta for each zbin and write to file
-        zgroups = self.RDZ[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin, only need these columns
-        for i, (zzz, rdz_z) in enumerate(zgroups):
-            Randoms_z = rgroups.get_group(zzz) # get the randoms within this zbin
-
-            # Several report_times entries are set in calc_write_wtheta and overwritten for each zzz.
-            # Be sure to write report_times to file before the end of this for loop
-            self.calc_write_wtheta(zzz, rdz_z, Randoms_z, nthreads=nthreads)
-
-            if self.rtfout is not None: # Write report_times to file
-                hf.write_report_times(self.report_times, self.rtfout)
-                print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
-                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
-                # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
-                # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
-            else:
-                print('report_times NOT written to file. Set MockBox.rtfout do write to file.')
-
-        # Currently this is not written to file
-        self.report_times['getmock_calcwtheta'] = hf.time_code(self.report_times['getmock_calcwtheta'], unit='min') #.TE. replace start time with runtime in minutes
-        print('\n\t{0}\ndo_mock_wtheta.py ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock_calcwtheta']))
-
-        return None
 
 
     def ow_files(self, which='all'):
@@ -901,6 +800,112 @@ class MockBox:
         df.x = df.x + deltax
 
         self.report_times[rtname] = hf.time_code(self.report_times[rtname], unit='min') #.TE. replace start time with runtime in minute
+
+        return None
+
+
+
+    def getmock_calcwtheta(self, tbin_edges=None, statfout=None, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, nthreads=32, z4push=None, galplots=None):
+        """
+        NOT CURRENTLY IN USE. SPLIT INTO 2 FUNCTIONS, getmock() and calc_stats().
+
+        Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
+            Nstack=0 => just moves origin to center of box in prep for push_box2catz.
+        Pushes the box so the face is at comoving_distance(redshift = self.cat_zbox)
+        Transforms to RA, DEC, Redshift and bins redshift using self.zbin_width.
+        Calculates wtheta using tbins, nthreads and writes results to statfout.
+        Calculates runtime of each wtheta calculation and outputs info to rtfout.
+        rtfout == string writes function runtimes to this file
+               == None to skip timing fncs.
+        fow == one of {None, 'wtheta', 'runtimes', 'all'}
+                    => current file(s) will be renamed, new file(s) started
+
+        Notes:
+
+        Expect BAO at ~4.5 degrees for z~0.5 (see plots/zthetaBAO.png)
+        Halotools assumes all lengths are in Mpc/h
+        self.zbin_width: max redshift error in SDSS DR10 Photoz table is 0.365106,
+            see http://skyserver.sdss.org/CasJobs/MyDB.aspx MyTable_1 and
+            http://skyserver.sdss.org/dr6/en/help/docs/algorithm.asp?key=photoz
+            Note from Jeff: SDSS has unusually large z errors.
+        """
+
+
+        ### Setup:
+        if rtfout is not None: # this is set on __init__, but can be changed here
+            self.rtfout = rtfout
+        self.report_times = OD([('mocknum', self.mocknum),
+                                ('nthreads',nthreads),
+                                ('fcol_width', 25) # set report_times file column width
+                                ('getmock_calcwtheta', hf.time_code('start'))
+                                ])
+        print('getmock_calcwtheta() started at {}'.format(datetime.datetime.now()))
+
+        #### The following are set on __init__, but can be changed here:
+        if Nstack is not None:
+            self.Nstack = Nstack
+
+        if Nrands is not None:
+            self.Nrands = Nrands
+
+        if z4push is not None:
+            self.z4push = z4push
+
+        if zbin_width is not None:
+            self.zbin_width = zbin_width
+
+        if statfout is not None:
+            self.statfout = statfout
+
+        if tbin_edges is not None:
+            self.tbin_edges = tbin_edges
+        self.report_times['numtbins'] = len(self.tbin_edges)-1
+
+        if galplots is not None:
+            self.galplots = galplots
+        ####
+
+        if su.cosmo is None:
+            su.load_cosmo() # loads default global cosmo object plus H0, Om0
+
+        if fow is not None: # rename current files and start new ones
+            self.ow_files(which=fow)
+        ###
+
+
+        # Get galaxy DF by populating DM mock using HODmodel
+        self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
+        if self.galplots: # plot a random subsample of galaxies
+            mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
+
+        # Stack boxes and push box face to appropriate redshift.
+        self.transform_mock(box='PhaseSpace') # Sets self.PhaseSpace and self.RDZ
+
+        # Get box of random points and groupby redshift bins
+        self.get_randoms()
+        rgroups = self.RandomsRDZ.groupby('zbin', axis=0)
+
+        # Calculate wtheta for each zbin and write to file
+        zgroups = self.RDZ[['RA','DEC','zbin']].groupby('zbin', axis=0) # group by redshift bin, only need these columns
+        for i, (zzz, rdz_z) in enumerate(zgroups):
+            Randoms_z = rgroups.get_group(zzz) # get the randoms within this zbin
+
+            # Several report_times entries are set in calc_write_wtheta and overwritten for each zzz.
+            # Be sure to write report_times to file before the end of this for loop
+            self.calc_write_wtheta(zzz, rdz_z, Randoms_z, nthreads=nthreads)
+
+            if self.rtfout is not None: # Write report_times to file
+                hf.write_report_times(self.report_times, self.rtfout)
+                print('\tcalc_wtheta for zbin = {0} took {1:.1f} minutes'.format(zzz, self.report_times['calc_wtheta']))
+                print('Results written to {0}. Calculation report_times written to {1}.\n'.format(self.statfout, self.rtfout))
+                # print('{0:15d} {1:15.1f} {2:15.1f} {3:15d} {4:15.4f} {5:15d}'.format(nthreads, zzz, ztime, len(rdz_z.index), dtm, len(tbins)), file=open(rtfout, 'a'))
+                # print('\nwtheta calculation took {0:.1f} minutes with nthreads = {1}\n'.format(ztime, nthreads))
+            else:
+                print('report_times NOT written to file. Set MockBox.rtfout do write to file.')
+
+        # Currently this is not written to file
+        self.report_times['getmock_calcwtheta'] = hf.time_code(self.report_times['getmock_calcwtheta'], unit='min') #.TE. replace start time with runtime in minutes
+        print('\n\t{0}\ndo_mock_wtheta.py ran for {1:.1f} minutes.\n'.format(datetime.datetime.now(), self.report_times['getmock_calcwtheta']))
 
         return None
 
