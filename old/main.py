@@ -16,6 +16,7 @@ nbins = 50
 tratio_binedges = np.logspace(np.log10(0.05), np.log10(2.), nbins+1)
 rbin_edges = np.logspace(np.log10(25.0), np.log10(150.0), nbins+1)
 pimax = 300
+simname = 'outerrim'
 galplots = False
 z4push = 'cat'
 zw_list = [0.1, 0.05, 0.15]
@@ -43,7 +44,7 @@ for zw in zw_list:
                             pimax=pimax, Nrands=Nrands, galplots=galplots, \
                             statfout=statfout
                         )
-                mb.getmock()
+                mb.getmock(simname=simname)
                 mb.calc_stats(stats=stats, nthreads=24)
 
 

@@ -32,6 +32,7 @@ class MockBox:
         self.galplots = galplots # bool. Whether to plot galaxy positions at each transformation (use to check whether transformations are correct.)
 
         # Data from original (halos + HOD galaxies) catalog mock
+        self.simname = None # string. ('multidark' or 'outerrim')
         self.cat_galtbl = None  # DataFrame. Columns {x,y,z, vx,vy,vz}, rows = galaxies. This should come from populating a mock with HOD.
         self.cat_Lbox = None # Length of mock box side (assumed square). Mpc/h
         self.cat_zbox = None # scalar. Redshift at center? of box.
@@ -76,8 +77,10 @@ class MockBox:
         return mocknum
 
 
-    def getmock(self, Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None, z4push=None, galplots=None):
+    def getmock(self, simname='outerrim', Nstack=None, rtfout=None, zbin_width=None, Nrands=None, fow=None,
+                z4push=None, galplots=None):
         """
+        simname (str): one of 'multidark', 'outerrim'
         Stacks Nstack^3 boxes together (around the origin) to create a bigger box.
             Nstack=0 => just moves origin to center of box in prep for push_box2catz.
         Pushes the box so the face is at comoving_distance(redshift = self.z4push)
@@ -105,6 +108,8 @@ class MockBox:
                                 ('fcol_width', 25), # set report_times file column width
                                 ('getmock', hf.time_code('start')) ])
 
+        self.simname = simname
+
         #### The following are set on __init__, but can be changed here:
         if Nstack is not None:
             self.Nstack = Nstack
@@ -131,7 +136,7 @@ class MockBox:
 
 
         # Get galaxy DF by populating DM mock using HODmodel
-        self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF')
+        self.cat_galtbl, self.cat_Lbox, self.cat_zbox = su.get_galtbl(getas='DF', simname=simname)
         if self.galplots: # plot a random subsample of galaxies
             mp.plot_galaxies(self.cat_galtbl, gal_frac=0.005, coords='xyz', title='Original Mock')
 

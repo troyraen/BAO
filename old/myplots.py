@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.ticker import FormatStrFormatter
+from scipy.optimize import curve_fit
 # import imp
 
 from astropy import cosmology
@@ -255,6 +256,14 @@ def load_statsdat(fdat, stat=None, clean=True):
         df = df.query("Nrands>1000")
     return df
 
+
+# def corr_fitfnc(x, A, gamma, x0):
+#     return A* (x/x0)**(-gamma)
+#
+# def fit_corrfnc(x, y):
+#     c0 = (1.0, 1.8, 5)
+#     fit = curve_fit(corr_fitfnc, x, y, p0=c0)
+#     return fit[0]
 
 
 
