@@ -18,7 +18,7 @@ def transform(param_dict, gals_PS):
     """
 
     Returns
-        gals_PS with transformed coordinates.
+        gals_PS with transformed coordinates, added columns 'Redshift', 'zbin'.
         gals_RDZ
         rands_PS
         rands_RDZ
@@ -29,7 +29,7 @@ def transform(param_dict, gals_PS):
 
     gals_PS = stack_boxes_around_origin(p, gals_PS)
     gals_PS = shift_face_to_z4push(p, gals_PS)
-    gals_RDZ, p['zbin_edges'], p['zbin_cens'] = get_ra_dec_z(p, gals_PS)
+    gals_PS, gals_RDZ, p['zbin_edges'], p['zbin_cens'] = get_ra_dec_z(p, gals_PS)
 
     return gals_PS, gals_RDZ, p
 
@@ -146,9 +146,12 @@ def get_ra_dec_z(param_dict, PSdf):
     # This ensures that Corrfunc gets galaxies and randoms with same type (as required).
     # Use float32 since this is the output from HODmodel.mock.galaxy_table.
     rdz = pd.DataFrame(data={'RA':ra, 'DEC':dec, 'Redshift':redshift, 'zbin':zbin},
-                        dtype='float32')
+                        index=PSdf.index, dtype='float32')
 
-    return rdz, zbin_edges, zbin_cens
+    # Add Redshift and zbin columns to input PSdf
+    PSdf[['Redshift', 'zbin']] = rdz[['Redshift', 'zbin']]
+
+    return PSdf, rdz, zbin_edges, zbin_cens
 
 
 def set_zbins(param_dict, redshifts):

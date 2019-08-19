@@ -1,5 +1,8 @@
 import numpy as np
+import pandas as pd
+import matplotlib as mpl
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 # look at galaxy distribution
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=None):

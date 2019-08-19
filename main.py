@@ -98,8 +98,7 @@ def proc_mockbox(param_dict={}):
 
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(pdict, randoms=False)
-    if pdict['galplots']:
-        plots.plot_galaxies(gals_PS, title="Sim Galaxies")
+    if pdict['galplots']: plots.plot_galaxies(gals_PS, title="Sim Galaxies")
     # print(gals_PS.sample(2))
 
     # Transform coordinates
@@ -163,7 +162,7 @@ def get_randoms(param_dict):
                                         columns=['x','y','z', 'vx','vy','vz'])
 
     rands_PS = ts.shift_face_to_z4push(p, rands_PS)
-    rands_RDZ, _,_ = ts.get_ra_dec_z(p, rands_PS)
+    rands_PS, rands_RDZ, _,_ = ts.get_ra_dec_z(p, rands_PS)
 
     return rands_PS, rands_RDZ
 
