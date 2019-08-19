@@ -1,7 +1,8 @@
 import numpy as np
 from astropy import cosmology
 
-import get_mock as gm
+import get_sim as gs
+import transform_sim as ts
 # import pandas as pd
 # from MockBox import MockBox as MBox
 # import setup as su
@@ -11,8 +12,11 @@ import get_mock as gm
 
 #*** param_dict keys ***#
 pdkeys_calc = [     # parameters that need to be calculated
-                    'cosmo' # astropy cosmology object
+                    'cosmo', # astropy cosmology object
+                    'mock_Lbox',
                     'theta_scaled_binedges',
+                    'zbin_cens', # set in transform_sim.transform()
+                    'zbin_edges'  # set in transform_sim.transform()
                     ]
 pdkeys_noncalc = [  # parameters set as is
                     'cosmo_H0',
@@ -21,9 +25,10 @@ pdkeys_noncalc = [  # parameters set as is
                     'HOD_model',
                     'HOD_params',
                     'Nrands',
-                    'Nstack',
+                    'mock_Nstack', # num sim boxes to stack for mock.  1 or even integer.
                     'pimax',
                     'sim_halofinder',
+                    'sim_Lbox',
                     'sim_name',
                     'sim_redshift',
                     'stats',
@@ -40,6 +45,7 @@ pdkeys = pdkeys_noncalc + pdkeys_calc
 # fs*** param_dict DEFAULTS ***#
 
 # simulation info
+sim_Lbox = 1000.0 # {'multidark':1000.0, 'outerrim':}
 sim_name = 'outerrim' # which DM simulation to use
 sim_redshift = 0.466 # {'multidark':0.466, 'outerrim':}
 sim_halofinder = 'rockstar' # outerrim loads halos directly (found using FoF)
@@ -58,7 +64,7 @@ HOD_params = {  'logMmin': 12.89376701, # Minimum mass req for halo to host cent
             }
 
 # mock info
-z4push = 'cat' # either a float or 'cat'. start box coords at this redshift distance
+z4push = 'sim' # either a float or 'sim'. start box coords at this redshift distance
 zbin_width = 0.3 # redshift bin width
 # theta bins
 # theta_scaled_: theta bins in units of the BAO scale
@@ -68,8 +74,8 @@ theta_scaled_Nbins = 50 # number of theta bins for wtheta calculation
 
 # misc
 galplots = False # whether to plot galaxies while obtaining/transforming
+mock_Nstack = 1
 Nrands = 5
-Nstack = 0 # (even integer) number of simulation boxes to stack, per axis
 pimax = 300
 stats = ['wtheta']#, 'xi', 'wp'] # which stats to calculate
 statfout = 'data/stats.dat' # file path to write stats
@@ -91,9 +97,23 @@ def proc_mockbox(param_dict={}):
     """
     # Load parameter dictionary for the run
     pdict = load_param_dict(param_dict)
+    print(pdict)
 
-    # Load galaxy mock box from DM sim
-    gals_xyz, rands_xyz = gm.get_mock(pdict, randoms=True)
+    # Load galaxy box from DM sim
+    gals_PS = gs.get_sim_galaxies(pdict, randoms=False)
+    print(gals_PS.sample(2))
+
+    # Transform coordinates
+    gals_PS, gals_RDZ, pdict = ts.transform(pdict, gals_PS)
+    print(pdict)
+    print(gals_PS.sample(2))
+    print(gals_RDZ.sample(2))
+
+
+    # Get randoms
+    rands_PS, rands_RDZ = get_randoms(pdict)
+    print(rands_PS.sample(2))
+    print(rands_RDZ.sample(2))
 
     return None
 
@@ -117,12 +137,30 @@ def load_param_dict(param_dict={}):
     pdict['cosmo'] = cosmology.FlatLambdaCDM(H0=pdict['cosmo_H0'],
                                              Om0=pdict['cosmo_Om0'])
 
+    pdict['mock_Lbox'] = pdict['sim_Lbox']* pdict['mock_Nstack']
+
     pdict['theta_scaled_binedges'] = np.logspace(np.log10(pdict['theta_scaled_min']),
                                                  np.log10(pdict['theta_scaled_max']),
                                                  pdict['theta_scaled_Nbins']+1),
 
     return pdict
 
+
+def get_randoms(param_dict):
+
+    p = param_dict
+
+    # create random points in box, centered around origin
+    Lbox, Nrands = p['mock_Lbox'], p['Nrands']
+    ran_coords = np.random.random((Nrands,3))*Lbox - Lbox/2
+    ran_vels = np.zeros((Nrands,3))
+    rands_PS = pd.DataFrame(np.hstack([ran_coords,ran_vels]),
+                                        columns=['x','y','z', 'vx','vy','vz'])
+
+    rands_PS = shift_face_to_z4push(p, rands_PS)
+    rands_RDZ, _,_ = get_ra_dec_z(p, rands_PS)
+
+    return rands_PS, rands_RDZ
 
 
                 # mb = MBox( Nstack=Nstack, z4push=z4push, zbin_width=zw, \
