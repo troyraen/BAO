@@ -1,6 +1,5 @@
 """ Returns a mock galaxy catalog (phase space coords) by loading a DM simulation,
     identifying halos if necessary, and populating with galaxies using an HOD.
-    # Also returns a box of randoms at the same coordinates (optional).
 
     Use Arg: param_dict = main.load_param_dict()
 """
@@ -10,21 +9,14 @@ from halotools.sim_manager import CachedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
-def get_sim_galaxies(param_dict, randoms=True):
-    """ Returns a DF of galaxies populated on a DM sim and a box of randoms (optional).
+def get_sim_galaxies(param_dict):
+    """ Returns a DF of galaxies populated on a DM sim.
 
     Args:
-
         param_dict  (dict): Must have keys: 'sim_name',
 
-        randoms     (bool): If True, returns a box of randoms with the same coordinate bounds
-                            as the galaxy box.
-
     Returns:
-
         gals_PS   (dataframe): Mock box with rows of galaxy phase space coordinates
-
-        rands_PS  (dataframe): Mock box with rows of randoms phase space coordinates
     """
 
     p = param_dict
@@ -83,14 +75,3 @@ def popHalos_usingHOD(halocat, param_dict):
     gals = HODmodel.mock.galaxy_table.to_pandas()
 
     return gals[['x','y','z', 'vx','vy','vz']]
-
-
-# def get_randoms(param_dict):
-#
-#     p = param_dict
-#
-#     # create random points in box with side length self.Lbox, centered around origin
-#     ran_coords = np.random.random((self.Nrands,3))*self.Lbox - self.Lbox/2
-#     ran_vels = np.zeros((self.Nrands,3))
-#     # Set self.RandomsRDZ DF
-#     self.RandomsPS = pd.DataFrame(np.hstack([ran_coords,ran_vels]), columns=['x','y','z', 'vx','vy','vz'])
