@@ -8,12 +8,16 @@ from Corrfunc.theory.xi import xi
 
 
 def calc_stats(param_dict, boxes):
+    """
+    Args:
+        boxes (dict): keys {gals_PS', 'gals_RDZ', 'rands_PS', 'rands_RDZ'}
+    """
     p = param_dict
 
     ### Calc stats for each redshift bin
     # wtheta
     if 'wtheta' in p['stats']:
-        for zzz in p.zbin_cens: # calculate for each zbin
+        for zzz in p['zbin_cens']: # calculate for each zbin
             theta_binedges, rp_binedges = get_theta_rp_from_tratio_bins(p, zzz)
             theta_bincens = calc_bincens(theta_binedges, decimals=5)
 

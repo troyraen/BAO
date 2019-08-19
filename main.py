@@ -111,7 +111,7 @@ def proc_mockbox(param_dict={}):
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(p)
     if p['galplots']: plots.plot_galaxies(gals_PS, title="Sim Galaxies")
-    print(gals_PS.info())
+    # print(gals_PS.info())
 
     # Transform coordinates
     gals_PS, gals_RDZ, p = ts.transform(p, gals_PS)
@@ -124,7 +124,7 @@ def proc_mockbox(param_dict={}):
 
     # Get randoms
     rands_PS, rands_RDZ = get_randoms(p)
-    print(rands_PS.info())
+    # print(rands_PS.info())
     if p['galplots']:
         plots.plot_galaxies(rands_PS, title="Randoms")
         plots.plot_galaxies(rands_PS, title="Randoms", coords='rz')
@@ -133,8 +133,8 @@ def proc_mockbox(param_dict={}):
 
 
     # Calc stats
-    boxes = pd.DataFrame(data={ 'gals_PS':gals_PS, 'gals_RDZ':gals_RDZ,
-                                'rands_PS':rands_PS, 'rands_RDZ':rands_RDZ })
+    boxes = { 'gals_PS':gals_PS, 'gals_RDZ':gals_RDZ,
+              'rands_PS':rands_PS, 'rands_RDZ':rands_RDZ }
     cs.calc_stats(p, boxes)
 
     return p['statfout']
@@ -165,7 +165,7 @@ def load_param_dict(param_dict={}):
 
     p['theta_scaled_binedges'] = np.logspace(np.log10(p['theta_scaled_min']),
                                                  np.log10(p['theta_scaled_max']),
-                                                 p['theta_scaled_Nbins']+1),
+                                                 p['theta_scaled_Nbins']+1)
 
     return p
 
