@@ -195,7 +195,7 @@ def interp_z_from_codist(param_dict, codist, per_h=True, zbound=(0,3)):
 
     # interpolate redshift
     z_vals = np.arange(zbound[0], zbound[1], 0.001)
-    dist_vals = p['cosmo'].comoving_distance(z).value
+    dist_vals = p['cosmo'].comoving_distance(z_vals).value
     zinterp = interp1d(dist_vals, z_vals, kind='cubic')
 
     # remove h scaling for use with cosmo.comoving_distance()
@@ -222,7 +222,7 @@ def set_zbins(param_dict, redshifts):
     x2 = (p['cosmo'].comoving_distance(p['z4push']).value) * p['cosmo'].h # Mpc/h
     yz2 = p['mock_Lbox'] / 2.
     r2 = np.sqrt(x2**2 + yz2**2 + yz2**2)
-    z2 = interp_z_from_codist(param_dict, codist, per_h=True, zbound=[0,3])
+    z2 = interp_z_from_codist(p, r2, per_h=True, zbound=[0,3])
 
     # Get bin parameters
     w = p['zbin_width']

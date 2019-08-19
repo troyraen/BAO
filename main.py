@@ -187,7 +187,7 @@ def get_randoms(param_dict):
     rands_PS = pd.DataFrame(np.hstack([ran_coords,ran_vels]),
                                         columns=['x','y','z', 'vx','vy','vz'])
 
-    rands_PS = ts.shift_face_to_z4push(p, rands_PS)
+    rands_PS, _ = ts.shift_face_to_z4push(p, rands_PS)
     rands_PS, rands_RDZ, _,_ = ts.get_ra_dec_z(p, rands_PS)
 
     return rands_PS, rands_RDZ
