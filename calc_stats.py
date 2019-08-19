@@ -8,6 +8,10 @@ from Corrfunc.theory.xi import xi
 
 
 def calc_stats(param_dict, boxes):
+    """
+    Args:
+        boxes (dict): keys {gals_PS', 'gals_RDZ', 'rands_PS', 'rands_RDZ'}
+    """
     p = param_dict
 
     ### Calc stats for each redshift bin
