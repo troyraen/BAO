@@ -31,6 +31,9 @@ def transform(param_dict, gals_PS):
     gals_PS = shift_face_to_z4push(p, gals_PS)
     gals_PS, gals_RDZ, p['zbin_edges'], p['zbin_cens'] = get_ra_dec_z(p, gals_PS)
 
+    # Set Nrands ~ len(gals_PS)
+    if p['Nrands'] == 'sim': p['Nrands'] = 10**(np.ceil(np.log10(len(gals_PS))))
+
     return gals_PS, gals_RDZ, p
 
 

@@ -21,7 +21,7 @@ pdkeys_noncalc = [  # parameters set as is
                     'galplots',
                     'HOD_model',
                     'HOD_params',
-                    'Nrands',
+                    'Nrands', # int or 'sim'. If 'sim', Nrands set in transform_sim.transform()
                     'mock_Nstack', # num sim boxes to stack for mock.  1 or even integer.
                     'pimax',
                     'sim_halofinder',
@@ -72,7 +72,7 @@ theta_scaled_Nbins = 50 # number of theta bins for wtheta calculation
 # misc
 galplots = False # whether to plot galaxies while obtaining/transforming
 mock_Nstack = 1
-Nrands = 5
+Nrands = 'sim'
 pimax = 300
 stats = ['wtheta']#, 'xi', 'wp'] # which stats to calculate
 statfout = 'data/stats.dat' # file path to write stats
@@ -99,7 +99,7 @@ def proc_mockbox(param_dict={}):
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(pdict, randoms=False)
     if pdict['galplots']: plots.plot_galaxies(gals_PS, title="Sim Galaxies")
-    # print(gals_PS.sample(2))
+    print(gals_PS.info())
 
     # Transform coordinates
     gals_PS, gals_RDZ, pdict = ts.transform(pdict, gals_PS)
@@ -113,6 +113,7 @@ def proc_mockbox(param_dict={}):
 
     # Get randoms
     rands_PS, rands_RDZ = get_randoms(pdict)
+    print(rands_PS.info())
     if pdict['galplots']:
         plots.plot_galaxies(rands_PS, title="Randoms")
         plots.plot_galaxies(rands_PS, title="Randoms", coords='rz')
