@@ -1,14 +1,11 @@
 import numpy as np
+import pandas as pd
 from astropy import cosmology
 
 import get_sim as gs
 import transform_sim as ts
-# import pandas as pd
-# from MockBox import MockBox as MBox
-# import setup as su
-# import calc_wtheta as cw
-# import myplots as mp
-# import helper_fncs as hf
+import plots as plots
+
 
 #*** param_dict keys ***#
 pdkeys_calc = [     # parameters that need to be calculated
@@ -97,23 +94,31 @@ def proc_mockbox(param_dict={}):
     """
     # Load parameter dictionary for the run
     pdict = load_param_dict(param_dict)
-    print(pdict)
+    # print(pdict)
 
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(pdict, randoms=False)
-    print(gals_PS.sample(2))
+    if pdict['galplots']:
+        plots.plot_galaxies(gals_PS, title="Sim Galaxies")
+    # print(gals_PS.sample(2))
 
     # Transform coordinates
     gals_PS, gals_RDZ, pdict = ts.transform(pdict, gals_PS)
-    print(pdict)
-    print(gals_PS.sample(2))
-    print(gals_RDZ.sample(2))
+    if pdict['galplots']:
+        plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed")
+        plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed", coords='rz')
+    # print(pdict)
+    # print(gals_PS.sample(2))
+    # print(gals_RDZ.sample(2))
 
 
     # Get randoms
     rands_PS, rands_RDZ = get_randoms(pdict)
-    print(rands_PS.sample(2))
-    print(rands_RDZ.sample(2))
+    if pdict['galplots']:
+        plots.plot_galaxies(rands_PS, title="Randoms")
+        plots.plot_galaxies(rands_PS, title="Randoms", coords='rz')
+    # print(rands_PS.sample(2))
+    # print(rands_RDZ.sample(2))
 
     return None
 
@@ -157,8 +162,8 @@ def get_randoms(param_dict):
     rands_PS = pd.DataFrame(np.hstack([ran_coords,ran_vels]),
                                         columns=['x','y','z', 'vx','vy','vz'])
 
-    rands_PS = shift_face_to_z4push(p, rands_PS)
-    rands_RDZ, _,_ = get_ra_dec_z(p, rands_PS)
+    rands_PS = ts.shift_face_to_z4push(p, rands_PS)
+    rands_RDZ, _,_ = ts.get_ra_dec_z(p, rands_PS)
 
     return rands_PS, rands_RDZ
 

@@ -8,6 +8,8 @@
 """
 
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
 from astropy.constants import c  # the speed of light
 
 
@@ -135,8 +137,8 @@ def get_ra_dec_z(param_dict, PSdf):
     z_cos = f(r)
     redshift = z_cos+(vr/c_km_s)*(1.0+z_cos)
     # bin redshifts
-    zbin_edges, zbin_cens = set_zbins(p, redshift) if 'zbin_edges' not in p.keys()
-                            else p['zbin_edges'], p['zbin_cens']
+    zbin_edges, zbin_cens = set_zbins(p, redshift) if 'zbin_edges' not in p.keys() \
+                            else (p['zbin_edges'], p['zbin_cens'])
     zbin_loc = np.digitize(redshift, zbin_edges, right=True)
     zbin = np.array([ zbin_cens[i-1] for i in zbin_loc ])
 
