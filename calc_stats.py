@@ -171,8 +171,8 @@ def write_stat_to_file(param_dict, statname, statdat, bincens, zbin, zwidth, Nga
             assert lfc==lc
         except: # if df can't be read or lengths don't match, move existing
             mv_fout = hf.file_ow(p['statfout'])
-            print('*** Stat file format incompatible.\n\tMoved existing file to {}
-            so it is not overwritten. ***'.format(mv_fout))
+            print('*** Stat file format incompatible.')
+            print('\tMoved existing file to {} so it is not overwritten. ***'.format(mv_fout))
 
     # If statfout has been moved (above) or never existed, create new file.
     if not fpath.is_file():
