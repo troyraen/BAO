@@ -125,7 +125,7 @@ def calc_wtheta(param_dict, gals_RDZ, rands_RDZ, tbins):
 
     # calc w(theta)
     print('Converting counts to correlation...')
-    wtheta = convert_3d_cnts_to_cf(N, N, ran_N, ran_N, DD_cnts, DR_cnts, DR_cnts, RR_cnts)
+    wtheta = convert_3d_counts_to_cf(N, N, ran_N, ran_N, DD_cnts, DR_cnts, DR_cnts, RR_cnts)
 
     return wtheta
 
