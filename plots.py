@@ -4,6 +4,87 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+
+def plot_stats(fdat, save=None, show=True):
+    """ Plots stats (1 per column) in file fdat.
+        Args:
+        fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
+    """
+    holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
+    mpl.rcParams['figure.figsize'] = [14.0, 4.0]
+
+    df = load_statsdat(fdat)
+
+    sdf = df.groupby('statname').mean() # df
+    sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
+    validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
+    lendf = df.groupby('statname').size() # series with # of mocks aggragated in each df above
+
+    nrows, ncols = 1, len(lendf)
+    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False)
+
+    # Plot for each stat
+    for i, (stat, row) in enumerate(sdf.iterrows()):
+        ax = axs[i]
+
+        x,y,ylabel = get_bins_stats(row, stat)
+        try:
+            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat], row['NR/NG'])
+        except: # use for old format files with no zwidth
+            lbl = r'{:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.Nstack, lendf.loc[stat], row['NR/NG'])
+        ax.semilogx(x,y, label=lbl)
+
+        ax.axhline(0, c='0.5')
+        ax.grid(which='both')
+        ax.set_title(stat)
+        ax.legend(title='zbin, Nstk, Nm, NR')
+        ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^{-1}$ [Mpc]')
+        ax.set_ylabel(ylabel)
+
+        # if stat != 'wtheta':
+        #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+        #     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
+    plt.tight_layout()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show(block=False)
+
+    mpl.rcParams['figure.figsize'] = holdfsz
+    return None
+
+
+def load_statsdat(fdat, stat=None, clean=True):
+    """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
+        Returns DataFrame of file data.
+
+        fdat (string or list of strings):   stats output file path(s)
+        stat (string):  value in column statname in fdat
+        clean (bool):   == True will drop rows with Nrands<=1000
+    """
+
+    if type(fdat)==str:
+        df = pd.read_csv(fdat, delim_whitespace=True, comment='#')
+    elif type(fdat)==list:
+        dflst = []
+        for f in fdat:
+            dflst.append(pd.read_csv(f, delim_whitespace=True, comment='#'))
+        df = pd.concat(dflst)
+    else:
+        print('mp.load_statsdat() received invalid argument.')
+        print('fdat should be path(s) to stats files as string or list of strings')
+        return None
+
+    if stat is not None:
+        df = df.query("statname=='{}'".format(stat))
+    if clean:
+        df = df.query("Nrands>1000")
+    return df
+
+
 # look at galaxy distribution
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=None):
     """ Plots 3D galaxy distribution.
