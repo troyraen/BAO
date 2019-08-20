@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import datetime
+import os
 from astropy import cosmology
 
 import get_sim as gs
@@ -191,3 +192,26 @@ def get_randoms(param_dict):
     rands_PS, rands_RDZ, _,_ = ts.get_ra_dec_z(p, rands_PS)
 
     return rands_PS, rands_RDZ
+
+
+def file_ow(fin):
+    """ Moves file fin.txt to fin_ow_%m%d%y_%H%M.txt
+        Returns the new file name.
+    """
+
+    # split file name
+    fsplit = str(fin).split('.')
+    beg, end = '.'.join(fsplit[0:-1]), '.'+fsplit[-1]
+
+    # get date and time to use in new file name
+    dtm = datetime.datetime.now()
+    owdtm = dtm.strftime("_ow_%m%d%y_%H%M")
+
+    # create new file name
+    fout = beg + owdtm + end
+
+    # move the file
+    print('Moving existing file {0} to {1}'.format(fin, fout))
+    os.rename(fin, fout)
+
+    return fout

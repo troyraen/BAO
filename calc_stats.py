@@ -41,11 +41,11 @@ def calc_stats(param_dict, boxes):
     zwidth = np.round(gals_PS.Redshift.max() - gals_PS.Redshift.min(), 2)
     rbcens = calc_bincens(p['rbin_edges'], decimals=5)
 
-    if 'xi' in stats:
+    if 'xi' in p['stats']:
         xi = calc_xi(p, gals_PS)
         write_stat_to_file( p, 'xi', xi, rbcens, zmid, zwidth, numgals, np.nan )
 
-    if 'wp' in stats:
+    if 'wp' in p['stats']:
         wp = calc_wp(p, gals_PS)
         write_stat_to_file( p, 'wp', wp, rbcens, zmid, zwidth, numgals, np.nan )
     ###
@@ -172,7 +172,7 @@ def write_stat_to_file(param_dict, statname, statdat, bincens, zbin, zwidth, Nga
     lc = len(extra_cols) + 2*numbins # num cols to write to file
 
     # Check if file exists and has same number of columns as expected
-    fpath = Path(p['statfout)'])
+    fpath = Path(p['statfout'])
     if fpath.is_file():
         try:
             df = pd.read_csv(fpath, comment='#', delim_whitespace=True, nrows=10)
