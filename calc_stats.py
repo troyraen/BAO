@@ -17,12 +17,17 @@ def calc_stats(param_dict, boxes):
     ### Calc stats for each redshift bin
     # wtheta
     if 'wtheta' in p['stats']:
+        # precision for get_group('zbin')
+        zbins = list(boxes['gals_RDZ'].groupby('zbin').groups.keys())
+        zbins_dict = dict(zip(np.round(zbins, 2), zbins))
+
         for zzz in p['zbin_cens']: # calculate for each zbin
             theta_binedges, rp_binedges = get_theta_rp_from_tratio_bins(p, zzz)
             theta_bincens = calc_bincens(theta_binedges, decimals=5)
 
-            gals_RDZ_z = boxes['gals_RDZ'].groupby('zbin').get_group(zzz)
-            rands_RDZ_z = boxes['rands_RDZ'].groupby('zbin').get_group(zzz)
+            zz = zbins_dict[np.round(zzz,2)]
+            gals_RDZ_z = boxes['gals_RDZ'].groupby('zbin').get_group(zz)
+            rands_RDZ_z = boxes['rands_RDZ'].groupby('zbin').get_group(zz)
 
             wtheta = calc_wtheta(p, gals_RDZ_z, rands_RDZ_z, theta_binedges)
             write_stat_to_file( p, 'wtheta', wtheta, theta_bincens, zzz, p['zbin_width'], \
