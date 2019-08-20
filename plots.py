@@ -101,6 +101,41 @@ def validate_statmeans_xbins(df, avg_zbins=False):
     return None
 
 
+def get_bins_stats(row, stat, avg_zbins=False):
+    """ Returns 2 series plus a y-axis label:
+        x = columns starting with 'bin_'
+        y = columns starting with 'stat_'
+        Scales y values according to stat.
+
+        if avg_zbins==True, row should be a DataFrame
+    """
+
+    lbldict = { 'wtheta': r'$\theta\ w(\theta)$', \
+                'wp': r'$r\ w_p(r_p)$', \
+                'xi': r'$r^2\ \xi(r)$'}
+
+    if not avg_zbins:
+        x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
+        y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
+        if stat in ['wtheta', 'wp']:
+            y = x*y
+        elif stat in ['xi']:
+            y = x*x*y
+        else:
+            print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
+
+    else:
+        assert stat=='wtheta', 'mp.get_bins_stats() received avg_zbins=True but stat!=wtheta'
+        # Get theta*wtheta, then take average
+        x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1]) # df
+        y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1]) # df
+        y = x*y # df
+        x = hf.get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True) # series
+        y = y.mean(axis=0) # series
+
+    return (x, y, lbldict[stat])
+
+
 # look at galaxy distribution
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=None):
     """ Plots 3D galaxy distribution.
