@@ -85,6 +85,22 @@ def load_statsdat(fdat, stat=None, clean=True):
     return df
 
 
+def validate_statmeans_xbins(df, avg_zbins=False):
+    """ Checks that xbins of collapsed statname have std_dev == 0
+            and therefore are all the same.
+        avg_zbins == True allows for each zbin to have unique theta bins
+    """
+
+    errmsg = "Operation groupby 'statname' has averaged values in different theta or r bins."
+    if avg_zbins:
+        stddf = df.groupby(['zbin', 'statname']).std()
+    else:
+        stddf = df.groupby('statname').std()
+
+    assert stddf.filter(like='bin_').eq(0).all().all(), errmsg
+    return None
+
+
 # look at galaxy distribution
 def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=None):
     """ Plots 3D galaxy distribution.
