@@ -43,11 +43,11 @@ def calc_stats(param_dict, boxes):
 
     if 'xi' in p['stats']:
         xi = calc_xi(p, gals_PS)
-        write_stat_to_file( p, 'xi', xi, rbcens, zmid, zwidth, numgals, np.nan )
+        write_stat_to_file( p, 'xi', xi, rbcens, zmid, zwidth, numgals, 0 )
 
     if 'wp' in p['stats']:
         wp = calc_wp(p, gals_PS)
-        write_stat_to_file( p, 'wp', wp, rbcens, zmid, zwidth, numgals, np.nan )
+        write_stat_to_file( p, 'wp', wp, rbcens, zmid, zwidth, numgals, 0 )
     ###
 
     return None

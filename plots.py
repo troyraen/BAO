@@ -17,7 +17,7 @@ def plot_stats(fdat, save=None, show=True):
 
     sdf = df.groupby('statname').mean() # df
     sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
-    validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
+    # validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
     lendf = df.groupby('statname').size() # series with # of mocks aggragated in each df above
 
     nrows, ncols = 1, len(lendf)
