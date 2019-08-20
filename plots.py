@@ -57,7 +57,7 @@ def plot_stats(fdat, save=None, show=True):
     return None
 
 
-def load_statsdat(fdat, stat=None, clean=True):
+def load_statsdat(fdat, stat=None, clean=False):
     """ Load correlation stats data from file fdat, as written by MockBox.write_stat_to_file.
         Returns DataFrame of file data.
 
