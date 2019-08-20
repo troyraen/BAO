@@ -14,6 +14,8 @@ def plot_stats(fdat, save=None, show=True):
     mpl.rcParams['figure.figsize'] = [14.0, 4.0]
 
     df = load_statsdat(fdat)
+    # keep 2nd zbin
+    df.drop(labels=df.loc[(df['statname']=='wtheta') and (df['zbin']!=0.7)], inplace=True)
 
     sdf = df.groupby('statname').mean() # df
     sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
