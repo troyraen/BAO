@@ -232,7 +232,7 @@ def set_zbins(param_dict, redshifts):
         _warn('\nConsider larger zbin_width. 2nd bin is NOT full.\n')
     num_zbins = np.ceil((zmax - zmin)/ w)
 
-    edges = np.array([ zmin+ w*i for i in range(int(num_zbins)+1) ])
-    cens = np.array([(edges[i]+edges[i+1])/2 for i in range(len(edges)-1)])
+    edges = np.array([ np.round(zmin+ w*i, 2) for i in range(int(num_zbins)+1) ])
+    cens = np.array([ np.round((edges[i]+edges[i+1])/2, 2) for i in range(len(edges)-1)])
 
     return edges, cens
