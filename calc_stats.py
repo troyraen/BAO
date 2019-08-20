@@ -18,13 +18,8 @@ def calc_stats(param_dict, boxes):
     # wtheta
     if 'wtheta' in p['stats']:
         # precision for get_group('zbin')
-<<<<<<< HEAD
         zbins = list(boxes['gals_RDZ'].groupby('zbin').groups.keys())
         zbins_dict = dict(zip(np.round(zbins, 2), zbins))
-=======
-        zbins = boxes['gals_RDZ'].groupby('zbin').get_keys()
-        zbins_dict = dict(zip(zbins, zbins.round(decimals=2)))
->>>>>>> b955c326f956819c75bdf4ea7191a222406a40dc
 
         for zzz in p['zbin_cens']: # calculate for each zbin
             theta_binedges, rp_binedges = get_theta_rp_from_tratio_bins(p, zzz)
