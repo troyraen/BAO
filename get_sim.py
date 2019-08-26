@@ -128,6 +128,8 @@ def load_outerrim_halotools_setup(param_dict, halo_df):
                 }
 
     halodata = halo_df.to_dict(orient='series')
+    for k, val in halodata.items():
+        halodata[k] = val.to_numpy()
 
     return metadata, halodata
 
