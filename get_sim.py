@@ -6,6 +6,7 @@
 
 import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
+from halotools.sim_manager import UserSuppliedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
 
@@ -53,7 +54,78 @@ def load_multidark(param_dict):
 
 def load_outerrim(param_dict):
 
+    p = param_dict
+
+    # Load halo data from Outer Rim files
+    halo_files, read_cols, rename_cols = load_outerrim_data_setup(p)
+    coldat = []
+    for hf in halo_files:
+        gio = generic_io.Generic_IO(hf, None)
+        coldat.append(gio.read_columns(read_cols))
+    halo_df = pd.concat(coldat, axis=0).rename(columns = rename_cols)
+
+    # Generate Halotools halo catalog
+    metadata, halodata = load_outerrim_halotools_setup(p, halo_df)
+    halocat = UserSuppliedHaloCatalog(**metadata, **halodata)
+
     return halocat
+
+
+def load_outerrim_data_setup(param_dict):
+    """
+    Returns:
+
+        halo_files  (list): paths to all data files at redshift=param_dict['sim_redshift']
+
+        read_cols   (list): list of file columns to read in
+
+        rename_cols (dict): columns to rename for Halotools input
+    """
+
+    p = param_dict
+
+    # Directory structure
+    halo_dir = "/home/tjr63/Osiris/BAO_simdata/OuterRim/M000/L4225/HACC000/analysis/" + \
+                "Halos/b0168/FOFp/"
+    halo_files_ztail = { # key = redshift, value = list of files
+                    0.502242:
+                        ['STEP331/m000-331.fofproperties'] + \
+                        ['STEP331/m000-331.fofproperties#{}'.format(n) for n in range(87,105)],
+                    0.539051:
+                        ['STEP323/m000-323.fofproperties'] + \
+                        ['STEP323/m000-323.fofproperties#{}'.format(n) for n in range(87,105)]
+                  }
+    halo_files = [ os.path.join(halo_dir,hf) for hf in halo_files_ztail[p['sim_redshift']] ]
+
+    # Columns to read and rename
+    read_cols = [ 'fof_halo_count', 'fof_halo_tag', 'fof_halo_mass', \
+                  'fof_halo_center_x', 'fof_halo_center_y', 'fof_halo_center_z' ]
+
+    rename_cols = { 'fof_halo_tag': 'halo_id',
+                    'fof_halo_mass': 'halo_mass',
+                    'fof_halo_count': 'halo_count'
+                    'fof_halo_center_x': 'halo_x',
+                    'fof_halo_center_y': 'halo_y',
+                    'fof_halo_center_z': 'halo_z' }
+
+    return halo_files, read_cols, rename_cols
+
+
+def load_outerrim_halotools_setup(param_dict, halo_df):
+    """ https://halotools.readthedocs.io/en/latest/api/halotools.sim_manager
+            .UserSuppliedHaloCatalog.html#halotools.sim_manager.UserSuppliedHaloCatalog
+    """
+
+    p = param_dict
+
+    metadata = {'Lbox': p['mock_Lbox'],
+                'particle_mass': p['sim_particle_mass'],
+                'redshift': p['z4push']
+                }
+
+    halodata = halo_df.to_dict(orient='series')
+
+    return metadata, halodata
 
 
 def popHalos_usingHOD(halocat, param_dict):
