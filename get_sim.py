@@ -124,7 +124,7 @@ def load_outerrim_halotools_setup(param_dict, halo_df):
 
     metadata = {'Lbox': p['mock_Lbox'],
                 'particle_mass': p['sim_particle_mass'],
-                'redshift': p['z4push']
+                'redshift': p['sim_redshift']
                 }
 
     halodata = halo_df.to_dict(orient='series')
