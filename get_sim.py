@@ -4,11 +4,15 @@
     Use Arg: param_dict = main.load_param_dict()
 """
 
+import os as os
+import pandas as pd
+
 import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
 from halotools.sim_manager import UserSuppliedHaloCatalog
 from halotools.empirical_models import PrebuiltHodModelFactory
 
+import generic_io
 
 def get_sim_galaxies(param_dict):
     """ Returns a DF of galaxies populated on a DM sim.
@@ -103,7 +107,7 @@ def load_outerrim_data_setup(param_dict):
 
     rename_cols = { 'fof_halo_tag': 'halo_id',
                     'fof_halo_mass': 'halo_mass',
-                    'fof_halo_count': 'halo_count'
+                    'fof_halo_count': 'halo_count',
                     'fof_halo_center_x': 'halo_x',
                     'fof_halo_center_y': 'halo_y',
                     'fof_halo_center_z': 'halo_z' }
