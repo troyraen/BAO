@@ -33,8 +33,9 @@ pdkeys_noncalc = [  # parameters set as is
                     'pimax',
                     'rbin_edges',
                     'sim_halofinder',
-                    'sim_Lbox', # h^-1 [Mpc]
+                    'sim_Lbox', # [Mpc/h]
                     'sim_name',
+                    'sim_particle_mass', # [Msun/h], convert outerrim halos to Halotools halocat
                     'sim_redshift',
                     'stats',
                     'statfout',
@@ -50,10 +51,11 @@ pdkeys = pdkeys_noncalc + pdkeys_calc
 # fs*** param_dict DEFAULTS ***#
 
 # Simulation info
-sim_Lbox = 1000.0 # {'multidark':1000.0, 'outerrim':}
-sim_name = 'multidark' # which DM simulation to use
-sim_redshift = 0.466 # {'multidark':0.466, 'outerrim':}
 sim_halofinder = 'rockstar' # outerrim loads halos directly (found using FoF)
+sim_Lbox = 1000.0 # {'multidark':1000.0, 'outerrim':3000.0}
+sim_name = 'multidark' # which DM simulation to use
+sim_particle_mass = 1.85e9 # {'outerrim':1.85e9}
+sim_redshift = 0.466 # {'multidark':0.466, 'outerrim':[0.502242, 0.539051]}
 
 # Cosmology, HOD info
 cosmo_H0 = 70.0
