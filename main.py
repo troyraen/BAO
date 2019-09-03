@@ -32,6 +32,7 @@ pdkeys_noncalc = [  # parameters set as is
                     'mock_Nstack', # num sim boxes to stack for mock.  1 or even integer.
                     'pimax',
                     'rbin_edges',
+                    'sim_FoF_b', # FoF linking length
                     'sim_halofinder',
                     'sim_Lbox', # [Mpc/h]
                     'sim_name',
@@ -51,15 +52,19 @@ pdkeys = pdkeys_noncalc + pdkeys_calc
 # fs*** param_dict DEFAULTS ***#
 
 # Simulation info
+sim_FoF_b = 0.168 # outerrim
 sim_halofinder = 'rockstar' # outerrim loads halos directly (found using FoF)
-sim_Lbox = 1000.0 # {'multidark':1000.0, 'outerrim':3000.0}
-sim_name = 'multidark' # which DM simulation to use
+sim_Lbox = 3000.0 # {'multidark':1000.0, 'outerrim':3000.0}
+sim_name = 'outerrim' # 'multidark' or 'outerrim'
 sim_particle_mass = 1.85e9 # {'outerrim':1.85e9}
-sim_redshift = 0.466 # {'multidark':0.466, 'outerrim':[0.502242, 0.539051]}
+sim_redshift = 0.539051 # {'multidark':0.466, 'outerrim':[0.502242, 0.539051]}
 
 # Cosmology, HOD info
-cosmo_H0 = 70.0
-cosmo_Om0 = 0.3
+# https://docs.astropy.org/en/stable/api/astropy.cosmology.FlatLambdaCDM
+# .html#astropy.cosmology.FlatLambdaCDM
+cosmo_H0 = 71.0 # outerrim h=0.71
+cosmo_Om0 = 0.22 + 0.04422 # outerrim Omega_CDM + Planck/WMAP Omega_baryon
+# https://lambda.gsfc.nasa.gov/education/graphic_history/baryonicd.cfm
 HOD_model = 'zheng07'
 # https://halotools.readthedocs.io/en/latest/quickstart_and_tutorials/
 # tutorials/model_building/preloaded_models/zheng07_composite_model.html
@@ -160,15 +165,15 @@ def load_param_dict(param_dict={}):
 
     # Set calculated parameters
     p['cosmo'] = cosmology.FlatLambdaCDM(H0=p['cosmo_H0'],
-                                             Om0=p['cosmo_Om0'])
+                                         Om0=p['cosmo_Om0'])
 
     p['mock_Lbox'] = p['sim_Lbox']* p['mock_Nstack']
 
     p['mock_num'] = get_mock_num()
 
     p['theta_scaled_binedges'] = np.logspace(np.log10(p['theta_scaled_min']),
-                                                 np.log10(p['theta_scaled_max']),
-                                                 p['theta_scaled_Nbins']+1)
+                                             np.log10(p['theta_scaled_max']),
+                                             p['theta_scaled_Nbins']+1)
 
     return p
 

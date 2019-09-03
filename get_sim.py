@@ -19,7 +19,7 @@ def get_sim_galaxies(param_dict):
     """ Returns a DF of galaxies populated on a DM sim.
 
     Args:
-        param_dict  (dict): Must have keys: 'sim_name',
+        param_dict  (dict): as returned by main.load_param_dict()
 
     Returns:
         gals_PS   (dataframe): Mock box with rows of galaxy phase space coordinates
@@ -65,12 +65,9 @@ def load_outerrim(param_dict):
     # Load halo data from Outer Rim files
     halo_metafile, read_cols, name_df_cols = load_outerrim_data_setup(p)
     data = gio.read(halo_metafile, read_cols)  # nparray [len(read_cols), num halos]
-    # create df with halos having x < 500 Mpc/h
-    halo_df = pd.DataFrame(data.T[data.T[:,2]<500,:], columns=name_df_cols)
-    halo_df['halo_upid'] = -1 # column indicating host halo
 
     # Generate Halotools halo catalog
-    metadata, halodata = load_outerrim_halotools_setup(p, halo_df)
+    metadata, halodata = load_outerrim_halotools_setup(p, data)
     halocat = UserSuppliedHaloCatalog(**metadata, **halodata)
 
     return halocat
@@ -108,14 +105,19 @@ def load_outerrim_data_setup(param_dict):
     read_cols = [ 'fof_halo_tag', 'fof_halo_mass', \
                   'fof_halo_center_x', 'fof_halo_center_y', 'fof_halo_center_z' ]
 
-    name_df_cols = [ 'halo_id', 'halo_mass', 'halo_x', 'halo_y', 'halo_z' ]
+    name_df_cols = [ 'halo_id', 'halo_mvir', 'halo_x', 'halo_y', 'halo_z' ]
 
     return halo_metafile, read_cols, name_df_cols
 
 
-def load_outerrim_halotools_setup(param_dict, halo_df):
+def load_outerrim_halotools_setup(param_dict, data):
     """ https://halotools.readthedocs.io/en/latest/api/halotools.sim_manager
             .UserSuppliedHaloCatalog.html#halotools.sim_manager.UserSuppliedHaloCatalog
+
+    Args:
+        param_dict as returned by main.load_param_dict()
+
+        data (nparray): as returned by gio.read()
     """
 
     p = param_dict
@@ -125,11 +127,70 @@ def load_outerrim_halotools_setup(param_dict, halo_df):
                 'redshift': p['sim_redshift']
                 }
 
+    # create df with halos having x < 500 Mpc/h
+    halo_df = pd.DataFrame(data.T[data.T[:,2]<500,:], columns=name_df_cols)
+
+    # add columns
+    halo_df['halo_rvir'] = load_outerrim_halotools_setup_calc_rvir(p, halo_df)
+                           # to calc concentration
+    halo_df['halo_upid'] = -1 # indicate all are host halos
+
+    # get dict of arrays for halotools
     halodata = halo_df.to_dict(orient='series')
     for k, val in halodata.items():
         halodata[k] = val.to_numpy()
 
     return metadata, halodata
+
+
+def load_outerrim_halotools_setup_calc_rvir(param_dict, halo_df):
+    """ Calculates and returns an estimated r_vir for each halo.
+        Assumes fof_halo_mass = M_vir
+            (column name already set from load_outerrim_data_setup()).
+    """
+    p = param_dict
+
+    # estimate concentration using concentration-mass relation (Dutton+14, eqs 7, 12, 13)
+    z = p['sim_redshift']
+    conc_A = 0.537 + (1.025−0.537) * np.exp(−0.718 * z**1.08)
+    conc_B = −0.097 + 0.024 * z
+    conc = 10**conc_A * (halo_df.halo_mvir/10**12)**conc_B
+
+    # estimate overdensity using linking length and concentration (More+11 eq 13)
+    cp1 = conc+1
+    mu = np.log(cp1) - conc/cp1
+    psi = conc**2/mu/cp1**2
+    Delta_vir = (p['sim_FoF_b']/0.2)**(-3) * 244.86/psi - 1
+
+    # calculate r_vir
+    Mpc = 3.086e22 # meters
+    G = 6.674e-11 # m^3/kg/s^2
+    Msun = 1.989e30 # kg
+    rho_mean = 3e10*p['cosmo_Om0']*Mpc/(8*np.pi*G) # h^2 kg Mpc^-3
+    rvir = ((3*halo_df.halo_mvir*Msun)/(4*np.pi* Delta_vir* rho_mean))**(1./3.) # Mpc/h
+
+    return rvir
+
+
+def popHalos_usingHOD(halocat, param_dict):
+    """ Populates a Halotools halo catalog with galaxies using an HOD.
+        Returns a DataFrame of galaxy phase space coordinates.
+    """
+
+    p = param_dict
+
+    # Populate the catalog
+    HODmodel = PrebuiltHodModelFactory(p['HOD_model'], redshift=p['sim_redshift'])
+    for key, val in p['HOD_params'].items():
+        HODmodel.param_dict[key] = val
+
+    HODmodel.populate_mock(halocat) # use this command to create and populate the mock
+    # HODmodel.mock.populate() # use this command to REpopulate
+
+    # Convert to DF
+    gals = HODmodel.mock.galaxy_table.to_pandas()
+
+    return gals[['x','y','z', 'vx','vy','vz']]
 
 
 def load_outerrim_gioforked(param_dict):
@@ -192,24 +253,3 @@ def load_outerrim_gioforked_data_setup(param_dict):
                     'fof_halo_center_z': 'halo_z' }
 
     return halo_files, read_cols, rename_cols
-
-
-def popHalos_usingHOD(halocat, param_dict):
-    """ Populates a Halotools halo catalog with galaxies using an HOD.
-        Returns a DataFrame of galaxy phase space coordinates.
-    """
-
-    p = param_dict
-
-    # Populate the catalog
-    HODmodel = PrebuiltHodModelFactory(p['HOD_model'], redshift=p['sim_redshift'])
-    for key, val in p['HOD_params'].items():
-        HODmodel.param_dict[key] = val
-
-    HODmodel.populate_mock(halocat) # use this command to create and populate the mock
-    # HODmodel.mock.populate() # use this command to REpopulate
-
-    # Convert to DF
-    gals = HODmodel.mock.galaxy_table.to_pandas()
-
-    return gals[['x','y','z', 'vx','vy','vz']]
