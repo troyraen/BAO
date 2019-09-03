@@ -67,7 +67,7 @@ def load_outerrim(param_dict):
     data = gio.read(halo_metafile, read_cols)  # nparray [len(read_cols), num halos]
 
     # Generate Halotools halo catalog
-    metadata, halodata = load_outerrim_halotools_setup(p, data)
+    metadata, halodata = load_outerrim_halotools_setup(p, data, name_df_cols)
     halocat = UserSuppliedHaloCatalog(**metadata, **halodata)
 
     return halocat
@@ -110,14 +110,16 @@ def load_outerrim_data_setup(param_dict):
     return halo_metafile, read_cols, name_df_cols
 
 
-def load_outerrim_halotools_setup(param_dict, data):
+def load_outerrim_halotools_setup(param_dict, data, name_df_cols):
     """ https://halotools.readthedocs.io/en/latest/api/halotools.sim_manager
             .UserSuppliedHaloCatalog.html#halotools.sim_manager.UserSuppliedHaloCatalog
 
     Args:
         param_dict as returned by main.load_param_dict()
 
-        data (nparray): as returned by gio.read()
+        data      (nparray): as returned by gio.read()
+
+        name_df_cols (list): as returned by load_outerrim_data_setup()
     """
 
     p = param_dict
@@ -152,8 +154,8 @@ def load_outerrim_halotools_setup_calc_rvir(param_dict, halo_df):
 
     # estimate concentration using concentration-mass relation (Dutton+14, eqs 7, 12, 13)
     z = p['sim_redshift']
-    conc_A = 0.537 + (1.025−0.537) * np.exp(−0.718 * z**1.08)
-    conc_B = −0.097 + 0.024 * z
+    conc_A = 0.537 + (1.025-0.537) * np.exp(-0.718 * z**1.08)
+    conc_B = -0.097 + 0.024 * z
     conc = 10**conc_A * (halo_df.halo_mvir/10**12)**conc_B
 
     # estimate overdensity using linking length and concentration (More+11 eq 13)
