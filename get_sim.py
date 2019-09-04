@@ -104,9 +104,11 @@ def load_outerrim_data_setup(param_dict):
 
     # Columns to read and rename
     read_cols = [ 'fof_halo_tag', 'fof_halo_mass', \
-                  'fof_halo_center_x', 'fof_halo_center_y', 'fof_halo_center_z' ]
+                  'fof_halo_center_x', 'fof_halo_center_y', 'fof_halo_center_z',
+                  'fof_halo_mean_vx', 'fof_halo_mean_vy', 'fof_halo_mean_vz' ]
 
-    name_df_cols = [ 'halo_id', 'halo_mvir', 'halo_x', 'halo_y', 'halo_z' ]
+    name_df_cols = [ 'halo_id', 'halo_mvir', 'halo_x', 'halo_y', 'halo_z',
+                     'halo_vx', 'halo_vy', 'halo_vz' ]
 
     return halo_metafile, read_cols, name_df_cols
 
@@ -137,6 +139,7 @@ def load_outerrim_halotools_setup(param_dict, data, name_df_cols):
     halo_df['halo_rvir'] = load_outerrim_halotools_setup_calc_rvir(p, halo_df)
                            # to calc concentration
     halo_df['halo_upid'] = -1 # indicate all are host halos
+    halo_df['halo_hostid'] = halo_df['halo_id']
 
     # get dict of arrays for halotools
     halodata = halo_df.to_dict(orient='series')
@@ -185,7 +188,7 @@ def popHalos_usingHOD(halocat, param_dict):
     # Load the HOD
     kwargs = {'redshift': p['sim_redshift']}
     if p['sim_name'] == 'outerrim': # need to calc concentration
-        kwargs['conc_mass_model': 'dutton_maccio14']
+        kwargs['conc_mass_model'] = 'dutton_maccio14'
     HODmodel = PrebuiltHodModelFactory(p['HOD_model'], **kwargs)
     # add HOD params
     for key, val in p['HOD_params'].items():
