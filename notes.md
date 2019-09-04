@@ -1,9 +1,11 @@
 # Initiate a Korriban session
 ```bash
-source .bashrc
 printf "\e[?2004l" # turns off "bracketed paste mode" for correct copy-paste
+source .bashrc
+mounto
 cd Documents/BAO
 htenv
+ipython
 # source activate halotools_env
 ```
 
@@ -14,6 +16,51 @@ Volume = (4.225 Gpc)^3 = (3000 h^-1 Mpc)^3
 Num Particles = 10240^3
 Mass resolution = 2.6e9 M_sun = 1.85e9 h^-1 M_sun
 FoF linking length, b = 0.168
+Lightcone redshift range = [3.036145, 0.0]
+Cosmology params: { Omega_CDM: 0.2200,
+                    w_b: 0.02258,
+                    w_nu: 0.0,
+                    h: 0.7100,
+                    omega_8: 0.8000,
+                    n_s: 0.9630,
+                    w_0: -1.0000,
+                    w_a: 0.0000
+                    }
+<!-- fs Columns (i=integer,f=floating point, number bits size) -->
+FoF columns:
+    - [i 32] fof_halo_count
+    - [i 64] fof_halo_tag
+    - [f 32] fof_halo_mass
+    - [f 32] fof_halo_center_x
+    - [f 32] fof_halo_center_y
+    - [f 32] fof_halo_center_z
+    - [f 32] fof_halo_mean_x
+    - [f 32] fof_halo_mean_y
+    - [f 32] fof_halo_mean_z
+    - [f 32] fof_halo_mean_vx
+    - [f 32] fof_halo_mean_vy
+    - [f 32] fof_halo_mean_vz
+    - [f 32] fof_halo_vel_disp
+Particle columns:
+    - [f 32] x
+    - [f 32] y
+    - [f 32] z
+    - [f 32] vx
+    - [f 32] vy
+    - [f 32] vz
+    - [f 32] phi
+    - [i 64] id
+    - [i 16] mask
+Lightcone Halos columns:
+    - [f 32] x
+    - [f 32] y
+    - [f 32] z
+    - [f 32] vx
+    - [f 32] vy
+    - [f 32] vz
+    - [f 32] a
+    - [f 32] mass
+<!-- fe Columns -->
 
 ## Download data
 - Install Globus Connect Personal
@@ -34,6 +81,7 @@ FoF linking length, b = 0.168
         * for destination dir chose 'BAO_simdata'
 - Check status on Osiris
     * ./globusconnectpersonal -status
+- [View web activity](https://app.globus.org/activity)
 
 
 ## Setup Generic_IO (to read data) in htenv on Korriban
