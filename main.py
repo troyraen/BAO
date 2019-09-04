@@ -32,12 +32,7 @@ pdkeys_noncalc = [  # parameters set as is
                     'mock_Nstack', # num sim boxes to stack for mock.  1 or even integer.
                     'pimax',
                     'rbin_edges',
-                    'sim_FoF_b', # FoF linking length
-                    'sim_halofinder',
-                    'sim_Lbox', # [Mpc/h]
                     'sim_name',
-                    'sim_particle_mass', # [Msun/h], convert outerrim halos to Halotools halocat
-                    'sim_redshift',
                     'stats',
                     'statfout',
                     'theta_scaled_min',
@@ -46,18 +41,31 @@ pdkeys_noncalc = [  # parameters set as is
                     'z4push', # float or 'sim'. if 'sim', z4push set in transform_sim.transform()
                     'zbin_width',
                     ]
-pdkeys = pdkeys_noncalc + pdkeys_calc
+pdkeys_sim = {      # parameters specific to DM sim
+                    'multidark':
+                        [   'sim_halofinder',
+                            'sim_Lbox', # [Mpc/h]
+                            'sim_redshift'
+                        ],
+                    'outerrim':
+                        [   'sim_FoF_b', # FoF linking length
+                            'sim_Lbox', # [Mpc/h]
+                            'sim_particle_mass', # [Msun/h], convert halos to halocat
+                            'sim_redshift'
+                        ]
+                    }
+# pdkeys = pdkeys_noncalc + pdkeys_calc + pdkeys_sim[sim_name]
 
 
 # fs*** param_dict DEFAULTS ***#
 
 # Simulation info
-sim_FoF_b = 0.168 # outerrim
-sim_halofinder = 'rockstar' # outerrim loads halos directly (found using FoF)
-sim_Lbox = 3000.0 # {'multidark':1000.0, 'outerrim':3000.0}
 sim_name = 'outerrim' # 'multidark' or 'outerrim'
-sim_particle_mass = 1.85e9 # {'outerrim':1.85e9}
-sim_redshift = 0.539051 # {'multidark':0.466, 'outerrim':[0.502242, 0.539051]}
+sim_FoF_b = {'outerrim': 0.168}
+sim_halofinder = {'multidark': 'rockstar'}
+sim_Lbox = {'multidark': 1000.0, 'outerrim': 3000.0}
+sim_particle_mass = {'outerrim': 1.85e9}
+sim_redshift = {'multidark': 0.466, 'outerrim': 0.539051} # also have outerrim 0.502242
 
 # Cosmology, HOD info
 # https://docs.astropy.org/en/stable/api/astropy.cosmology.FlatLambdaCDM
@@ -162,6 +170,11 @@ def load_param_dict(param_dict={}):
     # Set non-calculated defaults for keys not already present
     for k in (set(pdkeys_noncalc) - set(param_dict.keys())):
         p[k] = globals()[k]
+
+    # Set sim defaults for keys not already present
+    sim = p['sim_name']
+    for k in (set(pdkeys_sim[sim]) - set(param_dict.keys())):
+        p[k] = globals()[k][sim]
 
     # Set calculated parameters
     p['cosmo'] = cosmology.FlatLambdaCDM(H0=p['cosmo_H0'],
