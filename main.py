@@ -52,7 +52,8 @@ pdkeys_sim = { # parameters specific to DM sim
                     'sim_FoF_b', # FoF linking length
                     'sim_Lbox', # [Mpc/h]
                     'sim_particle_mass', # [Msun/h], convert halos to halocat
-                    'sim_redshift'
+                    'sim_redshift',
+                    'keep_halo_frac' # fraction of halos
                     ]
                 }
 
@@ -66,6 +67,7 @@ sim_halofinder = {'multidark': 'rockstar'}
 sim_Lbox = {'multidark': 1000.0, 'outerrim': 3000.0}
 sim_particle_mass = {'outerrim': 1.85e9}
 sim_redshift = {'multidark': 0.466, 'outerrim': 0.539051} # also have outerrim 0.502242
+keep_halo_frac = {'outerrim': 1}
 
 # Cosmology, HOD info
 # https://docs.astropy.org/en/stable/api/astropy.cosmology.FlatLambdaCDM
