@@ -141,7 +141,7 @@ def load_outerrim_halotools_setup(param_dict, data, name_df_cols):
     if halofrac != 1:
         _warn("\nDownsampling halos\n")
         l = data.shape[1]
-        keep_idx = rand.sample(range(l),int(l*0.01))
+        keep_idx = rand.sample(range(l),int(l*halofrac))
         halo_df = pd.DataFrame(data.T[keep_idx,:], columns=name_df_cols)
     else:
         halo_df = pd.DataFrame(data.T, columns=name_df_cols)
