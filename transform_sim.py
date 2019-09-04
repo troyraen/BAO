@@ -158,7 +158,7 @@ def get_ra_dec_z(param_dict, PSdf):
     ### Observed Redshift
     vr = PSdf.vx*st*cp + PSdf.vy*st*sp + PSdf.vz*ct # = radial peculiar comoving velocity
     # compute cosmological redshift and add contribution from peculiar velocity
-    z_cos = interp_z_from_codist(p, r, per_h=False, zbound=[0,3])
+    z_cos = interp_z_from_codist(p, r, per_h=False, zbound=[0,5])
     redshifts = z_cos+(vr/c_km_s)*(1.0+z_cos)
     # bin redshifts
     zbin_edges, zbin_cens = set_zbins(p, redshifts) if 'zbin_edges' not in p.keys() \
@@ -222,7 +222,7 @@ def set_zbins(param_dict, redshifts):
     x2 = (p['cosmo'].comoving_distance(p['z4push']).value) * p['cosmo'].h # Mpc/h
     yz2 = p['mock_Lbox'] / 2.
     r2 = np.sqrt(x2**2 + yz2**2 + yz2**2)
-    z2 = interp_z_from_codist(p, r2, per_h=True, zbound=[0,3])
+    z2 = interp_z_from_codist(p, r2, per_h=True, zbound=[0,5])
 
     # Get bin parameters
     w = p['zbin_width']

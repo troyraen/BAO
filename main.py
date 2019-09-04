@@ -13,6 +13,7 @@ import calc_stats as cs
 # fe*** IMPORTS ***#
 
 #*** param_dict keys ***#
+# param_dict.keys() = pdkeys_noncalc + pdkeys_calc + pdkeys_sim[sim_name]
 pdkeys_calc = [     # parameters that need to be calculated
                     'cosmo', # astropy cosmology object
                     'mock_Lbox',
@@ -41,20 +42,19 @@ pdkeys_noncalc = [  # parameters set as is
                     'z4push', # float or 'sim'. if 'sim', z4push set in transform_sim.transform()
                     'zbin_width',
                     ]
-pdkeys_sim = {      # parameters specific to DM sim
-                    'multidark':
-                        [   'sim_halofinder',
-                            'sim_Lbox', # [Mpc/h]
-                            'sim_redshift'
-                        ],
-                    'outerrim':
-                        [   'sim_FoF_b', # FoF linking length
-                            'sim_Lbox', # [Mpc/h]
-                            'sim_particle_mass', # [Msun/h], convert halos to halocat
-                            'sim_redshift'
-                        ]
-                    }
-# pdkeys = pdkeys_noncalc + pdkeys_calc + pdkeys_sim[sim_name]
+pdkeys_sim = { # parameters specific to DM sim
+               'multidark': [
+                    'sim_halofinder',
+                    'sim_Lbox', # [Mpc/h]
+                    'sim_redshift'
+                    ],
+               'outerrim': [
+                    'sim_FoF_b', # FoF linking length
+                    'sim_Lbox', # [Mpc/h]
+                    'sim_particle_mass', # [Msun/h], convert halos to halocat
+                    'sim_redshift'
+                    ]
+                }
 
 
 # fs*** param_dict DEFAULTS ***#

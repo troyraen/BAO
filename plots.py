@@ -15,7 +15,7 @@ def plot_stats(fdat, save=None, show=True):
 
     df = load_statsdat(fdat)
     # keep 2nd zbin
-    df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=0.7))].index, inplace=True)
+    # df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=0.7))].index, inplace=True)
 
     sdf = df.groupby('statname').mean() # df
     sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
@@ -173,7 +173,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=
         r = np.sqrt(gs.x**2 + gs.y**2 + gs.z**2)
         ax.scatter(r, gs.Redshift, s=1, alpha=0.5, c=c)
         # plt.loglog()
-        plt.xlabel(r'r\ h^{-1}$ [Mpc]')
+        plt.xlabel(r'$r\ h^{-1}$ [Mpc]')
         plt.ylabel('Redshift')
 
         # calc and display num galaxies in each zbin
