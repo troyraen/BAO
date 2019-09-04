@@ -5,6 +5,8 @@
 """
 
 import os as os
+from warnings import warn as _warn
+import random as rand
 import pandas as pd
 import numpy as np
 
@@ -133,7 +135,12 @@ def load_outerrim_halotools_setup(param_dict, data, name_df_cols):
                 }
 
     # create df with halos having x < 500 Mpc/h
-    halo_df = pd.DataFrame(data.T[data.T[:,2]<500,:], columns=name_df_cols)
+    # _warn('\nThrowing out all halos with x > 500 Mpc/h\n')
+    # halo_df = pd.DataFrame(data.T[data.T[:,2]<500,:], columns=name_df_cols)
+    _warn('\nDownsampling halos\n')
+    l = data.shape[1]
+    keep_idx = rand.sample(range(l),int(l*0.01))
+    halo_df = pd.DataFrame(data.T[keep_idx,:], columns=name_df_cols)
 
     # add columns
     halo_df['halo_rvir'] = load_outerrim_halotools_setup_calc_rvir(p, halo_df)
