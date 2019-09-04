@@ -6,6 +6,7 @@
 
 import os as os
 import pandas as pd
+import numpy as np
 
 import halotools.sim_manager.sim_defaults as sim_defaults
 from halotools.sim_manager import CachedHaloCatalog
@@ -181,11 +182,16 @@ def popHalos_usingHOD(halocat, param_dict):
 
     p = param_dict
 
-    # Populate the catalog
-    HODmodel = PrebuiltHodModelFactory(p['HOD_model'], redshift=p['sim_redshift'])
+    # Load the HOD
+    kwargs = {'redshift': p['sim_redshift']}
+    if p['sim_name'] == 'outerrim': # need to calc concentration
+        kwargs['conc_mass_model': 'dutton_maccio14']
+    HODmodel = PrebuiltHodModelFactory(p['HOD_model'], **kwargs)
+    # add HOD params
     for key, val in p['HOD_params'].items():
         HODmodel.param_dict[key] = val
 
+    # Populate the catalog
     HODmodel.populate_mock(halocat) # use this command to create and populate the mock
     # HODmodel.mock.populate() # use this command to REpopulate
 
