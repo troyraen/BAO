@@ -16,6 +16,8 @@ import calc_stats as cs
 # param_dict.keys() = pdkeys_noncalc + pdkeys_calc + pdkeys_sim[sim_name]
 pdkeys_calc = [     # parameters that need to be calculated
                     'cosmo', # astropy cosmology object
+                    'cosmo_H0',
+                    'cosmo_Om0',
                     'mock_Lbox',
                     'mock_num', # ID for this mock
                     'theta_scaled_binedges',
@@ -23,8 +25,6 @@ pdkeys_calc = [     # parameters that need to be calculated
                     'zbin_edges'  # set in transform_sim.transform()
                     ]
 pdkeys_noncalc = [  # parameters set as is
-                    'cosmo_H0',
-                    'cosmo_Om0',
                     'galplots',
                     'HOD_model',
                     'HOD_params',
@@ -44,11 +44,13 @@ pdkeys_noncalc = [  # parameters set as is
                     ]
 pdkeys_sim = { # parameters specific to DM sim
                'multidark': [
+                    'sim_cosmo',
                     'sim_halofinder',
                     'sim_Lbox', # [Mpc/h]
                     'sim_redshift'
                     ],
                'outerrim': [
+                    'sim_cosmo',
                     'sim_FoF_b', # FoF linking length
                     'sim_Lbox', # [Mpc/h]
                     'sim_particle_mass', # [Msun/h], convert halos to halocat
@@ -62,6 +64,17 @@ pdkeys_sim = { # parameters specific to DM sim
 
 # Simulation info
 sim_name = 'outerrim' # 'multidark' or 'outerrim'
+sim_cosmo = {'multidark': # https://www.cosmosim.org/cms/simulations/mdr1/
+                    {'h': 0.70,
+                     'Omega_m': 0.27,
+                     'Omega_b': 0.0469 # not used, just FYI
+                    },
+             'outerrim':
+                    {'h': 0.7100,
+                     'Omega_CDM': 0.2200,
+                     'w_b': 0.02258
+                    }
+            }
 sim_FoF_b = {'outerrim': 0.168}
 sim_halofinder = {'multidark': 'rockstar'}
 sim_Lbox = {'multidark': 1000.0, 'outerrim': 3000.0}
@@ -72,9 +85,6 @@ keep_halo_frac = {'outerrim': 1}
 # Cosmology, HOD info
 # https://docs.astropy.org/en/stable/api/astropy.cosmology.FlatLambdaCDM
 # .html#astropy.cosmology.FlatLambdaCDM
-cosmo_H0 = 71.0 # outerrim h=0.71
-cosmo_Om0 = 0.22 + 0.04422 # outerrim Omega_CDM + Planck/WMAP Omega_baryon
-# https://lambda.gsfc.nasa.gov/education/graphic_history/baryonicd.cfm
 HOD_model = 'zheng07'
 # https://halotools.readthedocs.io/en/latest/quickstart_and_tutorials/
 # tutorials/model_building/preloaded_models/zheng07_composite_model.html
@@ -179,9 +189,18 @@ def load_param_dict(param_dict={}):
         p[k] = globals()[k][sim]
 
     # Set calculated parameters
+
+    # cosmology
+    p['cosmo_H0'] = p['sim_cosmo']['h']*100
+    if sim == 'multidark':
+        p['cosmo_Om0'] = p['sim_cosmo']['Omega_m']
+    elif sim == 'outerrim':
+        p['cosmo_Om0'] = p['sim_cosmo']['Omega_CDM'] + \
+                         p['sim_cosmo']['w_b']/p['sim_cosmo']['h']**2
     p['cosmo'] = cosmology.FlatLambdaCDM(H0=p['cosmo_H0'],
                                          Om0=p['cosmo_Om0'])
 
+    # misc
     p['mock_Lbox'] = p['sim_Lbox']* p['mock_Nstack']
 
     p['mock_num'] = get_mock_num()
