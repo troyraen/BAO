@@ -7,13 +7,13 @@ from mpl_toolkits.mplot3d import Axes3D
 
 cosmo = None
 
-def plot_stats(fdat, save=None, show=True, zbin='avg', param_dict=None):
+def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg'):
     """ Plots stats (1 per column) in file fdat.
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
-        zbin         : =='avg' will average zbins in wtheta plot
         param_dict   : only need key = 'cosmo', value = astropy cosmology object.
                        Needed for wtheta x-axis conversion.
+        zbin         : =='avg' will average zbins in wtheta plot
     """
     globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
 
@@ -128,8 +128,9 @@ def get_bins_stats(row, stat, avg_zbins=False):
                 'xi':     (r'r $h^{-1}$ [Mpc]', r'$r^2\ \xi(r)$')
               }
 
-    x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
-    y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
+    a = 0 if not avg_zbins else 1
+    x = row.filter(like='bin_').rename(mapper=lambda xx: xx.split('_')[-1], axis=a)
+    y = row.filter(like='stat_').rename(mapper=lambda xx: xx.split('_')[-1], axis=a)
 
     if stat == 'wtheta':
         y = x*y
