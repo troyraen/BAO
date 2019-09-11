@@ -1,15 +1,22 @@
+from warnings import warn as _warn
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+cosmo = None
 
-def plot_stats(fdat, save=None, show=True):
+def plot_stats(fdat, save=None, show=True, zbin='avg', param_dict=None):
     """ Plots stats (1 per column) in file fdat.
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
+        zbin         : =='avg' will average zbins in wtheta plot
+        param_dict   : only need key = 'cosmo', value = astropy cosmology object.
+                       Needed for wtheta x-axis conversion.
     """
+    globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
+
     holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
     mpl.rcParams['figure.figsize'] = [14.0, 4.0]
 
@@ -29,21 +36,24 @@ def plot_stats(fdat, save=None, show=True):
     for i, (stat, row) in enumerate(sdf.iterrows()):
         ax = axs[i]
 
-        x,y,ylabel = get_bins_stats(row, stat)
+        if zbin == 'avg' and stat == 'wtheta':
+            x,y,axlbls = get_bins_stats(df.loc[df.statname=='wtheta',:], stat, avg_zbins=True)
+        else:
+            x,y,axlbls = get_bins_stats(row, stat)
         try:
             lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}, {}'.format(\
                         row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat], row['NR/NG'])
         except: # use for old format files with no zwidth
             lbl = r'{:.2f}, {:.0f}, {}, {}'.format(\
                         row.zbin, row.Nstack, lendf.loc[stat], row['NR/NG'])
-        ax.semilogx(x,y, label=lbl)
 
+        ax.semilogx(x,y, label=lbl)
         ax.axhline(0, c='0.5')
         ax.grid(which='both')
         ax.set_title(stat)
         ax.legend(title='zbin, Nstk, Nm, NR')
-        ax.set_xlabel(r'$\theta$ [deg]' if stat not in ['wp','xi'] else r'r $h^{-1}$ [Mpc]')
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(axlbls[0])
+        ax.set_ylabel(axlbls[1])
 
         # if stat != 'wtheta':
         #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
@@ -104,7 +114,7 @@ def validate_statmeans_xbins(df, avg_zbins=False):
 
 
 def get_bins_stats(row, stat, avg_zbins=False):
-    """ Returns 2 series plus a y-axis label:
+    """ Returns 2 series plus a x- and y-axis labels.
         x = columns starting with 'bin_'
         y = columns starting with 'stat_'
         Scales y values according to stat.
@@ -112,30 +122,57 @@ def get_bins_stats(row, stat, avg_zbins=False):
         if avg_zbins==True, row should be a DataFrame
     """
 
-    lbldict = { 'wtheta': r'$\theta\ w(\theta)$', \
-                'wp': r'$r\ w_p(r_p)$', \
-                'xi': r'$r^2\ \xi(r)$'}
+    # {statname: (xlabel, ylabel)}
+    lbldict = { 'wtheta': (r'$\theta/\theta_{BAO}$', r'$\theta\ w(\theta)$'),
+                'wp':     (r'r_p $h^{-1}$ [Mpc]', r'$r_p\ w_p(r_p)$'),
+                'xi':     (r'r $h^{-1}$ [Mpc]', r'$r^2\ \xi(r)$')
+              }
 
-    if not avg_zbins:
-        x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
-        y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
-        if stat in ['wtheta', 'wp']:
-            y = x*y
-        elif stat in ['xi']:
-            y = x*x*y
+    x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
+    y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
+
+    if stat == 'wtheta':
+        y = x*y
+        if avg_zbins:
+            y = y.mean(axis=0)
+            x = get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True)
         else:
-            print('stat {} not listed in myplots.get_bins_stats()'.format(stat))
+            x = get_theta_rp_from_tratio_bins(row.zbin, x, invert=True)
+
+    elif stat == 'wp':
+        y = x*y
+
+    elif stat == 'xi':
+        y = x*x*y
 
     else:
-        assert stat=='wtheta', 'mp.get_bins_stats() received avg_zbins=True but stat!=wtheta'
-        # Get theta*wtheta, then take average
-        x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1]) # df
-        y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1]) # df
-        y = x*y # df
-        x = hf.get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True) # series
-        y = y.mean(axis=0) # series
+        _warn(f'stat {stat} not listed in myplots.get_bins_stats()')
 
     return (x, y, lbldict[stat])
+
+
+# copied from calc_stats.py
+def get_theta_rp_from_tratio_bins(redshift, tratio_binedges, invert=False):
+    """ Converts tratio_binedges from units of theta_BAO(zbin) to degrees
+        at given redshift using law of cosines.
+
+        invert == True: 2nd arg (tratio_binedges) should be t_binedges
+                        Returns tratio_binedges
+    """
+
+    d_BAO = 105 # h^-1 Mpc
+    rz = (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
+    theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
+
+    if not invert:
+        t_binedges = theta_BAO* tratio_binedges # degrees
+        rp_binedges = rz* np.sqrt(2*(1-np.cos(np.radians(t_binedges)))) # projected, comoving distance
+        return t_binedges, rp_binedges
+    else:
+        trat_binedges = tratio_binedges/theta_BAO
+        return trat_binedges
+
+    return None
 
 
 # look at galaxy distribution
@@ -156,6 +193,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=
     gs = galaxies.sample(int(l*gal_frac))
 
     plt.figure()
+    plt.set_cmap('tab20')
     proj = '3d' if coords=='xyz' else None
     ax = plt.axes(projection=proj)
     # plt.figure().gca(projection='3d')
@@ -180,7 +218,7 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=
         str = 'zbin   # Galaxies'
         for i, (zzz,gsgz) in enumerate(gs.groupby('zbin')):
             str = str+ '\n{z:4.2f}  {gals}'.format(z=zzz, gals=len(gsgz))
-        plt.annotate(str, (0.15,0.75), xycoords='figure fraction')
+        plt.annotate(str, (0.15,0.15), xycoords='figure fraction')
 
     else: # raise an error
         assert 0, 'plot_galaxies() received invalid argument coords = {}'.format(coords)
