@@ -128,9 +128,12 @@ def get_bins_stats(row, stat, avg_zbins=False):
                 'xi':     (r'r $h^{-1}$ [Mpc]', r'$r^2\ \xi(r)$')
               }
 
-    a = 0 if not avg_zbins else 1
-    x = row.filter(like='bin_').rename(mapper=lambda xx: xx.split('_')[-1], axis=a)
-    y = row.filter(like='stat_').rename(mapper=lambda xx: xx.split('_')[-1], axis=a)
+    if not avg_zbins:
+        x = row.filter(like='bin_').rename(index=lambda xx: xx.split('_')[-1])
+        y = row.filter(like='stat_').rename(index=lambda xx: xx.split('_')[-1])
+    else:
+        x = row.filter(like='bin_').rename(columns=lambda xx: xx.split('_')[-1])
+        y = row.filter(like='stat_').rename(columns=lambda xx: xx.split('_')[-1])
 
     if stat == 'wtheta':
         y = x*y
