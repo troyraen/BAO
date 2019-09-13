@@ -13,7 +13,8 @@ def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg'):
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
         param_dict   : only need key = 'cosmo', value = astropy cosmology object.
                        Needed for wtheta x-axis conversion.
-        zbin         : =='avg' will average zbins in wtheta plot
+        zbin         : == 'avg': averages zbins in wtheta plot
+                       == n (int [0, num zbins - 1]) plots wtheta for nth zbin only
     """
     globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
 
@@ -21,8 +22,11 @@ def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg'):
     mpl.rcParams['figure.figsize'] = [14.0, 4.0]
 
     df = load_statsdat(fdat)
-    # keep 2nd zbin
-    # df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=0.7))].index, inplace=True)
+    if type(zbin) == int: # keep nth zbin
+        zbin_cens = np.sort(df.loc[df['statname']=='wtheta','zbin'].unique())
+        zzz = zbin_cens[zbin]
+        df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=zzz))].index,
+                inplace=True)
 
     sdf = df.groupby('statname').mean() # df
     sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
@@ -124,8 +128,8 @@ def get_bins_stats(row, stat, avg_zbins=False):
 
     # {statname: (xlabel, ylabel)}
     lbldict = { 'wtheta': (r'$\theta/\theta_{BAO}$', r'$\theta\ w(\theta)$'),
-                'wp':     (r'r_p $h^{-1}$ [Mpc]', r'$r_p\ w_p(r_p)$'),
-                'xi':     (r'r $h^{-1}$ [Mpc]', r'$r^2\ \xi(r)$')
+                'wp':     (r'$r_p\ h^{-1}$ [Mpc]', r'$r_p\ w_p(r_p)$'),
+                'xi':     (r'$r\ h^{-1}$ [Mpc]', r'$r^2\ \xi(r)$')
               }
 
     if not avg_zbins:
