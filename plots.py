@@ -112,7 +112,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         zdf_numMocks = wtdf.groupby('zbin').size() # series
         x,y,numMocks,mean_z,z_width = ([] for i in range(5))
         for (z, row) in zdf_means.iterrows():
-            xx, yy, axlbls = get_bins_stats(row, stat)
+            xx, yy, axlbls = get_bins_stats(row, stat, zzz=z)
             x.append(xx)
             y.append(yy)
             numMocks.append(zdf_numMocks[z])
@@ -177,7 +177,7 @@ def validate_statmeans_xbins(df, sep_by_zbin=False):
     return None
 
 
-def get_bins_stats(row, stat, avg_zbins=False):
+def get_bins_stats(row, stat, avg_zbins=False, zzz=None):
     """ Returns 2 series plus a x- and y-axis labels.
         x = columns starting with 'bin_'
         y = columns starting with 'stat_'
@@ -205,7 +205,7 @@ def get_bins_stats(row, stat, avg_zbins=False):
             y = y.mean(axis=0)
             x = get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True)
         else:
-            x = get_theta_rp_from_tratio_bins(row.zbin, x, invert=True)
+            x = get_theta_rp_from_tratio_bins(zzz, x, invert=True)
 
     elif stat == 'wp':
         y = x*y
