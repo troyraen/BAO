@@ -2,7 +2,7 @@
 
 # Example Usage
 
-## Calculate stats on 10 mocks and plot results (on Korriban)
+## Calculate stats on N mocks and plot results (on Korriban)
 ```bash
 printf "\e[?2004l" # turns off "bracketed paste mode" for correct copy-paste
 source .bashrc
@@ -15,15 +15,18 @@ ipython
 import main as main
 import plots as plots
 param_dict = {  'sim_name': 'outerrim',
-                'sim_redshift': 0.539051,
-                'sim_Lbox': 3000.0,
-                'sim_particle_mass': 1.85e9,
                 'stats': ['wtheta', 'xi', 'wp'],
-                'galplots': False}
-for i in range(10):
+                'galplots': False,
+                'keep_halo_frac': 0.1,
+                'zbin_width': 0.05 }
+for i in range(25):
     fstats = main.proc_mockbox(param_dict)
 
-plots.plot_stats(str(fstats), save=None, show=True)
+# look at stats file
+p = main.load_param_dict(param_dict)
+df = plots.load_statsdat(str(p['statfout']))
+plots.plot_stats(str(p['statfout']), save=None, show=True, param_dict=p)
+plots.plot_stats(str(p['statfout']), p, save=None, show=True, zbin='sep')
 
 # move default file statfout
 p = main.load_param_dict(param_dict)
@@ -35,9 +38,6 @@ main.file_ow(p['statfout'])
 ```python
 import main as main
 param_dict = {  'sim_name': 'outerrim',
-                'sim_redshift': 0.539051,
-                'sim_Lbox': 3000.0,
-                'sim_particle_mass': 1.85e9,
                 'stats': ['wtheta', 'xi', 'wp'],
                 'galplots': False}
 p = main.load_param_dict(param_dict)

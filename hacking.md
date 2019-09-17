@@ -1,3 +1,17 @@
+# plotting issues
+```python
+import pandas as pd
+import numpy as np
+cols = ['bin_1','bin_2','bin_3','stat_1','stat_2','stat_3','zbin']
+dft = pd.DataFrame(np.random.rand(20,7),columns=cols)
+dft['statname'] = 'wtheta'
+dft.loc[3:5,'statname'] = 'xi'
+zbin_cens = np.sort(dft.loc[dft['statname']=='wtheta','zbin'].unique())
+zbin = 2
+zzz = zbin_cens[zbin]
+dft.drop(labels=dft.loc[((dft['statname']=='wtheta') & (dft['zbin']!=zzz))].index)
+```
+
 # Load Fake halo catalog
 ```python
 from halotools.sim_manager import FakeSim
@@ -12,18 +26,30 @@ htbl.info
 from halotools.sim_manager import UserSuppliedHaloCatalog
 import main as main
 import get_sim as gs
+import transform_sim as ts
+import plots as plots
 import genericio as gio
 param_dict = {  'sim_name': 'outerrim',
                 'stats': ['wtheta', 'xi', 'wp'],
-                'galplots': False}
+                'galplots': False,
+                'keep_halo_frac': 0.1}
 p = main.load_param_dict(param_dict)
 # halocat = gs.load_outerrim(p)
 halo_metafile, read_cols, name_df_cols = gs.load_outerrim_data_setup(p)
-halo_metafile = halo_metafile+'#87' # load only 1 file
+# halo_metafile = halo_metafile+'#87' # load only 1 file
 data = gio.read(halo_metafile, read_cols)
 metadata, halodata = gs.load_outerrim_halotools_setup(p, data, name_df_cols)
 halocat = UserSuppliedHaloCatalog(**metadata, **halodata)
 gals_PS = gs.popHalos_usingHOD(halocat, p)
+plots.plot_galaxies(gals_PS, title="Sim Galaxies")
+gals_PS, gals_RDZ, p = ts.transform(p, gals_PS)
+plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed")
+plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed", coords='rz')
+rands_PS, rands_RDZ = main.get_randoms(p)
+boxes = { 'gals_PS':gals_PS, 'gals_RDZ':gals_RDZ,
+          'rands_PS':rands_PS, 'rands_RDZ':rands_RDZ }
+cs.calc_stats(p, boxes)
+plots.plot_stats(str(p['statfout']), save=None, show=True)
 ```
 <!-- fs plot concentration scaling of linking length (More+11 equ 13) -->
 ```python

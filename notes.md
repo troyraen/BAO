@@ -1,3 +1,31 @@
+# Jeff 9/17
+can bootstrap spacial regions (as opposed to objects)
+ - only need to calculate pair counts in each region once, then combine based on bootstrap draws (with replacement)
+ - try zwidth = 0.05. if still don't see signal in wtheta, can just use wp but calc this same way Rongpu does... use buffer regions to eliminate finger of god and keiser effect issues (this is what's blurring out signal in wtheta.. angle -> distance different at front of bin than back of bin.). get cross correlations (D1D2, D1R2, D2R1, R1R2) where 1 and 2 are different redshift bins.
+
+# Dark setup status 9/6
+genericio may or may not have installed correctly
+halotools will not install. possibly a gcc issue
+most recently tried `conda install -c psi4 gcc-5 ` but that failed.
+could try installing psi4 separately first.
+First try installing devtoolset
+
+# Andrew 9/13
+see if wtheta without last (last few?) zbins is less noisy (done, yes much less noisy)
+estimate errors.
+    - error propagation (see handwritten notes).
+    - jackknife - how does covariance vary as fnc of jackknife cell size
+    - see if halotools correlation functions give similar results
+
+
+# Andrew 9/6
+CMB and BBN tightly constrain w_b
+w_b = Omega_b*h^2
+uncertainty in w_b is mostly from cosmic variance, it is less than 1%
+
+consider getting rid of halos with mass less than Mmin - a few * sigma_logM
+downsampling should give
+
 # Initiate a Korriban session
 ```bash
 printf "\e[?2004l" # turns off "bracketed paste mode" for correct copy-paste
@@ -87,6 +115,7 @@ Lightcone Halos columns:
 ## Setup Generic_IO (to read data) in htenv on Korriban
 [Argonne Generic_IO Project](https://trac.alcf.anl.gov/projects/genericio)
 ```bash
+scl enable devtoolset-8 bash
 wget http://www.mcs.anl.gov/~turam/genericio/genericio-20190417.tar.gz
 tar xvzf genericio-20190417.tar.gz
 cd genericio
@@ -118,11 +147,34 @@ max redshift error in SDSS DR10 Photoz table is 0.365106,
 <!-- fe General BAO -->
 
 
+<!-- fs General HOD  -->
+# Rongpu HOD params
+Slack msg (1/15/19): "Hi Troy, here are the HOD parameters that I estimated for DESI LRGs"
+             alpha       logM1       sigma_logM     logM0     logMmin
+0.4<z<0.5    1.32828278 14.03372441  0.23939566 12.26827089 12.89376701
+0.5<z<0.6    1.28471955 14.07517928  0.10847995 12.56415841 12.96064825
+0.6<z<0.7    1.27655781 13.96366114  0.11947844 12.52597874 12.88283218
+0.7<z<0.8    1.31175508 14.03983411  0.23792983 12.11739015 12.9599072
+0.8<z<0.9    1.18976404 14.36159006  0.37759101 12.3080901  13.21897122
+
+# Zheng07 model
+To see how the following parameters are implemented, see Zheng07Cens.mean_occupation.
+• param_dict[‘logMmin’] - Minimum mass required for a halo to host a central galaxy.
+• param_dict[‘sigma_logM’] - Rate of transition from ⟨Ncen⟩=0⇒⟨Ncen=1⟩.
+To see how the following parameters are implemented, see Zheng07Sats.mean_occupation.
+• param_dict[‘alpha’] - Power law slope of the relation between halo mass and ⟨Nsat⟩.
+• param_dict[‘logM0’] - Low-mass cutoff in ⟨Nsat⟩.
+• param_dict[‘logM1’] - Characteristic halo mass where ⟨Nsat⟩ begins to assume a power law form.
+<!-- fe General HOD -->
+
 <!-- fs Conda Environment Setup -->
 # Setup Conda Environment
 ```bash
-conda create -n halotools_env python=3.7
+# scl enable devtoolset-8 bash
+conda create -n halotools_env astropy numpy scipy h5py requests beautifulsoup4 cython python=3.7
 conda activate halotools_env
+pip install halotools
+# install Generic_IO (see above)
 OGdir=${PWD}
 cd $CONDA_PREFIX
 mkdir -p ./etc/conda/activate.d
@@ -133,5 +185,16 @@ echo 'export OLD_PYTHONPATH="${PYTHONPATH}"' >> ./etc/conda/activate.d/env_vars.
 echo 'export PYTHONPATH="${PYTHONPATH}:/home/tjr63/Documents/genericio/python"' >> ./etc/conda/activate.d/env_vars.sh
 echo 'export PYTHONPATH=${OLD_PYTHONPATH}' >> ./etc/conda/deactivate.d/env_vars.sh
 echo 'unset OLD_PYTHONPATH' >> ./etc/conda/deactivate.d/env_vars.sh
+cd ${OGdir}
 ```
 <!-- fe Conda Environment Setup -->
+
+<!-- fs Update GCC on Dark -->
+Dark: Scientific Linux 6.10
+```python
+
+```
+<!-- fe Update GCC on Dark -->
+
+# Dark
+LLuxsfM7ShPzRXFnW86k3CkTUZrAfJqeN5HK9KLc9mhDPtkS
