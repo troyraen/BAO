@@ -6,62 +6,42 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 cosmo = None
+d_BAO = 105 # h^-1 Mpc
 
-def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg'):
+def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg', keep_zbin=None):
     """ Plots stats (1 per column) in file fdat.
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
         param_dict   : only need key = 'cosmo', value = astropy cosmology object.
                        Needed for wtheta x-axis conversion.
         zbin         : == 'avg': averages zbins in wtheta plot
-                       == n (int [0, num zbins - 1]) plots wtheta for nth zbin only
+                       == 'sep': plots zbins separately in wtheta plot
+        keep_zbin    : == None: keeps all zbins (with enough Ngals) for wtheta plot
+                       == n (int [0, num zbins - 1]) keeps only the nth zbin(s)
     """
     globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
 
-    holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
-    mpl.rcParams['figure.figsize'] = [14.0, 4.0]
+    df = load_statsdat(fdat, clean=True)
+    plot_dict = get_stats_plot_data(df, zbin, keep_zbin)
 
-    df = load_statsdat(fdat)
-    if type(zbin) == int: # keep nth zbin
-        zbin_cens = np.sort(df.loc[df['statname']=='wtheta','zbin'].unique())
-        zzz = zbin_cens[zbin]
-        df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=zzz))].index,
-                inplace=True)
+    nrows, ncols = 1, len(df.statname.unique())
+    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False, figsize=(14.0,4.0))
+    plt.set_cmap('YlOrRd')
+    plt.clim(vmin=0, vmax=4)
 
-    sdf = df.groupby('statname').mean() # df
-    sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
-    # validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
-    lendf = df.groupby('statname').size() # series with # of mocks aggragated in each df above
-
-    nrows, ncols = 1, len(lendf)
-    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False)
-
-    # Plot for each stat
-    for i, (stat, row) in enumerate(sdf.iterrows()):
+    for i, (stat, data) in enumerate(plot_dict.items()):
         ax = axs[i]
 
-        if zbin == 'avg' and stat == 'wtheta':
-            x,y,axlbls = get_bins_stats(df.loc[df.statname=='wtheta',:], stat, avg_zbins=True)
-        else:
-            x,y,axlbls = get_bins_stats(row, stat)
-        try:
-            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}, {}'.format(\
-                        row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat], row['NR/NG'])
-        except: # use for old format files with no zwidth
-            lbl = r'{:.2f}, {:.0f}, {}, {}'.format(\
-                        row.zbin, row.Nstack, lendf.loc[stat], row['NR/NG'])
+        for j in range(len(data['x'])):
+            lbl='lbl'
+            ax.semilogx(data['x'][j], data['y'][j], label=lbl)
 
-        ax.semilogx(x,y, label=lbl)
         ax.axhline(0, c='0.5')
         ax.grid(which='both')
         ax.set_title(stat)
         ax.legend(title='zbin, Nstk, Nm, NR')
-        ax.set_xlabel(axlbls[0])
-        ax.set_ylabel(axlbls[1])
-
-        # if stat != 'wtheta':
-        #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
-        #     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+        ax.set_xlabel(data['axlbls'][0])
+        ax.set_ylabel(data['axlbls'][1])
 
     plt.tight_layout()
     if save is not None:
@@ -69,8 +49,88 @@ def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg'):
     if show:
         plt.show(block=False)
 
-    mpl.rcParams['figure.figsize'] = holdfsz
     return None
+
+
+def get_stats_plot_data(df, zbin, keep_zbin):
+    """ Returns dict of stat info for plotting.
+
+    Args:
+        df          : stats DataFrame as returned by load_statsdat(fdat, clean=True)
+        zbin        : as passed to plot_stats() (affects wtheta plot)
+        keep_zbin   : as passed to plot_stats() (affects wtheta plot)
+
+    Returns
+        plot_dict   : { <statname>:
+                        { 'x':          series of x data (*)
+                          'y':          series of y data (*)
+                          'axlbls':     tuple of x,y axis labels
+                          'numMocks':   # of mocks averaged into data (*)
+                          'mean_z':     mean redshift of data (*)
+                          'z_width':    mean zbin width of data (*)
+                        }
+                      }
+                                        (*): if zbin=='sep', these are lists of same
+    """
+
+    wtdf = df.loc[df['statname']=='wtheta',:] # df with just wtheta
+    odf = df.loc[df['statname']!='wtheta',:] # df with everything but wtheta
+    plot_dict = {}
+
+    # Get odf plot data
+    validate_statmeans_xbins(odf)
+    odf_means = odf.groupby('statname').mean() # df
+    odf_numMocks = odf.groupby('statname').size() # series
+    for (stat, row) in odf_means.iterrows():
+        x, y, axlbls = get_bins_stats(row, stat)
+        plot_dict[stat] = { 'x': [x],
+                            'y': [y],
+                            'axlbls': axlbls,
+                            'numMocks': [odf_numMocks[stat]],
+                            'mean_z': [row.zbin],
+                            'z_width': [row.zwidth]
+                          }
+
+    # Get wtheta plot data
+    stat = 'wtheta'
+    validate_statmeans_xbins(wtdf, sep_by_zbin=True)
+
+    if keep_zbin is not None: # keep only nth zbin
+        keepz = np.sort(wtdf.zbin.unique())[keep_zbin]
+        wtdf.drop(labels=wtdf.loc[wtdf['zbin']!=keepz].index, inplace=True)
+
+    if zbin == 'avg':
+        x, y, axlbls = get_bins_stats(wtdf, stat, avg_zbins=True)
+        x = [x]
+        y = [y]
+        numMocks = [len(wtdf)]
+        mean_z = [wtdf.zbin.mean()]
+        z_width = [wtdf.zwidth.mean()]
+
+    elif zbin == 'sep':
+        zdf_means = wtdf.groupby('zbin').mean() # df
+        zdf_numMocks = wtdf.groupby('zbin').size() # series
+        x,y,numMocks,mean_z,z_width = ([] for i in range(5))
+        for (z, row) in zdf_means.iterrows():
+            xx, yy, axlbls = get_bins_stats(row, stat)
+            x.append(xx)
+            y.append(yy)
+            numMocks.append(zdf_numMocks[z])
+            mean_z.append(z)
+            z_width.append(row.zwidth)
+
+    else:
+        _warn(f'Invalid value for zbin argument')
+
+    plot_dict['wtheta'] = { 'x': x,
+                            'y': y,
+                            'axlbls': axlbls,
+                            'numMocks': numMocks,
+                            'mean_z': mean_z,
+                            'z_width': z_width
+                          }
+
+    return plot_dict
 
 
 def load_statsdat(fdat, stat=None, clean=False):
@@ -79,7 +139,7 @@ def load_statsdat(fdat, stat=None, clean=False):
 
         fdat (string or list of strings):   stats output file path(s)
         stat (string):  value in column statname in fdat
-        clean (bool):   == True will drop rows with Nrands<=1000
+        clean (bool):   == True will drop rows with Ngals<=10000
     """
 
     if type(fdat)==str:
@@ -97,18 +157,18 @@ def load_statsdat(fdat, stat=None, clean=False):
     if stat is not None:
         df = df.query("statname=='{}'".format(stat))
     if clean:
-        df = df.query("Nrands>1000")
+        df = df.query("Ngals>10000")
     return df
 
 
-def validate_statmeans_xbins(df, avg_zbins=False):
+def validate_statmeans_xbins(df, sep_by_zbin=False):
     """ Checks that xbins of collapsed statname have std_dev == 0
             and therefore are all the same.
-        avg_zbins == True allows for each zbin to have unique theta bins
+        sep_by_zbin == True allows for each zbin to have unique theta bins
     """
 
     errmsg = "Operation groupby 'statname' has averaged values in different theta or r bins."
-    if avg_zbins:
+    if sep_by_zbin:
         stddf = df.groupby(['zbin', 'statname']).std()
     else:
         stddf = df.groupby('statname').std()
@@ -168,7 +228,6 @@ def get_theta_rp_from_tratio_bins(redshift, tratio_binedges, invert=False):
                         Returns tratio_binedges
     """
 
-    d_BAO = 105 # h^-1 Mpc
     rz = (cosmo.comoving_distance(redshift).value)*cosmo.h # Mpc/h
     theta_BAO = np.degrees(np.arccos(1 - d_BAO**2/2/rz**2)) # law of cosines
 
@@ -238,4 +297,77 @@ def plot_galaxies(galaxies, gal_frac=0.05, title='Galaxies', coords='xyz', save=
     plt.show(block=False)
     plt.pause(10.0)
 
+    return None
+
+
+
+def plot_stats_old(fdat, param_dict, save=None, show=True, zbin='avg'):
+    """ Plots stats (1 per column) in file fdat.
+        Args:
+        fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
+        param_dict   : only need key = 'cosmo', value = astropy cosmology object.
+                       Needed for wtheta x-axis conversion.
+        zbin         : == 'avg': averages zbins in wtheta plot
+                       == 'sep': plots zbins separately in wtheta plot
+                       == n (int [0, num zbins - 1]) plots wtheta for nth zbin only
+    """
+    globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
+
+    holdfsz = mpl.rcParams['figure.figsize'] # keep to reset later
+    mpl.rcParams['figure.figsize'] = [14.0, 4.0]
+
+    df = load_statsdat(fdat, clean=True)
+    zbin_cens = np.sort(df.loc[df['statname']=='wtheta','zbin'].unique())
+
+    if type(zbin) == int: # keep only nth zbin for wtheta
+        zzz = zbin_cens[zbin]
+        df.drop(labels=df.loc[((df['statname']=='wtheta') & (df['zbin']!=zzz))].index,
+                inplace=True)
+
+    dfw = df.loc[df.statname=='wtheta',:]
+
+    sdf = df.groupby('statname').mean() # df
+    sdf['NR/NG'] = (sdf['Nrands']/sdf['Ngals']).astype(int)
+    # validate_statmeans_xbins(df) # make sure we haven't averaged different xbins
+    lendf = df.groupby('statname').size() # series with # of mocks aggragated in each df above
+
+    nrows, ncols = 1, len(lendf)
+    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False, figsize=(14.0,4.0))
+    plt.set_cmap('YlOrRd')
+    plt.clim(vmin=0, vmax=4)
+
+    # Plot for each stat
+    for i, (stat, row) in enumerate(sdf.iterrows()):
+        ax = axs[i]
+
+    	if zbin == 'avg' and stat == 'wtheta':
+            x,y,axlbls = get_bins_stats(df.loc[df.statname=='wtheta',:], stat, avg_zbins=True)
+        else:
+            x,y,axlbls = get_bins_stats(row, stat)
+        try:
+            lbl = r'{:.2f}$\pm${:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.zwidth/2, row.Nstack, lendf.loc[stat], row['NR/NG'])
+        except: # use for old format files with no zwidth
+            lbl = r'{:.2f}, {:.0f}, {}, {}'.format(\
+                        row.zbin, row.Nstack, lendf.loc[stat], row['NR/NG'])
+
+        ax.semilogx(x,y, label=lbl)
+        ax.axhline(0, c='0.5')
+        ax.grid(which='both')
+        ax.set_title(stat)
+        ax.legend(title='zbin, Nstk, Nm, NR')
+        ax.set_xlabel(axlbls[0])
+        ax.set_ylabel(axlbls[1])
+
+        # if stat != 'wtheta':
+        #     ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+        #     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
+    plt.tight_layout()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show(block=False)
+
+    mpl.rcParams['figure.figsize'] = holdfsz
     return None
