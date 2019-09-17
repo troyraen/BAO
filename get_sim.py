@@ -39,6 +39,7 @@ def get_sim_galaxies(param_dict):
     gals_PS = popHalos_usingHOD(halocat, p) # phase space coords of galaxies
 
     # check and set param_dict parameters
+    # these are probably unnecessary
     assert halocat.Lbox[0] == p['sim_Lbox'], 'sim_Lbox != cat_Lbox'
     assert halocat.redshift == p['sim_redshift'], 'sim_redshift != cat_redshift'
 
@@ -67,10 +68,12 @@ def load_outerrim(param_dict):
 
     # Load halo data from Outer Rim files
     halo_metafile, read_cols, name_df_cols = load_outerrim_data_setup(p)
+    print('Loading Outer Rim halos from file.')
     data = gio.read(halo_metafile, read_cols)  # nparray [len(read_cols), num halos]
 
     # Generate Halotools halo catalog
     metadata, halodata = load_outerrim_halotools_setup(p, data, name_df_cols)
+    del data
     halocat = UserSuppliedHaloCatalog(**metadata, **halodata)
 
     return halocat
@@ -129,7 +132,7 @@ def load_outerrim_halotools_setup(param_dict, data, name_df_cols):
 
     p = param_dict
 
-    metadata = {'Lbox': p['mock_Lbox'],
+    metadata = {'Lbox': p['sim_Lbox'],
                 'particle_mass': p['sim_particle_mass'],
                 'redshift': p['sim_redshift']
                 }
@@ -186,7 +189,7 @@ def load_outerrim_halotools_setup_calc_rvir(param_dict, halo_df):
     rho_mean = 3e10*p['cosmo_Om0']*Mpc/(8*np.pi*G) # h^2 kg Mpc^-3
     rvir = ((3*halo_df.halo_mvir*Msun)/(4*np.pi* Delta_vir* rho_mean))**(1./3.) # Mpc/h
 
-    return rvir
+    return rvir # todo: check this better
 
 
 def popHalos_usingHOD(halocat, param_dict):
@@ -195,15 +198,19 @@ def popHalos_usingHOD(halocat, param_dict):
     """
 
     p = param_dict
+    simz = p['sim_redshift']
 
     # Load the HOD
-    kwargs = {'redshift': p['sim_redshift']}
+    kwargs = {'redshift': simz}
     if p['sim_name'] == 'outerrim': # need to calc concentration
         kwargs['conc_mass_model'] = 'dutton_maccio14'
     HODmodel = PrebuiltHodModelFactory(p['HOD_model'], **kwargs)
     # add HOD params
-    for key, val in p['HOD_params'].items():
-        HODmodel.param_dict[key] = val
+    for key, hoddic in p['HOD_params'].items():
+        if simz>key[0] and simz<=key[1]: # get the right params for sim redshift
+            for key, val in hoddic.items():
+                HODmodel.param_dict[key] = val
+        break
 
     # Populate the catalog
     HODmodel.populate_mock(halocat) # use this command to create and populate the mock

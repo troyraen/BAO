@@ -44,13 +44,13 @@ pdkeys_noncalc = [  # parameters set as is
                     ]
 pdkeys_sim = { # parameters specific to DM sim
                'multidark': [
-                    'sim_cosmo',
+                    'sim_cosmo', # dict of sim cosmo params
                     'sim_halofinder',
                     'sim_Lbox', # [Mpc/h]
                     'sim_redshift'
                     ],
                'outerrim': [
-                    'sim_cosmo',
+                    'sim_cosmo', # dict of sim cosmo params
                     'sim_FoF_b', # FoF linking length
                     'sim_Lbox', # [Mpc/h]
                     'sim_particle_mass', # [Msun/h], convert halos to halocat
@@ -88,11 +88,22 @@ keep_halo_frac = {'outerrim': 1}
 HOD_model = 'zheng07'
 # https://halotools.readthedocs.io/en/latest/quickstart_and_tutorials/
 # tutorials/model_building/preloaded_models/zheng07_composite_model.html
-HOD_params = {  'logMmin': 12.89376701, # Minimum mass req for halo to host central galaxy.
-                'sigma_logM': 0.23939566, # Rate of transition from ⟨Ncen⟩=0⇒⟨Ncen=1⟩
-                'logM0': 12.26827089, # Low-mass cutoff in ⟨Nsat⟩
-                'logM1': 14.03372441, # Halo mass where ⟨Nsat⟩ begins to assume power law form.
-                'alpha': 1.32828278 # Power law slope of halo mass, ⟨Nsat⟩ relation.
+HOD_params = {  # <(redshift range)>: dict with keys:
+                # 'logMmin' (Minimum mass req for halo to host central galaxy.)}
+                # 'sigma_logM' (Rate of transition from ⟨Ncen⟩=0⇒⟨Ncen=1⟩)
+                # 'logM0' (Low-mass cutoff in ⟨Nsat⟩)
+                # 'logM1' (Halo mass where ⟨Nsat⟩ begins to assume power law form.)
+                # 'alpha' (Power law slope of halo mass, ⟨Nsat⟩ relation.)
+                (0.4,0.5): {'logMmin': 12.89376701,
+                            'sigma_logM': 0.23939566,
+                            'logM0': 12.26827089,
+                            'logM1': 14.03372441,
+                            'alpha': 1.32828278},
+                (0.5,0.6): {'logMmin': 12.96064825,
+                            'sigma_logM': 0.10847995,
+                            'logM0': 12.56415841,
+                            'logM1': 14.07517928,
+                            'alpha': 1.28471955}
             }
 
 # Mock info
@@ -127,38 +138,30 @@ def proc_mockbox(param_dict={}):
     Args:
 
         param_dict  (dict): Parameters for the run.
-                            Keys can be anything in pdkeys_noncalc (defined above).
+                            Keys can be anything in
+                            pdkeys_noncalc or pdkeys_sim[sim] (defined above).
                             Default values (defined above) are used for missing keys.
     Returns:
         p['statfout'] (path): path to stats output.
     """
     # Load parameter dictionary for the run
     p = load_param_dict(param_dict)
-    # print(p)
 
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(p)
     if p['galplots']: plots.plot_galaxies(gals_PS, title="Sim Galaxies")
-    # print(gals_PS.info())
 
     # Transform coordinates
     gals_PS, gals_RDZ, p = ts.transform(p, gals_PS)
     if p['galplots']:
         plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed")
         plots.plot_galaxies(gals_PS, title="Sim Galaxies Transformed", coords='rz')
-    # print(p)
-    # print(gals_PS.sample(2))
-    # print(gals_RDZ.sample(2))
 
     # Get randoms
     rands_PS, rands_RDZ = get_randoms(p)
-    # print(rands_PS.info())
     if p['galplots']:
         plots.plot_galaxies(rands_PS, title="Randoms")
         plots.plot_galaxies(rands_PS, title="Randoms", coords='rz')
-    # print(rands_PS.sample(2))
-    # print(rands_RDZ.sample(2))
-
 
     # Calc stats
     boxes = { 'gals_PS':gals_PS, 'gals_RDZ':gals_RDZ,
