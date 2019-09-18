@@ -352,7 +352,7 @@ def plot_stats_old(fdat, param_dict, save=None, show=True, zbin='avg'):
     for i, (stat, row) in enumerate(sdf.iterrows()):
         ax = axs[i]
 
-    	if zbin == 'avg' and stat == 'wtheta':
+        if zbin == 'avg' and stat == 'wtheta':
             x,y,axlbls = get_bins_stats(df.loc[df.statname=='wtheta',:], stat, avg_zbins=True)
         else:
             x,y,axlbls = get_bins_stats(row, stat)
