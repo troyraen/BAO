@@ -129,7 +129,7 @@ galplots = False # whether to plot galaxies while obtaining/transforming
 # fe*** END param_dict DEFAULTS ***#
 
 
-def proc_mockbox(param_dict={}):
+def proc_mockbox(param_dict={}, fstat_ow=False):
     """ Loads DM sim particles or halos.
         Populates sim with galaxies.
         Transforms coordinates to ra/dec/redshift with box at redshift=z4push.
@@ -141,11 +141,16 @@ def proc_mockbox(param_dict={}):
                             Keys can be anything in
                             pdkeys_noncalc or pdkeys_sim[sim] (defined above).
                             Default values (defined above) are used for missing keys.
+
+        fstat_ow    (bool): Whether to move p['statfout'] and start a new file.
+
     Returns:
         p['statfout'] (path): path to stats output.
     """
     # Load parameter dictionary for the run
     p = load_param_dict(param_dict)
+    
+    if fstat_ow: file_ow(p['statfout'])
 
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(p)
