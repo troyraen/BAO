@@ -160,6 +160,7 @@ def get_ra_dec_z(param_dict, PSdf):
     # compute cosmological redshift and add contribution from peculiar velocity
     z_cos = interp_z_from_codist(p, r, per_h=False, zbound=[0,5])
     redshifts = z_cos+(vr/c_km_s)*(1.0+z_cos)
+
     # bin redshifts
     zbin_edges, zbin_cens = set_zbins(p, redshifts) if 'zbin_edges' not in p.keys() \
                             else (p['zbin_edges'], p['zbin_cens'])
@@ -204,12 +205,9 @@ def interp_z_from_codist(param_dict, codist, per_h=True, zbound=(0,3)):
     return zinterp(codist)
 
 
-
 def set_zbins(param_dict, redshifts):
-    """ Generates redshift bins based on input redshifts.
-
-        2nd bin starts at redshift( x = z4push, y = z = mock_Lbox/2 )
-        and is therefore the first full bin, assuming there are at least 3 bins.
+    """ Generates redshift bins.
+        First bin starts at z4push - 0.02 to account for peculiar velocities.
 
     Args:
         redshifts (array):
@@ -218,21 +216,24 @@ def set_zbins(param_dict, redshifts):
     """
     p = param_dict
 
-    # Calculate redshift that 2nd bin should start at.
-    x2 = (p['cosmo'].comoving_distance(p['z4push']).value) * p['cosmo'].h # Mpc/h
-    yz2 = p['mock_Lbox'] / 2.
-    r2 = np.sqrt(x2**2 + yz2**2 + yz2**2)
-    z2 = interp_z_from_codist(p, r2, per_h=True, zbound=[0,5])
+    # Get box zmin and zmax
+    Lbox, box_zmin = p['mock_Lbox'], p['z4push']
+    box_rmin = (p['cosmo'].comoving_distance(box_zmin).value) * p['cosmo'].h # Mpc/h
+    box_rmax = np.sqrt((box_rmin+Lbox)**2 + 1/2*Lbox**2) # Mpc/h
+    box_zmax = interp_z_from_codist(p, box_rmax, per_h=True, zbound=(0,5))
 
-    # Get bin parameters
+    # Add a buffer for scatter due to peculiar velocities
+    zmin = box_zmin - 0.02
+    assert zmin<redshifts.min(), 'There is a galaxy with z < zbin_min.'
+    zmax = box_zmax + 0.02
     w = p['zbin_width']
-    zmin, zmax = z2 - w, np.ceil(10*redshifts.max())/10
-    if redshifts.min() < zmin:
-        zmin = redshifts.min()
-        _warn('\nConsider larger zbin_width. 2nd bin is NOT full.\n')
-    num_zbins = np.ceil((zmax - zmin)/ w)
+    Nbins = np.ceil((zmax-zmin)/w)
 
-    edges = np.array([ np.round(zmin+ w*i, 2) for i in range(int(num_zbins)+1) ])
+    # Set bins and remove any empty bin(s) at the back
+    edges = np.array([ np.round(zmin+ w*i, 2) for i in range(int(Nbins)+1) ])
     cens = np.array([ np.round((edges[i]+edges[i+1])/2, 2) for i in range(len(edges)-1)])
+    while redshifts.max() < edges[-2]:
+        edges = edges[:,-1]
+        cens = cens[:,-1]
 
     return edges, cens
