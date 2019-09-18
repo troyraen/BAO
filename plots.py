@@ -82,9 +82,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     odf_numMocks = odf.groupby('statname').size() # series
     for (stat, row) in odf_means.iterrows():
         x, y, axlbls = get_bins_stats(row, stat)
-        lbl = (fr'z = {row.zbin:.2f}$\pm${row.zwidth/2.:.2f} '
-               fr'{row.Nrands/row.Ngals:.0f}R '
-               fr'{odf_numMocks[stat]}M')
+        lbl = get_plotdata_label(row.zbin,row.zwidth,row.Nrands,row.Ngals,odf_numMocks[stat])
         plot_dict[stat] = { 'x': [x],
                             'y': [y],
                             'axlbls': axlbls,
@@ -109,9 +107,9 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         numMocks = [len(wtdf)]
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
-        lbl = [(fr'z = {mean_z:.2f}$\pm${z_width/2.:.2f} '
-                fr'{(wtdf.Nrands/wtdf.Ngals).mean()}R '
-                fr'{numMocks}M' )]
+        l = get_plotdata_label(mean_z[0],z_width[0],wtdf.Nrands.mean(),
+                               wtdf.Ngals.mean(),numMocks[0])
+        lbl = [l]
 
     elif zbin == 'sep':
         zdf_means = wtdf.groupby('zbin').mean() # df
@@ -125,10 +123,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
             numMocks.append(zdf_numMocks[z])
             mean_z.append(z)
             z_width.append(row.zwidth)
-            l = (fr'z = {z:.2f}$\pm${row.zwidth/2.:.2f} '
-                 fr'{row.Nrands/row.Ngals:.0f}R '
-                 fr'{zdf_numMocks[z]}M')
-            lbl.append(l)
+            lbl.append(get_plotdata_label(z,row.zwidth,row.Nrands,row.Ngals,zdf_numMocks[z]))
 
     else:
         _warn(f'Invalid value for zbin argument')
@@ -143,6 +138,16 @@ def get_stats_plot_data(df, zbin, keep_zbin):
                           }
 
     return plot_dict
+
+
+def get_plotdata_label(z, zwidth, Nrands, Ngals, numMocks):
+
+    lbl = ( fr'z = {z:.3f}$\pm${zwidth/2.:.3f} '
+            fr'{Nrands/Ngals:.0f}R '
+            fr'{numMocks}M'
+          )
+
+    return lbl
 
 
 def load_statsdat(fdat, stat=None, clean=False):
