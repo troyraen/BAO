@@ -108,7 +108,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
         l = get_plotdata_label(mean_z[0],z_width[0],wtdf.Nrands.mean(),
-                               wtdf.Ngals.mean(),numMocks[0])
+                               wtdf.Ngals.mean(),numMocks[0], zavg=True)
         lbl = [l]
 
     elif zbin == 'sep':
