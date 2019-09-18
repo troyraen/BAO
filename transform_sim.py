@@ -233,7 +233,7 @@ def set_zbins(param_dict, redshifts):
     edges = np.array([ np.round(zmin+ w*i, 2) for i in range(int(Nbins)+1) ])
     cens = np.array([ np.round((edges[i]+edges[i+1])/2, 2) for i in range(len(edges)-1)])
     while redshifts.max() < edges[-2]:
-        edges = edges[:,-1]
-        cens = cens[:,-1]
+        edges = edges[:-1]
+        cens = cens[:-1]
 
     return edges, cens
