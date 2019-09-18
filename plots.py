@@ -8,34 +8,35 @@ from mpl_toolkits.mplot3d import Axes3D
 cosmo = None
 d_BAO = 105 # h^-1 Mpc
 
-def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg', keep_zbin=None):
+def plot_stats(fdat, cosmo_in=None, save=None, show=True, zbin='avg', keep_zbin=None):
     """ Plots stats (1 per column) in file fdat.
         Args:
         fdat (string): path to stats.dat file as written by MockBox.write_stat_to_file()
-        param_dict   : only need key = 'cosmo', value = astropy cosmology object.
-                       Needed for wtheta x-axis conversion.
+        cosmo_in     : astropy cosmology object. Needed for wtheta x-axis conversion.
         zbin         : == 'avg': averages zbins in wtheta plot
                        == 'sep': plots zbins separately in wtheta plot
         keep_zbin    : == None: keeps all zbins (with enough Ngals) for wtheta plot
                        == n (int [0, num zbins - 1]) keeps only the nth zbin(s)
     """
-    globals()['cosmo'] = param_dict['cosmo'] # needed for wtheta x-axis conversion
+    globals()['cosmo'] = cosmo_in # needed for wtheta x-axis conversion
+    sm = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=0, vmax=4), cmap='YlOrRd')
 
-    df = load_statsdat(fdat, clean=True)
+    df, __ = load_statsdat(fdat, clean=True)
     plot_dict = get_stats_plot_data(df, zbin, keep_zbin)
 
     numstats = len(df.statname.unique())
     nrows, ncols = 1, numstats
     fig, axs = plt.subplots(nrows, ncols, figsize=(5.0*numstats,4.0))
-    plt.set_cmap('YlOrRd')
-    plt.clim(vmin=0, vmax=4)
 
     for i, (stat, data) in enumerate(plot_dict.items()):
         ax = axs[i] if numstats != 1 else axs
 
         for j in range(len(data['x'])):
-            lbl='lbl'
-            ax.semilogx(data['x'][j], data['y'][j], label=lbl)
+            zj = data['mean_z'][j]
+            lbl = r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+                    zj=zj, zwj=data['z_width'][j], R=data['NR/NG'][j], N=data['numMocks'][j])
+            c = sm.to_rgba(zj)
+            ax.semilogx(data['x'][j], data['y'][j], label=lbl, color=c)
 
         ax.axhline(0, c='0.5')
         ax.grid(which='both')
@@ -69,6 +70,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
                           'numMocks':   # of mocks averaged into data (*)
                           'mean_z':     mean redshift of data (*)
                           'z_width':    mean zbin width of data (*)
+                          'NR/NG':      mean # of randoms per galaxy (*)
                         }
                       }
                                         (*): if zbin=='sep', these are lists of same
@@ -89,7 +91,8 @@ def get_stats_plot_data(df, zbin, keep_zbin):
                             'axlbls': axlbls,
                             'numMocks': [odf_numMocks[stat]],
                             'mean_z': [row.zbin],
-                            'z_width': [row.zwidth]
+                            'z_width': [row.zwidth],
+                            'NR/NG': [int(row.Nrands/row.Ngals)]
                           }
 
     # Get wtheta plot data
@@ -107,11 +110,12 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         numMocks = [len(wtdf)]
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
+        NRNG = [int(wtdf.Nrands.mean()/wtdf.Ngals.mean())]
 
     elif zbin == 'sep':
         zdf_means = wtdf.groupby('zbin').mean() # df
         zdf_numMocks = wtdf.groupby('zbin').size() # series
-        x,y,numMocks,mean_z,z_width = ([] for i in range(5))
+        x,y,numMocks,mean_z,z_width,NRNG = ([] for i in range(6))
         for (z, row) in zdf_means.iterrows():
             row['zbin'] = z # put back for get_bins_stats
             xx, yy, axlbls = get_bins_stats(row, stat)
@@ -120,6 +124,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
             numMocks.append(zdf_numMocks[z])
             mean_z.append(z)
             z_width.append(row.zwidth)
+            NRNG.append(int(row.Nrands/row.Ngals))
 
     else:
         _warn(f'Invalid value for zbin argument')
@@ -129,7 +134,8 @@ def get_stats_plot_data(df, zbin, keep_zbin):
                             'axlbls': axlbls,
                             'numMocks': numMocks,
                             'mean_z': mean_z,
-                            'z_width': z_width
+                            'z_width': z_width,
+                            'NR/NG': NRNG
                           }
 
     return plot_dict
