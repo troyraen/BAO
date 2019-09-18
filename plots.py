@@ -19,7 +19,7 @@ def plot_stats(fdat, cosmo_in=None, save=None, show=True, zbin='avg', keep_zbin=
                        == [n] with n in range(0, num zbins-1) keeps only the nth zbin(s)
     """
     globals()['cosmo'] = cosmo_in # needed for wtheta x-axis conversion
-    sm = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=0, vmax=4), cmap='YlOrRd')
+    sm = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=-0.5, vmax=3.5), cmap='YlOrRd')
 
     df, __ = load_statsdat(fdat, clean=True)
     plot_dict = get_stats_plot_data(df, zbin, keep_zbin)
@@ -82,9 +82,9 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     odf_numMocks = odf.groupby('statname').size() # series
     for (stat, row) in odf_means.iterrows():
         x, y, axlbls = get_bins_stats(row, stat)
-        lbl = r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
-                zj=row.zbin, zwj=row.zwidth/2.,
-                R=int(row.Nrands/row.Ngals), N=odf_numMocks[stat])
+        lbl = (fr'z = {row.zbin:.2f}$\pm${row.zwidth/2.:.2f} '
+               fr'{row.Nrands/row.Ngals:.0f}R '
+               fr'{odf_numMocks[stat]}M')
         plot_dict[stat] = { 'x': [x],
                             'y': [y],
                             'axlbls': axlbls,
@@ -100,7 +100,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
 
     if keep_zbin is not None: # keep only nth zbin
         keepz = list(np.sort(wtdf.zbin.unique())[keep_zbin])
-        wtdf.drop(labels=wtdf.loc[~wtdf['zbin'].isin(keepz)].index, inplace=True)
+        wtdf = wtdf.drop(labels=wtdf.loc[~wtdf['zbin'].isin(keepz)].index)
 
     if zbin == 'avg':
         x, y, axlbls = get_bins_stats(wtdf, stat, avg_zbins=True)
@@ -109,9 +109,9 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         numMocks = [len(wtdf)]
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
-        lbl = [r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
-                zj=mean_z, zwj=z_width/2.,
-                R=int((wtdf.Nrands/wtdf.Ngals).mean()), N=numMocks)]
+        lbl = [(fr'z = {mean_z:.2f}$\pm${z_width/2.:.2f} '
+                fr'{(wtdf.Nrands/wtdf.Ngals).mean()}R '
+                fr'{numMocks}M' )]
 
     elif zbin == 'sep':
         zdf_means = wtdf.groupby('zbin').mean() # df
@@ -125,9 +125,10 @@ def get_stats_plot_data(df, zbin, keep_zbin):
             numMocks.append(zdf_numMocks[z])
             mean_z.append(z)
             z_width.append(row.zwidth)
-            lbl.append(r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
-                         zj=z, zwj=row.zwidth/2.,
-                         R=int(row.Nrands/row.Ngals), N=zdf_numMocks[z]))
+            l = (fr'z = {z:.2f}$\pm${row.zwidth/2.:.2f} '
+                 fr'{row.Nrands/row.Ngals:.0f}R '
+                 fr'{zdf_numMocks[z]}M')
+            lbl.append(l)
 
     else:
         _warn(f'Invalid value for zbin argument')
