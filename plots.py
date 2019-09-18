@@ -140,9 +140,10 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     return plot_dict
 
 
-def get_plotdata_label(z, zwidth, Nrands, Ngals, numMocks):
+def get_plotdata_label(z, zwidth, Nrands, Ngals, numMocks, zavg=False):
 
-    lbl = ( fr'z = {z:.3f}$\pm${zwidth/2.:.3f} '
+    zstr = 'z' if not zavg else '$z_{avg}$'
+    lbl = ( fr'{zstr} = {z:.3f}$\pm${zwidth/2.:.3f} '
             fr'{Nrands/Ngals:.0f}R '
             fr'{numMocks}M'
           )
