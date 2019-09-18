@@ -11,11 +11,10 @@ from Corrfunc.theory.xi import xi
 def calc_stats(param_dict, boxes):
     """
     Args:
-        boxes (dict): keys {gals_PS', 'gals_RDZ', 'rands_PS', 'rands_RDZ'}
+        boxes (dict): keys: 'gals_PS', 'gals_RDZ', 'rands_PS', 'rands_RDZ'
     """
     p = param_dict
 
-    ### Calc stats for each redshift bin
     # wtheta
     if 'wtheta' in p['stats']:
         # precision for get_group('zbin')
@@ -48,12 +47,11 @@ def calc_stats(param_dict, boxes):
     if 'wp' in p['stats']:
         wp = calc_wp(p, gals_PS)
         write_stat_to_file( p, 'wp', wp, rbcens, zmid, zwidth, numgals, 0 )
-    ###
 
     return None
 
 
-
+# this function is also in plots.py
 def get_theta_rp_from_tratio_bins(param_dict, redshift, invert=False):
     """ Converts tratio_binedges from units of theta_BAO(zbin) to degrees
         at given redshift using law of cosines.

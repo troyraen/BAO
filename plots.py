@@ -24,13 +24,14 @@ def plot_stats(fdat, param_dict, save=None, show=True, zbin='avg', keep_zbin=Non
     df = load_statsdat(fdat, clean=True)
     plot_dict = get_stats_plot_data(df, zbin, keep_zbin)
 
-    nrows, ncols = 1, len(df.statname.unique())
-    fig, axs = plt.subplots(nrows, ncols, sharex=False, sharey=False, figsize=(14.0,4.0))
+    numstats = len(df.statname.unique())
+    nrows, ncols = 1, numstats
+    fig, axs = plt.subplots(nrows, ncols, figsize=(5.0*numstats,4.0))
     plt.set_cmap('YlOrRd')
     plt.clim(vmin=0, vmax=4)
 
     for i, (stat, data) in enumerate(plot_dict.items()):
-        ax = axs[i]
+        ax = axs[i] if numstats != 1 else axs
 
         for j in range(len(data['x'])):
             lbl='lbl'
@@ -112,7 +113,8 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         zdf_numMocks = wtdf.groupby('zbin').size() # series
         x,y,numMocks,mean_z,z_width = ([] for i in range(5))
         for (z, row) in zdf_means.iterrows():
-            xx, yy, axlbls = get_bins_stats(row, stat, zzz=z)
+            row['zbin'] = z # put back for get_bins_stats
+            xx, yy, axlbls = get_bins_stats(row, stat)
             x.append(xx)
             y.append(yy)
             numMocks.append(zdf_numMocks[z])
@@ -158,7 +160,14 @@ def load_statsdat(fdat, stat=None, clean=False):
         df = df.query("statname=='{}'".format(stat))
     if clean:
         df = df.query("Ngals>10000")
-    return df
+
+    # get a df without bins and stats
+    cols = set(df.columns.values)
+    bcols = set(df.filter(like='bin_').columns.values)
+    scols = set(df.filter(like='stat_').columns.values)
+    dfmeta = df.loc[:,list(cols-bcols-scols)]
+
+    return df, dfmeta
 
 
 def validate_statmeans_xbins(df, sep_by_zbin=False):
@@ -173,17 +182,20 @@ def validate_statmeans_xbins(df, sep_by_zbin=False):
     else:
         stddf = df.groupby('statname').std()
 
+    # ignore rows of all NaN's (indicates there is only one row in a group)
+    stddf.dropna(axis=0, how='all', inplace=True)
     assert stddf.filter(like='bin_').eq(0).all().all(), errmsg
+
     return None
 
 
-def get_bins_stats(row, stat, avg_zbins=False, zzz=None):
+def get_bins_stats(row, stat, avg_zbins=False):
     """ Returns 2 series plus a x- and y-axis labels.
         x = columns starting with 'bin_'
         y = columns starting with 'stat_'
         Scales y values according to stat.
 
-        if avg_zbins==True, row should be a DataFrame
+        if avg_zbins == True, row should be a DataFrame
     """
 
     # {statname: (xlabel, ylabel)}
@@ -205,7 +217,7 @@ def get_bins_stats(row, stat, avg_zbins=False, zzz=None):
             y = y.mean(axis=0)
             x = get_theta_rp_from_tratio_bins(row.zbin.mean(), x.mean(axis=0), invert=True)
         else:
-            x = get_theta_rp_from_tratio_bins(zzz, x, invert=True)
+            x = get_theta_rp_from_tratio_bins(row.zbin, x, invert=True)
 
     elif stat == 'wp':
         y = x*y
