@@ -32,16 +32,13 @@ def plot_stats(fdat, cosmo_in=None, save=None, show=True, zbin='avg', keep_zbin=
         ax = axs[i] if numstats != 1 else axs
 
         for j in range(len(data['x'])):
-            zj = data['mean_z'][j]
-            lbl = r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
-                    zj=zj, zwj=data['z_width'][j], R=data['NR/NG'][j], N=data['numMocks'][j])
-            c = sm.to_rgba(zj)
-            ax.semilogx(data['x'][j], data['y'][j], label=lbl, color=c)
+            c = sm.to_rgba(data['mean_z'][j])
+            ax.semilogx(data['x'][j], data['y'][j], label=data['lbl'][j], color=c)
 
         ax.axhline(0, c='0.5')
         ax.grid(which='both')
         ax.set_title(stat)
-        ax.legend(title='zbin, Nstk, Nm, NR')
+        ax.legend()
         ax.set_xlabel(data['axlbls'][0])
         ax.set_ylabel(data['axlbls'][1])
 
@@ -64,16 +61,15 @@ def get_stats_plot_data(df, zbin, keep_zbin):
 
     Returns
         plot_dict   : { <statname>:
-                        { 'x':          series of x data (*)
-                          'y':          series of y data (*)
-                          'axlbls':     tuple of x,y axis labels
-                          'numMocks':   # of mocks averaged into data (*)
-                          'mean_z':     mean redshift of data (*)
-                          'z_width':    mean zbin width of data (*)
-                          'NR/NG':      mean # of randoms per galaxy (*)
+                        { 'x'        (list): series of x data
+                          'y'        (list): series of y data
+                          'axlbls'  (tuple): tuple of x,y axis labels
+                          'numMocks' (list): # of mocks averaged into data
+                          'mean_z'   (list): mean redshift of data
+                          'z_width'  (list): mean zbin width of data
+                          'lbl'      (list): plot label for this data
                         }
                       }
-                                        (*): if zbin=='sep', these are lists of same
     """
 
     wtdf = df.loc[df['statname']=='wtheta',:] # df with just wtheta
@@ -86,13 +82,16 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     odf_numMocks = odf.groupby('statname').size() # series
     for (stat, row) in odf_means.iterrows():
         x, y, axlbls = get_bins_stats(row, stat)
+        lbl = r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+                zj=row.zbin, zwj=row.zwidth/2.,
+                R=int(row.Nrands/row.Ngals), N=odf_numMocks[stat])
         plot_dict[stat] = { 'x': [x],
                             'y': [y],
                             'axlbls': axlbls,
                             'numMocks': [odf_numMocks[stat]],
                             'mean_z': [row.zbin],
                             'z_width': [row.zwidth],
-                            'NR/NG': [int(row.Nrands/row.Ngals)]
+                            'lbl': [lbl]
                           }
 
     # Get wtheta plot data
@@ -110,12 +109,14 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         numMocks = [len(wtdf)]
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
-        NRNG = [int(wtdf.Nrands.mean()/wtdf.Ngals.mean())]
+        lbl = [r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+                zj=mean_z, zwj=z_width/2.,
+                R=int((wtdf.Nrands/wtdf.Ngals).mean()), N=numMocks)]
 
     elif zbin == 'sep':
         zdf_means = wtdf.groupby('zbin').mean() # df
         zdf_numMocks = wtdf.groupby('zbin').size() # series
-        x,y,numMocks,mean_z,z_width,NRNG = ([] for i in range(6))
+        x,y,numMocks,mean_z,z_width,lbl = ([] for i in range(6))
         for (z, row) in zdf_means.iterrows():
             row['zbin'] = z # put back for get_bins_stats
             xx, yy, axlbls = get_bins_stats(row, stat)
@@ -124,7 +125,9 @@ def get_stats_plot_data(df, zbin, keep_zbin):
             numMocks.append(zdf_numMocks[z])
             mean_z.append(z)
             z_width.append(row.zwidth)
-            NRNG.append(int(row.Nrands/row.Ngals))
+            lbl.append(r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+                         zj=z, zwj=row.zwidth/2.,
+                         R=int(row.Nrands/row.Ngals), N=zdf_numMocks[z]))
 
     else:
         _warn(f'Invalid value for zbin argument')
@@ -135,7 +138,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
                             'numMocks': numMocks,
                             'mean_z': mean_z,
                             'z_width': z_width,
-                            'NR/NG': NRNG
+                            'lbl': lbl
                           }
 
     return plot_dict
