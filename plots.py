@@ -16,7 +16,7 @@ def plot_stats(fdat, cosmo_in=None, save=None, show=True, zbin='avg', keep_zbin=
         zbin         : == 'avg': averages zbins in wtheta plot
                        == 'sep': plots zbins separately in wtheta plot
         keep_zbin    : == None: keeps all zbins (with enough Ngals) for wtheta plot
-                       == n (int [0, num zbins - 1]) keeps only the nth zbin(s)
+                       == [n] with n in range(0, num zbins-1) keeps only the nth zbin(s)
     """
     globals()['cosmo'] = cosmo_in # needed for wtheta x-axis conversion
     sm = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=0, vmax=4), cmap='YlOrRd')
@@ -99,8 +99,8 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     validate_statmeans_xbins(wtdf, sep_by_zbin=True)
 
     if keep_zbin is not None: # keep only nth zbin
-        keepz = np.sort(wtdf.zbin.unique())[keep_zbin]
-        wtdf.drop(labels=wtdf.loc[wtdf['zbin']!=keepz].index, inplace=True)
+        keepz = list(np.sort(wtdf.zbin.unique())[keep_zbin])
+        wtdf.drop(labels=wtdf.loc[~wtdf['zbin'].isin(keepz)].index, inplace=True)
 
     if zbin == 'avg':
         x, y, axlbls = get_bins_stats(wtdf, stat, avg_zbins=True)
