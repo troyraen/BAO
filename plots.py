@@ -38,7 +38,7 @@ def plot_stats(fdat, cosmo_in=None, save=None, show=True, zbin='avg', keep_zbin=
         ax.axhline(0, c='0.5')
         ax.grid(which='both')
         ax.set_title(stat)
-        ax.legend()
+        ax.legend(loc=3)
         ax.set_xlabel(data['axlbls'][0])
         ax.set_ylabel(data['axlbls'][1])
 
@@ -82,7 +82,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     odf_numMocks = odf.groupby('statname').size() # series
     for (stat, row) in odf_means.iterrows():
         x, y, axlbls = get_bins_stats(row, stat)
-        lbl = r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+        lbl = r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
                 zj=row.zbin, zwj=row.zwidth/2.,
                 R=int(row.Nrands/row.Ngals), N=odf_numMocks[stat])
         plot_dict[stat] = { 'x': [x],
@@ -109,7 +109,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
         numMocks = [len(wtdf)]
         mean_z = [wtdf.zbin.mean()]
         z_width = [wtdf.zwidth.mean()]
-        lbl = [r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+        lbl = [r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
                 zj=mean_z, zwj=z_width/2.,
                 R=int((wtdf.Nrands/wtdf.Ngals).mean()), N=numMocks)]
 
@@ -125,7 +125,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
             numMocks.append(zdf_numMocks[z])
             mean_z.append(z)
             z_width.append(row.zwidth)
-            lbl.append(r'z = {zj:.2f}$\pm${zwj:.2f}. {R} rands. {N} mocks.'.format(
+            lbl.append(r'z = {zj:.2f}$\pm${zwj:.2f} {R}R {N}M'.format(
                          zj=z, zwj=row.zwidth/2.,
                          R=int(row.Nrands/row.Ngals), N=zdf_numMocks[z]))
 
