@@ -59,6 +59,7 @@ pdkeys_sim = { # parameters specific to DM sim
                     ]
                 }
 
+lfstat = ['data/stats_zw03.dat']
 
 # fs*** param_dict DEFAULTS ***#
 
@@ -149,8 +150,8 @@ def proc_mockbox(param_dict={}, fstat_ow=False):
     """
     # Load parameter dictionary for the run
     p = load_param_dict(param_dict)
-    
-    if fstat_ow: file_ow(p['statfout'])
+
+    if type(fstat_ow)==str: file_ow(p['statfout'], suffix=fstat_ow)
 
     # Load galaxy box from DM sim
     gals_PS = gs.get_sim_galaxies(p)
@@ -243,7 +244,7 @@ def get_randoms(param_dict):
     return rands_PS, rands_RDZ
 
 
-def file_ow(fin):
+def file_ow(fin, suffix='date'):
     """ Moves file fin.txt to fin_ow_%m%d%y_%H%M.txt
         Returns the new file name.
     """
@@ -252,12 +253,13 @@ def file_ow(fin):
     fsplit = str(fin).split('.')
     beg, end = '.'.join(fsplit[0:-1]), '.'+fsplit[-1]
 
-    # get date and time to use in new file name
-    dtm = datetime.datetime.now()
-    owdtm = dtm.strftime("_ow_%m%d%y_%H%M")
+    if suffix == 'date':
+        # get date and time to use in new file name
+        dtm = datetime.datetime.now()
+        suffix = dtm.strftime("_ow_%m%d%y_%H%M")
 
     # create new file name
-    fout = beg + owdtm + end
+    fout = beg + suffix + end
 
     # move the file
     print('Moving existing file {0} to {1}'.format(fin, fout))
