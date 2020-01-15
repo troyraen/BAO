@@ -48,7 +48,7 @@ plots.plot_stats(str(p['statfout']), cosmo_in=p['cosmo'], zbin='avg', keep_zbin=
 p = main.load_param_dict(param_dict)
 main.file_ow(p['statfout'], suffix='_zw01')
 
-### Get param_dict with unset params filled with defaults
+# Get param_dict with unset params filled with defaults
 import main as main
 param_dict = {  'sim_name': 'outerrim',
                 'stats': ['wtheta', 'xi', 'wp'],
@@ -56,7 +56,7 @@ param_dict = {  'sim_name': 'outerrim',
 p = main.load_param_dict(param_dict)
 
 
-## Load halo catalog
+# Load halo catalog
 import main as main
 import get_sim as gs
 p = main.load_param_dict({'sim_name':'multidark'})

@@ -1,14 +1,22 @@
+# To Do
+- Understand each correlation fnc and how corrfunc calculates them
+- What affects noise vs. signal strength? (zbin width, Nrands, halo downsampling)
+    - try several values and make plots
+- Jackknife or bootstrap to estimate errors
+- Calc wp Rongpu's way (LRG clustering paper)
+- consider getting rid of halos with mass less than Mmin - a few * sigma_logM
+- Dark setup
+
+# Dark setup status 9/18
+i think genericio has installed correctly
+conda halotools_env will not install. probably a lack of space issue
+use `scl enable devtoolset-8 bash` to install with GCC 8
+
 # Jeff 9/17
 can bootstrap spacial regions (as opposed to objects)
  - only need to calculate pair counts in each region once, then combine based on bootstrap draws (with replacement)
  - try zwidth = 0.05. if still don't see signal in wtheta, can just use wp but calc this same way Rongpu does... use buffer regions to eliminate finger of god and keiser effect issues (this is what's blurring out signal in wtheta.. angle -> distance different at front of bin than back of bin.). get cross correlations (D1D2, D1R2, D2R1, R1R2) where 1 and 2 are different redshift bins.
-
-# Dark setup status 9/6
-genericio may or may not have installed correctly
-halotools will not install. possibly a gcc issue
-most recently tried `conda install -c psi4 gcc-5 ` but that failed.
-could try installing psi4 separately first.
-First try installing devtoolset
+ - try zwidth = 0.3 but with HOD_params lookup according to sim_redshift (done, no difference)
 
 # Andrew 9/13
 see if wtheta without last (last few?) zbins is less noisy (done, yes much less noisy)
@@ -17,25 +25,12 @@ estimate errors.
     - jackknife - how does covariance vary as fnc of jackknife cell size
     - see if halotools correlation functions give similar results
 
-
 # Andrew 9/6
 CMB and BBN tightly constrain w_b
 w_b = Omega_b*h^2
 uncertainty in w_b is mostly from cosmic variance, it is less than 1%
-
 consider getting rid of halos with mass less than Mmin - a few * sigma_logM
-downsampling should give
 
-# Initiate a Korriban session
-```bash
-printf "\e[?2004l" # turns off "bracketed paste mode" for correct copy-paste
-source .bashrc
-mounto
-cd Documents/BAO
-htenv
-ipython
-# source activate halotools_env
-```
 
 <!-- fs Outer Rim -->
 # Outer Rim Simulation Info
@@ -189,12 +184,7 @@ cd ${OGdir}
 ```
 <!-- fe Conda Environment Setup -->
 
-<!-- fs Update GCC on Dark -->
-Dark: Scientific Linux 6.10
-```python
-
-```
-<!-- fe Update GCC on Dark -->
 
 # Dark
+Scientific Linux 6.10
 LLuxsfM7ShPzRXFnW86k3CkTUZrAfJqeN5HK9KLc9mhDPtkS

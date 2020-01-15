@@ -59,7 +59,6 @@ pdkeys_sim = { # parameters specific to DM sim
                     ]
                 }
 
-lfstat = ['data/stats_zw03.dat']
 
 # fs*** param_dict DEFAULTS ***#
 
@@ -122,7 +121,7 @@ statfout = Path(__file__).resolve().parent / 'data/stats.dat' # file to write st
 theta_scaled_min = 0.05 # degrees/theta_bao. min separation to calc wtheta
 theta_scaled_max = 2. # degrees/theta_bao. max separation to calc wtheta
 theta_scaled_Nbins = 50 # number of theta bins for wtheta calculation
-zbin_width = 0.3 # wtheta redshift bins
+zbin_width = 0.05 # wtheta redshift bins
 
 # Misc
 galplots = False # whether to plot galaxies while obtaining/transforming
@@ -256,7 +255,7 @@ def file_ow(fin, suffix='date'):
     if suffix == 'date':
         # get date and time to use in new file name
         dtm = datetime.datetime.now()
-        suffix = dtm.strftime("_ow_%m%d%y_%H%M")
+        suffix = dtm.strftime("_ow_%y%m%d_%H%M")
 
     # create new file name
     fout = beg + suffix + end

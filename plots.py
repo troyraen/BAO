@@ -96,7 +96,7 @@ def get_stats_plot_data(df, zbin, keep_zbin):
     stat = 'wtheta'
     validate_statmeans_xbins(wtdf, sep_by_zbin=True)
 
-    if keep_zbin is not None: # keep only nth zbin
+    if keep_zbin is not None: # keep only nth zbin(s)
         keepz = list(np.sort(wtdf.zbin.unique())[keep_zbin])
         wtdf = wtdf.drop(labels=wtdf.loc[~wtdf['zbin'].isin(keepz)].index)
 
