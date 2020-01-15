@@ -187,4 +187,5 @@ cd ${OGdir}
 
 # Dark
 Scientific Linux 6.10
-ssh <username>@dark.phyast.pitt.edu
+
+ssh \<username\>@dark.phyast.pitt.edu
